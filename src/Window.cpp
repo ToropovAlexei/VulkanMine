@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "GLFW/glfw3.h"
+#include <stdexcept>
 
 Window::Window(int width, int height, std::string windowName)
     : width(width), height(height), windowName(windowName) {
@@ -17,4 +18,11 @@ void Window::initWindow() {
 Window::~Window() {
   glfwDestroyWindow(window);
   glfwTerminate();
+}
+
+void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {
+  if (glfwCreateWindowSurface(instance, window, nullptr, surface) !=
+      VK_SUCCESS) {
+    throw std::runtime_error("failed to create window surface!");
+  }
 }

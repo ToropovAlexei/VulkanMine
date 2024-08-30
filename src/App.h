@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Graphics/GfxDevice.hpp"
 #include "Graphics/GfxPipeline.h"
 #include "Window.h"
 
@@ -13,6 +14,9 @@ public:
 
 private:
   Window window{WIDTH, HEIGHT, "Vulkan"};
-  GfxPipeline gfxPipeline{"shaders/simple_shader.vert.spv",
-                          "shaders/simple_shader.frag.spv"};
+  GfxDevice gfxDevice{window};
+  GfxPipeline gfxPipeline{
+      gfxDevice, "shaders/simple_shader.vert.spv",
+      "shaders/simple_shader.frag.spv",
+      GfxPipeline::defaultGfxPipelineConfigInfo(WIDTH, HEIGHT)};
 };
