@@ -1,9 +1,11 @@
 #include "App.h"
+#include "Graphics/GfxModel.hpp"
 #include "Graphics/GfxPipeline.h"
 #include <array>
 #include <vulkan/vulkan_core.h>
 
 App::App() {
+  loadModels();
   createPipelineLayout();
   createPipeline();
   createCommandBuffers();
@@ -20,6 +22,16 @@ void App::run() {
   }
 
   vkDeviceWaitIdle(gfxDevice.device());
+}
+
+void App::loadModels() {
+  std::vector<GfxModel::Vertex> vertices = {
+      {{0.0f, -0.5f}},
+      {{0.5f, 0.5f}},
+      {{-0.5f, 0.5f}},
+  };
+
+  gfxModel = std::make_unique<GfxModel>(gfxDevice, vertices);
 }
 
 void App::createPipelineLayout() {
@@ -87,7 +99,8 @@ void App::createCommandBuffers() {
                          VK_SUBPASS_CONTENTS_INLINE);
 
     gfxPipeline->bind(commandBuffers[i]);
-    vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+    gfxModel->bind(commandBuffers[i]);
+    gfxModel->draw(commandBuffers[i]);
 
     vkCmdEndRenderPass(commandBuffers[i]);
 

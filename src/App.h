@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Graphics/GfxDevice.hpp"
+#include "Graphics/GfxModel.hpp"
 #include "Graphics/GfxPipeline.h"
 #include "Graphics/GfxSwapChain.hpp"
 #include "Window.h"
@@ -25,6 +26,7 @@ public:
   static const int HEIGHT = 600;
 
 private:
+  void loadModels();
   void createPipelineLayout();
   void createPipeline();
   void createCommandBuffers();
@@ -37,4 +39,5 @@ private:
   std::unique_ptr<GfxPipeline> gfxPipeline;
   VkPipelineLayout pipelineLayout;
   std::vector<VkCommandBuffer> commandBuffers;
+  std::unique_ptr<GfxModel> gfxModel;
 };
