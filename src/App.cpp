@@ -49,8 +49,8 @@ void App::createPipelineLayout() {
 }
 
 void App::createPipeline() {
-  auto pipelineConfig = GfxPipeline::defaultGfxPipelineConfigInfo(
-      gfxSwapChain->width(), gfxSwapChain->height());
+  GfxPipelineConfigInfo pipelineConfig{};
+  GfxPipeline::defaultGfxPipelineConfigInfo(pipelineConfig);
 
   pipelineConfig.renderPass = gfxSwapChain->getRenderPass();
   pipelineConfig.pipelineLayout = pipelineLayout;
@@ -69,7 +69,18 @@ void App::recreateSwapChain() {
 
   vkDeviceWaitIdle(gfxDevice.device());
 
-  gfxSwapChain = std::make_unique<GfxSwapChain>(gfxDevice, extent);
+  if (gfxSwapChain == nullptr) {
+    gfxSwapChain = std::make_unique<GfxSwapChain>(gfxDevice, extent);
+  } else {
+    gfxSwapChain = std::make_unique<GfxSwapChain>(gfxDevice, extent,
+                                                  std::move(gfxSwapChain));
+
+    if (gfxSwapChain->imageCount() == commandBuffers.size()) {
+      freeCommandBuffers();
+      createCommandBuffers();
+    }
+  }
+
   createPipeline();
 }
 
@@ -86,6 +97,13 @@ void App::createCommandBuffers() {
                                commandBuffers.data()) != VK_SUCCESS) {
     throw std::runtime_error("failed to allocate command buffers!");
   }
+}
+
+void App::freeCommandBuffers() {
+  vkFreeCommandBuffers(gfxDevice.device(), gfxDevice.getCommandPool(),
+                       static_cast<uint32_t>(commandBuffers.size()),
+                       commandBuffers.data());
+  commandBuffers.clear();
 }
 
 void App::recordCommandBuffer(int imageIndex) {
@@ -114,6 +132,18 @@ void App::recordCommandBuffer(int imageIndex) {
 
   vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
+
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(gfxSwapChain->getSwapChainExtent().width);
+  viewport.height =
+      static_cast<float>(gfxSwapChain->getSwapChainExtent().height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  VkRect2D scissor{{0, 0}, gfxSwapChain->getSwapChainExtent()};
+  vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
+  vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
   gfxPipeline->bind(commandBuffers[imageIndex]);
   gfxModel->bind(commandBuffers[imageIndex]);

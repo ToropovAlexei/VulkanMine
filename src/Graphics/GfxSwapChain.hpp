@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GfxDevice.hpp"
+#include <memory>
 #include <vector>
 #include <vulkan/vulkan.h>
 
@@ -9,6 +10,8 @@ public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   GfxSwapChain(GfxDevice &deviceRef, VkExtent2D windowExtent);
+  GfxSwapChain(GfxDevice &deviceRef, VkExtent2D windowExtent,
+               std::shared_ptr<GfxSwapChain> previousSwapChain);
   ~GfxSwapChain();
 
   VkFramebuffer getFrameBuffer(int index) {
@@ -33,6 +36,7 @@ public:
                                 uint32_t *imageIndex);
 
 private:
+  void init();
   void createSwapChain();
   void createImageViews();
   void createDepthResources();
@@ -62,6 +66,7 @@ private:
   VkExtent2D windowExtent;
 
   VkSwapchainKHR swapChain;
+  std::shared_ptr<GfxSwapChain> oldSwapChain;
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;

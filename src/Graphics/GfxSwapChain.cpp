@@ -10,6 +10,18 @@
 
 GfxSwapChain::GfxSwapChain(GfxDevice &deviceRef, VkExtent2D extent)
     : device{deviceRef}, windowExtent{extent} {
+  init();
+}
+
+GfxSwapChain::GfxSwapChain(GfxDevice &deviceRef, VkExtent2D extent,
+                           std::shared_ptr<GfxSwapChain> previousSwapChain)
+    : device{deviceRef}, windowExtent{extent}, oldSwapChain{previousSwapChain} {
+  init();
+
+  oldSwapChain = nullptr;
+}
+
+void GfxSwapChain::init() {
   createSwapChain();
   createImageViews();
   createRenderPass();
@@ -158,7 +170,8 @@ void GfxSwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain =
+      oldSwapChain ? oldSwapChain->swapChain : VK_NULL_HANDLE;
 
   if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) !=
       VK_SUCCESS) {
