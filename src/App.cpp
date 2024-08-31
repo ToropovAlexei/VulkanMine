@@ -26,9 +26,9 @@ void App::run() {
 
 void App::loadModels() {
   std::vector<GfxModel::Vertex> vertices = {
-      {{0.0f, -0.5f}},
-      {{0.5f, 0.5f}},
-      {{-0.5f, 0.5f}},
+      {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+      {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+      {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
   };
 
   gfxModel = std::make_unique<GfxModel>(gfxDevice, vertices);

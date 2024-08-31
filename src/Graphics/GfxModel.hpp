@@ -10,6 +10,7 @@ class GfxModel {
 public:
   struct Vertex {
     glm::vec2 pos;
+    glm::vec3 color;
 
     static std::vector<VkVertexInputBindingDescription>
     getBindingDescriptions();
