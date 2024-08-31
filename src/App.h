@@ -2,10 +2,22 @@
 
 #include "Graphics/GfxDevice.hpp"
 #include "Graphics/GfxPipeline.h"
+#include "Graphics/GfxSwapChain.hpp"
 #include "Window.h"
+#include <memory>
+#include <vector>
+#include <vulkan/vulkan_core.h>
 
 class App {
 public:
+  App();
+  ~App();
+
+  App(const App &) = delete;
+  App &operator=(const App &) = delete;
+  App(App &&) = delete;
+  App &operator=(App &&) = delete;
+
   void run();
 
 public:
@@ -13,10 +25,16 @@ public:
   static const int HEIGHT = 600;
 
 private:
+  void createPipelineLayout();
+  void createPipeline();
+  void createCommandBuffers();
+  void drawFrame();
+
+private:
   Window window{WIDTH, HEIGHT, "Vulkan"};
   GfxDevice gfxDevice{window};
-  GfxPipeline gfxPipeline{
-      gfxDevice, "shaders/simple_shader.vert.spv",
-      "shaders/simple_shader.frag.spv",
-      GfxPipeline::defaultGfxPipelineConfigInfo(WIDTH, HEIGHT)};
+  GfxSwapChain gfxSwapChain{gfxDevice, window.getExtent()};
+  std::unique_ptr<GfxPipeline> gfxPipeline;
+  VkPipelineLayout pipelineLayout;
+  std::vector<VkCommandBuffer> commandBuffers;
 };
