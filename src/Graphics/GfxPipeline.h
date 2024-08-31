@@ -5,7 +5,7 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-struct GfxPipelineConfigInfo {
+struct GfxPipelineConfigInfo : NonCopyable {
   VkViewport viewport;
   VkRect2D scissor;
   VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;

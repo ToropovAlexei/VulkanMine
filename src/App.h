@@ -27,11 +27,13 @@ private:
   void createPipeline();
   void createCommandBuffers();
   void drawFrame();
+  void recreateSwapChain();
+  void recordCommandBuffer(int imageIndex);
 
 private:
   Window window{WIDTH, HEIGHT, "Vulkan"};
   GfxDevice gfxDevice{window};
-  GfxSwapChain gfxSwapChain{gfxDevice, window.getExtent()};
+  std::unique_ptr<GfxSwapChain> gfxSwapChain;
   std::unique_ptr<GfxPipeline> gfxPipeline;
   VkPipelineLayout pipelineLayout;
   std::vector<VkCommandBuffer> commandBuffers;
