@@ -4,17 +4,12 @@
 #include <vector>
 #include <vulkan/vulkan.h>
 
-class GfxSwapChain {
+class GfxSwapChain : NonCopyable {
 public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   GfxSwapChain(GfxDevice &deviceRef, VkExtent2D windowExtent);
   ~GfxSwapChain();
-
-  GfxSwapChain(const GfxSwapChain &) = delete;
-  void operator=(const GfxSwapChain &) = delete;
-  GfxSwapChain(GfxSwapChain &&) = delete;
-  GfxSwapChain &operator=(GfxSwapChain &&) = delete;
 
   VkFramebuffer getFrameBuffer(int index) {
     return swapChainFramebuffers[index];

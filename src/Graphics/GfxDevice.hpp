@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Window.h"
+#include "../utils/NonCopyable.hpp"
 
 #include <vector>
 
@@ -18,7 +19,7 @@ struct QueueFamilyIndices {
   bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
 };
 
-class GfxDevice {
+class GfxDevice : NonCopyable {
 public:
 #ifdef NDEBUG
   const bool enableValidationLayers = false;
@@ -28,12 +29,6 @@ public:
 
   GfxDevice(Window &window);
   ~GfxDevice();
-
-  // Not copyable or movable
-  GfxDevice(const GfxDevice &) = delete;
-  void operator=(const GfxDevice &) = delete;
-  GfxDevice(GfxDevice &&) = delete;
-  GfxDevice &operator=(GfxDevice &&) = delete;
 
   VkCommandPool getCommandPool() { return commandPool; }
   VkDevice device() { return device_; }

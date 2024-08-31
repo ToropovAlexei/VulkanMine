@@ -5,19 +5,15 @@
 #include "Graphics/GfxPipeline.h"
 #include "Graphics/GfxSwapChain.hpp"
 #include "Window.h"
+#include "utils/NonCopyable.hpp"
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-class App {
+class App : NonCopyable {
 public:
   App();
   ~App();
-
-  App(const App &) = delete;
-  App &operator=(const App &) = delete;
-  App(App &&) = delete;
-  App &operator=(App &&) = delete;
 
   void run();
 

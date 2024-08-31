@@ -6,7 +6,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-class GfxModel {
+class GfxModel : NonCopyable {
 public:
   struct Vertex {
     glm::vec2 pos;
@@ -20,11 +20,6 @@ public:
 
   GfxModel(GfxDevice &gfxDevice, const std::vector<Vertex> &vertices);
   ~GfxModel();
-
-  GfxModel(const GfxModel &) = delete;
-  GfxModel &operator=(const GfxModel &) = delete;
-  GfxModel(GfxModel &&) = delete;
-  GfxModel &operator=(GfxModel &&) = delete;
 
   void bind(VkCommandBuffer commandBuffer);
   void draw(VkCommandBuffer commandBuffer);

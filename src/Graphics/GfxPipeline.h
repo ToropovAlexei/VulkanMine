@@ -19,17 +19,13 @@ struct GfxPipelineConfigInfo {
   uint32_t subpass = 0;
 };
 
-class GfxPipeline {
+class GfxPipeline : NonCopyable {
 public:
   GfxPipeline(GfxDevice &gfxDevice, const std::string &vertFilePath,
               const std::string &fragFilePath,
               const GfxPipelineConfigInfo &configInfo);
 
   ~GfxPipeline();
-  GfxPipeline(const GfxPipeline &) = delete;
-  GfxPipeline &operator=(const GfxPipeline &) = delete;
-  GfxPipeline(GfxPipeline &&) = delete;
-  GfxPipeline &operator=(GfxPipeline &&) = delete;
 
   static GfxPipelineConfigInfo defaultGfxPipelineConfigInfo(uint32_t width,
                                                             uint32_t height);
