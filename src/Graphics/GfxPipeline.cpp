@@ -123,7 +123,7 @@ GfxPipeline::defaultGfxPipelineConfigInfo(uint32_t width, uint32_t height) {
 
   configInfo.inputAssemblyInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-  configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+  configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
   configInfo.viewport.x = 0.0f;
@@ -197,4 +197,9 @@ GfxPipeline::defaultGfxPipelineConfigInfo(uint32_t width, uint32_t height) {
   configInfo.depthStencilInfo.back = {};  // Optional
 
   return configInfo;
+}
+
+void GfxPipeline::bind(VkCommandBuffer commandBuffer) {
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    graphicsPipeline);
 }
