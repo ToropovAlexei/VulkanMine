@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(GLFW_BUILD_WAYLAND ON)
 set(GLFW_BUILD_X11 OFF)
+# option(TRACY_ENABLE "" ON)
+# option(TRACY_ON_DEMAND "" ON)
 
 FetchContent_Declare(
     glfw
@@ -23,16 +25,26 @@ FetchContent_Declare(
 	GIT_TAG 	bf71a834948186f4097caa076cd2663c69a10e1e #refs/tags/1.0.1
 )
 
+# FetchContent_Declare (
+#   tracy
+#   GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+#   GIT_TAG v0.11.0
+#   GIT_SHALLOW TRUE
+#   GIT_PROGRESS TRUE
+# )
+
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
 
 FetchContent_MakeAvailable(glm glfw)
+# FetchContent_MakeAvailable(glm glfw tracy)
 
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES})
+# target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
 
 add_custom_command(
   TARGET ${PROJECT_NAME}
