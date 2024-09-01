@@ -75,7 +75,7 @@ void App::recreateSwapChain() {
     gfxSwapChain = std::make_unique<GfxSwapChain>(gfxDevice, extent,
                                                   std::move(gfxSwapChain));
 
-    if (gfxSwapChain->imageCount() == commandBuffers.size()) {
+    if (gfxSwapChain->imageCount() != commandBuffers.size()) {
       freeCommandBuffers();
       createCommandBuffers();
     }
