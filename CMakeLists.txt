@@ -43,6 +43,8 @@ file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
+add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
+
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES})
 # target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
 
