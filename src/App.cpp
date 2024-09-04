@@ -1,16 +1,20 @@
 #include "App.h"
 #include "Graphics/GfxModel.hpp"
 #include "Graphics/GfxPipeline.h"
+#include "glm/fwd.hpp"
 #include <array>
+#include <glm/gtc/constants.hpp>
+#include <memory>
 #include <vulkan/vulkan_core.h>
 
 struct PushConstantData {
+  glm::mat2 transform{1.0f};
   glm::vec2 offset;
   alignas(16) glm::vec3 color;
 };
 
 App::App() {
-  loadModels();
+  loadGameObjects();
   createPipelineLayout();
   recreateSwapChain();
   createCommandBuffers();
@@ -29,14 +33,23 @@ void App::run() {
   vkDeviceWaitIdle(gfxDevice.device());
 }
 
-void App::loadModels() {
+void App::loadGameObjects() {
   std::vector<GfxModel::Vertex> vertices = {
       {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
       {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
       {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
   };
 
-  gfxModel = std::make_unique<GfxModel>(gfxDevice, vertices);
+  auto gfxModel = std::make_shared<GfxModel>(gfxDevice, vertices);
+
+  auto triangle = GameObject::createGameObject();
+  triangle.model = gfxModel;
+  triangle.color = {0.0f, 1.0f, 0.0f};
+  triangle.transform2d.translation.x = 0.2f;
+  triangle.transform2d.scale = {2.0f, 2.0f};
+  triangle.transform2d.rotation = glm::half_pi<float>();
+
+  gameObjects.push_back(std::move(triangle));
 }
 
 void App::createPipelineLayout() {
@@ -161,20 +174,8 @@ void App::recordCommandBuffer(int imageIndex) {
   vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
 
   gfxPipeline->bind(commandBuffers[imageIndex]);
-  gfxModel->bind(commandBuffers[imageIndex]);
 
-  for (int j = 0; j < 4; j++) {
-    PushConstantData push{
-        .offset = {0.0f, -0.4f + 0.25f * j},
-        .color = {0.0f, 0.0f, 0.2f + 0.2f * j},
-    };
-
-    vkCmdPushConstants(commandBuffers[imageIndex], pipelineLayout,
-                       VK_SHADER_STAGE_VERTEX_BIT |
-                           VK_SHADER_STAGE_FRAGMENT_BIT,
-                       0, sizeof(PushConstantData), &push);
-    gfxModel->draw(commandBuffers[imageIndex]);
-  }
+  renderGameObjects(commandBuffers[imageIndex]);
 
   vkCmdEndRenderPass(commandBuffers[imageIndex]);
 
@@ -207,5 +208,24 @@ void App::drawFrame() {
   }
   if (result != VK_SUCCESS) {
     throw std::runtime_error("failed to present swap chain image!");
+  }
+}
+
+void App::renderGameObjects(VkCommandBuffer commandBuffer) {
+  gfxPipeline->bind(commandBuffer);
+
+  for (auto &gameObject : gameObjects) {
+    PushConstantData push{
+        .transform = gameObject.transform2d.mat2(),
+        .offset = gameObject.transform2d.translation,
+        .color = gameObject.color,
+    };
+
+    vkCmdPushConstants(commandBuffer, pipelineLayout,
+                       VK_SHADER_STAGE_VERTEX_BIT |
+                           VK_SHADER_STAGE_FRAGMENT_BIT,
+                       0, sizeof(PushConstantData), &push);
+    gameObject.model->bind(commandBuffer);
+    gameObject.model->draw(commandBuffer);
   }
 }

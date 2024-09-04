@@ -1,7 +1,7 @@
 #pragma once
 
+#include "GameObject.hpp"
 #include "Graphics/GfxDevice.hpp"
-#include "Graphics/GfxModel.hpp"
 #include "Graphics/GfxPipeline.h"
 #include "Graphics/GfxSwapChain.hpp"
 #include "Window.h"
@@ -22,7 +22,7 @@ public:
   static const int HEIGHT = 600;
 
 private:
-  void loadModels();
+  void loadGameObjects();
   void createPipelineLayout();
   void createPipeline();
   void createCommandBuffers();
@@ -30,6 +30,7 @@ private:
   void drawFrame();
   void recreateSwapChain();
   void recordCommandBuffer(int imageIndex);
+  void renderGameObjects(VkCommandBuffer commandBuffer);
 
 private:
   Window window{WIDTH, HEIGHT, "Vulkan"};
@@ -38,5 +39,5 @@ private:
   std::unique_ptr<GfxPipeline> gfxPipeline;
   VkPipelineLayout pipelineLayout;
   std::vector<VkCommandBuffer> commandBuffers;
-  std::unique_ptr<GfxModel> gfxModel;
+  std::vector<GameObject> gameObjects;
 };
