@@ -87,11 +87,12 @@ void App::recreateSwapChain() {
 void App::createCommandBuffers() {
   commandBuffers.resize(gfxSwapChain->imageCount());
 
-  VkCommandBufferAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-  allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandPool = gfxDevice.getCommandPool();
-  allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+  VkCommandBufferAllocateInfo allocInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = gfxDevice.getCommandPool(),
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = static_cast<uint32_t>(commandBuffers.size()),
+  };
 
   if (vkAllocateCommandBuffers(gfxDevice.device(), &allocInfo,
                                commandBuffers.data()) != VK_SUCCESS) {
@@ -108,39 +109,42 @@ void App::freeCommandBuffers() {
 
 void App::recordCommandBuffer(int imageIndex) {
 
-  VkCommandBufferBeginInfo beginInfo{};
-  beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  VkCommandBufferBeginInfo beginInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+  };
 
   if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to begin recording command buffer!");
   }
 
-  VkRenderPassBeginInfo renderPassInfo{};
-  renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-  renderPassInfo.renderPass = gfxSwapChain->getRenderPass();
-  renderPassInfo.framebuffer = gfxSwapChain->getFrameBuffer(imageIndex);
-  renderPassInfo.renderArea.offset = {0, 0};
-  renderPassInfo.renderArea.extent = gfxSwapChain->getSwapChainExtent();
-
   std::array<VkClearValue, 2> clearValues{};
   clearValues[0].color = {{0.1f, 0.1f, 0.1f, 1.0f}};
   clearValues[1].depthStencil = {1.0f, 0};
 
-  renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-  renderPassInfo.pClearValues = clearValues.data();
+  VkRenderPassBeginInfo renderPassInfo{
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      .renderPass = gfxSwapChain->getRenderPass(),
+      .framebuffer = gfxSwapChain->getFrameBuffer(imageIndex),
+      .renderArea =
+          {
+              .offset = {0, 0},
+              .extent = gfxSwapChain->getSwapChainExtent(),
+          },
+      .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+      .pClearValues = clearValues.data(),
+  };
 
   vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderPassInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
 
-  VkViewport viewport{};
-  viewport.x = 0.0f;
-  viewport.y = 0.0f;
-  viewport.width = static_cast<float>(gfxSwapChain->getSwapChainExtent().width);
-  viewport.height =
-      static_cast<float>(gfxSwapChain->getSwapChainExtent().height);
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
+  VkViewport viewport{
+      .x = 0.0f,
+      .y = 0.0f,
+      .width = static_cast<float>(gfxSwapChain->getSwapChainExtent().width),
+      .height = static_cast<float>(gfxSwapChain->getSwapChainExtent().height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f};
   VkRect2D scissor{{0, 0}, gfxSwapChain->getSwapChainExtent()};
   vkCmdSetViewport(commandBuffers[imageIndex], 0, 1, &viewport);
   vkCmdSetScissor(commandBuffers[imageIndex], 0, 1, &scissor);
