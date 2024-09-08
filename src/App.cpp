@@ -99,7 +99,7 @@ std::unique_ptr<GfxModel> createCubeModel(GfxDevice &device, glm::vec3 offset) {
 
 void App::loadGameObjects() {
   std::shared_ptr<GfxModel> model =
-      createCubeModel(gfxDevice, glm::vec3(0.0f, 0.0f, 0.0f));
+      GfxModel::createGfxModelFromFile(gfxDevice, "models/smooth_vase.obj");
 
   auto cube = GameObject::createGameObject();
   cube.model = model;
