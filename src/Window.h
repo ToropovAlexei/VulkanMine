@@ -16,6 +16,8 @@ public:
   bool wasWindowResized() { return framebufferResized; }
   void resetWindowResizedFlag() { framebufferResized = false; }
 
+  GLFWwindow *getGLFWwindow() const { return window; }
+
 private:
   static void framebufferResizeCallback(GLFWwindow *window, int width,
                                         int height);

@@ -1,7 +1,9 @@
 #include "App.h"
 #include "Graphics/GfxDevice.hpp"
 #include "Graphics/GfxModel.hpp"
+#include "KeyboardMovementController.hpp"
 #include "glm/fwd.hpp"
+#include <chrono>
 #include <glm/gtc/constants.hpp>
 #include <memory>
 #include <vulkan/vulkan_core.h>
@@ -11,8 +13,24 @@ App::App() { loadGameObjects(); }
 void App::run() {
   Camera camera{};
 
+  auto currentTime = std::chrono::high_resolution_clock::now();
+  auto viewerObject = GameObject::createGameObject();
+  KeyboardMovementController cameraController{};
+
   while (!window.shouldClose()) {
     glfwPollEvents();
+
+    auto newTime = std::chrono::high_resolution_clock::now();
+    float frameTime =
+        std::chrono::duration<float, std::chrono::seconds::period>(newTime -
+                                                                   currentTime)
+            .count();
+    currentTime = newTime;
+
+    cameraController.moveInPlaneXZ(window.getGLFWwindow(), frameTime,
+                                   viewerObject);
+    camera.setViewYXZ(viewerObject.transform.translation,
+                      viewerObject.transform.rotation);
 
     float aspectRatio = renderer.getAspectRatio();
 

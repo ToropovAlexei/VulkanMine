@@ -1,6 +1,4 @@
 #include "SimpleRenderSystem.hpp"
-#include "glm/common.hpp"
-#include "glm/gtc/constants.hpp"
 
 struct PushConstantData {
   glm::mat4 transform{1.0f};
@@ -26,10 +24,6 @@ void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
   auto projectionView = camera.getProjection() * camera.getView();
 
   for (auto &gameObject : gameObjects) {
-    gameObject.transform.rotation.y = glm::mod(
-        gameObject.transform.rotation.y + 0.0001f, glm::two_pi<float>());
-    gameObject.transform.rotation.x = glm::mod(
-        gameObject.transform.rotation.x + 0.00005f, glm::two_pi<float>());
     PushConstantData push{
         .transform = projectionView * gameObject.transform.mat4(),
         .color = gameObject.color,
