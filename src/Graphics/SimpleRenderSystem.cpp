@@ -18,8 +18,9 @@ SimpleRenderSystem::~SimpleRenderSystem() {
   vkDestroyPipelineLayout(gfxDevice.device(), pipelineLayout, nullptr);
 }
 
-void SimpleRenderSystem::renderGameObjects(
-    VkCommandBuffer commandBuffer, std::vector<GameObject> &gameObjects) {
+void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
+                                           std::vector<GameObject> &gameObjects,
+                                           const Camera &camera) {
   gfxPipeline->bind(commandBuffer);
 
   for (auto &gameObject : gameObjects) {
@@ -28,7 +29,7 @@ void SimpleRenderSystem::renderGameObjects(
     gameObject.transform.rotation.x = glm::mod(
         gameObject.transform.rotation.x + 0.00005f, glm::two_pi<float>());
     PushConstantData push{
-        .transform = gameObject.transform.mat4(),
+        .transform = camera.getProjection() * gameObject.transform.mat4(),
         .color = gameObject.color,
     };
 

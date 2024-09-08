@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Camera.hpp"
 #include "../GameObject.hpp"
 #include "../utils/NonCopyable.hpp"
 #include "GfxDevice.hpp"
@@ -14,7 +15,8 @@ public:
   ~SimpleRenderSystem();
 
   void renderGameObjects(VkCommandBuffer commandBuffer,
-                         std::vector<GameObject> &gameObjects);
+                         std::vector<GameObject> &gameObjects,
+                         const Camera &camera);
 
 private:
   void createPipelineLayout();

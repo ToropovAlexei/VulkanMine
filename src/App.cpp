@@ -9,11 +9,18 @@
 App::App() { loadGameObjects(); }
 
 void App::run() {
+  Camera camera{};
+
   while (!window.shouldClose()) {
     glfwPollEvents();
+
+    float aspectRatio = renderer.getAspectRatio();
+
+    camera.setPerspectiveProjection(glm::radians(50.0f), aspectRatio, 0.1f,
+                                    10.0f);
     if (auto commandBuffer = renderer.beginFrame()) {
       renderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects);
+      simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
       renderer.endSwapChainRenderPass(commandBuffer);
       renderer.endFrame();
     }
@@ -86,7 +93,7 @@ void App::loadGameObjects() {
 
   auto cube = GameObject::createGameObject();
   cube.model = model;
-  cube.transform.translation = {0.0f, 0.0f, 0.5f};
+  cube.transform.translation = {0.0f, 0.0f, 2.5f};
   cube.transform.scale = {0.5f, 0.5f, 0.5f};
   gameObjects.push_back(std::move(cube));
 }
