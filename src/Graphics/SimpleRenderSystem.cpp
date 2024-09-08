@@ -1,8 +1,9 @@
 #include "SimpleRenderSystem.hpp"
+#include "glm/common.hpp"
+#include "glm/gtc/constants.hpp"
 
 struct PushConstantData {
-  glm::mat2 transform{1.0f};
-  glm::vec2 offset;
+  glm::mat4 transform{1.0f};
   alignas(16) glm::vec3 color;
 };
 
@@ -22,9 +23,12 @@ void SimpleRenderSystem::renderGameObjects(
   gfxPipeline->bind(commandBuffer);
 
   for (auto &gameObject : gameObjects) {
+    gameObject.transform.rotation.y = glm::mod(
+        gameObject.transform.rotation.y + 0.0001f, glm::two_pi<float>());
+    gameObject.transform.rotation.x = glm::mod(
+        gameObject.transform.rotation.x + 0.00005f, glm::two_pi<float>());
     PushConstantData push{
-        .transform = gameObject.transform2d.mat2(),
-        .offset = gameObject.transform2d.translation,
+        .transform = gameObject.transform.mat4(),
         .color = gameObject.color,
     };
 
