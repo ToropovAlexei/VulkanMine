@@ -1,7 +1,9 @@
 #include "Renderer.hpp"
+#include "GfxSwapChain.hpp"
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <memory>
 #include <vulkan/vulkan_core.h>
 
 Renderer::Renderer(Window &window, GfxDevice &gfxDevice)
@@ -23,17 +25,18 @@ void Renderer::recreateSwapChain() {
   if (gfxSwapChain == nullptr) {
     gfxSwapChain = std::make_unique<GfxSwapChain>(gfxDevice, extent);
   } else {
-    gfxSwapChain = std::make_unique<GfxSwapChain>(gfxDevice, extent,
-                                                  std::move(gfxSwapChain));
-    if (gfxSwapChain->imageCount() != commandBuffers.size()) {
-      freeCommandBuffers();
-      createCommandBuffers();
+    std::shared_ptr<GfxSwapChain> oldSwapChain = std::move(gfxSwapChain);
+    gfxSwapChain =
+        std::make_unique<GfxSwapChain>(gfxDevice, extent, oldSwapChain);
+
+    if (!oldSwapChain->compareSwapFormats(*gfxSwapChain.get())) {
+      throw std::runtime_error("Swap chain image or depth format has changed!");
     }
   }
 }
 
 void Renderer::createCommandBuffers() {
-  commandBuffers.resize(gfxSwapChain->imageCount());
+  commandBuffers.resize(GfxSwapChain::MAX_FRAMES_IN_FLIGHT);
 
   VkCommandBufferAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -103,6 +106,9 @@ void Renderer::endFrame() {
   }
 
   isFrameStarted = false;
+
+  currentFrameIndex =
+      (currentFrameIndex + 1) % GfxSwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {

@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 class GfxSwapChain : NonCopyable {
 public:
@@ -35,6 +36,11 @@ public:
   VkResult submitCommandBuffers(const VkCommandBuffer *buffers,
                                 uint32_t *imageIndex);
 
+  bool compareSwapFormats(const GfxSwapChain &other) const {
+    return other.swapChainDepthFormat == swapChainDepthFormat &&
+           other.swapChainImageFormat == swapChainImageFormat;
+  }
+
 private:
   void init();
   void createSwapChain();
@@ -51,6 +57,7 @@ private:
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
   VkFormat swapChainImageFormat;
+  VkFormat swapChainDepthFormat;
   VkExtent2D swapChainExtent;
 
   std::vector<VkFramebuffer> swapChainFramebuffers;
