@@ -2,7 +2,7 @@
 
 struct PushConstantData {
   glm::mat4 transform{1.0f};
-  alignas(16) glm::vec3 color;
+  glm::mat4 model{1.0f};
 };
 
 SimpleRenderSystem::SimpleRenderSystem(GfxDevice &gfxDevice,
@@ -24,9 +24,10 @@ void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer,
   auto projectionView = camera.getProjection() * camera.getView();
 
   for (auto &gameObject : gameObjects) {
+    auto modelMatrix = gameObject.transform.mat4();
     PushConstantData push{
-        .transform = projectionView * gameObject.transform.mat4(),
-        .color = gameObject.color,
+        .transform = projectionView * modelMatrix,
+        .model = modelMatrix,
     };
 
     vkCmdPushConstants(commandBuffer, pipelineLayout,

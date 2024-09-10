@@ -47,6 +47,13 @@ FetchContent_MakeAvailable(glm glfw tinyobjloader)
 
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+
+file(GLOB SHADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.comp
+)
+
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
 add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
@@ -56,10 +63,14 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE TINYOBJLOADER_IMPLEMENTATION)
 # target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
 
 add_custom_command(
-  TARGET ${PROJECT_NAME}
-  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/shaders/compile.sh
-  COMMENT "Compiling shaders..."
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/shaders/compiled
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/shaders/compile.sh
+    DEPENDS ${SHADERS}
+    COMMENT "Compiling shaders..."
 )
+
+add_custom_target(compile_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shaders/compiled)
+add_dependencies(${PROJECT_NAME} compile_shaders)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR} FILES_MATCHING PATTERN "*.spv")
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/models DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
