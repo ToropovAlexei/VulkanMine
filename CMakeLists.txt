@@ -45,10 +45,10 @@ include_directories(${Vulkan_INCLUDE_DIRS})
 FetchContent_MakeAvailable(glm glfw tinyobjloader)
 # FetchContent_MakeAvailable(glm glfw tracy)
 
-file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
-file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-file(GLOB SHADERS
+file(GLOB SHADERS CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.comp

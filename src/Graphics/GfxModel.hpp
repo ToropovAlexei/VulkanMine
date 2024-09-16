@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GfxBuffer.hpp"
 #include "GfxDevice.hpp"
 #include "glm/fwd.hpp"
 #include <glm/glm.hpp>
@@ -33,7 +34,6 @@ public:
   };
 
   GfxModel(GfxDevice &gfxDevice, const Builder &builder);
-  ~GfxModel();
 
   static std::unique_ptr<GfxModel>
   createGfxModelFromFile(GfxDevice &gfxDevice, const std::string &filepath);
@@ -47,12 +47,10 @@ private:
 
 private:
   GfxDevice &gfxDevice;
-  VkBuffer vertexBuffer;
-  VkDeviceMemory vertexBufferMemory;
+  std::unique_ptr<GfxBuffer> vertexBuffer;
   uint32_t vertexCount;
 
   bool hasIndexBuffer = false;
-  VkBuffer indexBuffer;
-  VkDeviceMemory indexBufferMemory;
+  std::unique_ptr<GfxBuffer> indexBuffer;
   uint32_t indexCount;
 };
