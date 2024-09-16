@@ -1,6 +1,9 @@
 #include "App.h"
+#include "Graphics/FrameInfo.hpp"
+#include "Graphics/GfxBuffer.hpp"
 #include "Graphics/GfxDevice.hpp"
 #include "Graphics/GfxModel.hpp"
+#include "Graphics/GfxSwapChain.hpp"
 #include "KeyboardMovementController.hpp"
 #include "glm/fwd.hpp"
 #include <chrono>
@@ -8,9 +11,23 @@
 #include <memory>
 #include <vulkan/vulkan_core.h>
 
+struct GlobalUBO {
+  glm::mat4 projectionView;
+  glm::vec3 lightDirection = glm::normalize(glm::vec3(1.0f, -3.0f, -1.0f));
+};
+
 App::App() { loadGameObjects(); }
 
 void App::run() {
+  GfxBuffer globalUBO{
+      gfxDevice,
+      sizeof(GlobalUBO),
+      GfxSwapChain::MAX_FRAMES_IN_FLIGHT,
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+      gfxDevice.properties.limits.minUniformBufferOffsetAlignment};
+  globalUBO.map();
+
   Camera camera{};
 
   auto currentTime = std::chrono::high_resolution_clock::now();
@@ -37,8 +54,21 @@ void App::run() {
     camera.setPerspectiveProjection(glm::radians(50.0f), aspectRatio, 0.1f,
                                     10.0f);
     if (auto commandBuffer = renderer.beginFrame()) {
+      int frameIndex = renderer.getFrameIndex();
+
+      GlobalUBO ubo{};
+      ubo.projectionView = camera.getProjection() * camera.getView();
+      FrameInfo frameInfo{
+          .frameIndex = frameIndex,
+          .frameTime = frameTime,
+          .commandBuffer = commandBuffer,
+          .camera = camera,
+      };
+      globalUBO.writeToIndex(&ubo, frameIndex);
+      globalUBO.flushIndex(frameIndex);
+
       renderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+      simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
       renderer.endSwapChainRenderPass(commandBuffer);
       renderer.endFrame();
     }
