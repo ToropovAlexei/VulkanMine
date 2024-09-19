@@ -9,6 +9,7 @@
 #include <chrono>
 #include <glm/gtc/constants.hpp>
 #include <memory>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 
 struct GlobalUBO {
@@ -19,14 +20,15 @@ struct GlobalUBO {
 App::App() { loadGameObjects(); }
 
 void App::run() {
-  GfxBuffer globalUBO{
-      gfxDevice,
-      sizeof(GlobalUBO),
-      GfxSwapChain::MAX_FRAMES_IN_FLIGHT,
-      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-      gfxDevice.properties.limits.minUniformBufferOffsetAlignment};
-  globalUBO.map();
+  std::vector<std::unique_ptr<GfxBuffer>> uboBuffers(
+      GfxSwapChain::MAX_FRAMES_IN_FLIGHT);
+
+  for (int i = 0; i < GfxSwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+    uboBuffers[i] = std::make_unique<GfxBuffer>(
+        gfxDevice, sizeof(GlobalUBO), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    uboBuffers[i]->map();
+  }
 
   Camera camera{};
 
@@ -64,8 +66,8 @@ void App::run() {
           .commandBuffer = commandBuffer,
           .camera = camera,
       };
-      globalUBO.writeToIndex(&ubo, frameIndex);
-      globalUBO.flushIndex(frameIndex);
+      uboBuffers[frameIndex]->writeToIndex(&ubo, frameIndex);
+      uboBuffers[frameIndex]->flush();
 
       renderer.beginSwapChainRenderPass(commandBuffer);
       simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
