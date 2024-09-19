@@ -11,14 +11,15 @@
 
 class SimpleRenderSystem : NonCopyable {
 public:
-  SimpleRenderSystem(GfxDevice &gfxDevice, VkRenderPass renderPass);
+  SimpleRenderSystem(GfxDevice &gfxDevice, VkRenderPass renderPass,
+                     VkDescriptorSetLayout globalSetLayout);
   ~SimpleRenderSystem();
 
   void renderGameObjects(FrameInfo &frameInfo,
                          std::vector<GameObject> &gameObjects);
 
 private:
-  void createPipelineLayout();
+  void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
   void createPipeline(VkRenderPass renderPass);
 
 private:

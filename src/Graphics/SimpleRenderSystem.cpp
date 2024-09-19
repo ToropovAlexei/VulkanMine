@@ -1,4 +1,6 @@
 #include "SimpleRenderSystem.hpp"
+#include <vector>
+#include <vulkan/vulkan_core.h>
 
 struct PushConstantData {
   glm::mat4 transform{1.0f};
@@ -6,9 +8,10 @@ struct PushConstantData {
 };
 
 SimpleRenderSystem::SimpleRenderSystem(GfxDevice &gfxDevice,
-                                       VkRenderPass renderPass)
+                                       VkRenderPass renderPass,
+                                       VkDescriptorSetLayout globalSetLayout)
     : gfxDevice{gfxDevice} {
-  createPipelineLayout();
+  createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
 }
 
@@ -19,6 +22,10 @@ SimpleRenderSystem::~SimpleRenderSystem() {
 void SimpleRenderSystem::renderGameObjects(
     FrameInfo &frameInfo, std::vector<GameObject> &gameObjects) {
   gfxPipeline->bind(frameInfo.commandBuffer);
+
+  vkCmdBindDescriptorSets(frameInfo.commandBuffer,
+                          VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
+                          &frameInfo.globalDescriptorSet, 0, nullptr);
 
   auto projectionView =
       frameInfo.camera.getProjection() * frameInfo.camera.getView();
@@ -39,17 +46,20 @@ void SimpleRenderSystem::renderGameObjects(
   }
 }
 
-void SimpleRenderSystem::createPipelineLayout() {
+void SimpleRenderSystem::createPipelineLayout(
+    VkDescriptorSetLayout globalSetLayout) {
   VkPushConstantRange pushConstantRange{
       .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
       .offset = 0,
       .size = sizeof(PushConstantData),
   };
 
+  std::vector<VkDescriptorSetLayout> descriptorSetLayouts{globalSetLayout};
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-      .setLayoutCount = 0,
-      .pSetLayouts = nullptr,
+      .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+      .pSetLayouts = descriptorSetLayouts.data(),
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange};
 
