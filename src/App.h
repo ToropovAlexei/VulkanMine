@@ -1,10 +1,9 @@
 #pragma once
 
 #include "GameObject.hpp"
+#include "Graphics/GfxDescriptors.hpp"
 #include "Graphics/GfxDevice.hpp"
-#include "Graphics/GfxPipeline.h"
 #include "Graphics/Renderer.hpp"
-#include "Graphics/SimpleRenderSystem.hpp"
 #include "Window.h"
 #include "utils/NonCopyable.hpp"
 #include <memory>
@@ -28,9 +27,7 @@ private:
   Window window{WIDTH, HEIGHT, "Vulkan"};
   GfxDevice gfxDevice{window};
   Renderer renderer{window, gfxDevice};
-  SimpleRenderSystem simpleRenderSystem{gfxDevice,
-                                        renderer.getSwapChainRenderPass()};
-  std::unique_ptr<GfxPipeline> gfxPipeline;
-  VkPipelineLayout pipelineLayout;
+
+  std::unique_ptr<GfxDescriptorPool> globalPool{};
   std::vector<GameObject> gameObjects;
 };

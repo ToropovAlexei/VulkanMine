@@ -1,9 +1,11 @@
 #include "App.h"
 #include "Graphics/FrameInfo.hpp"
 #include "Graphics/GfxBuffer.hpp"
+#include "Graphics/GfxDescriptors.hpp"
 #include "Graphics/GfxDevice.hpp"
 #include "Graphics/GfxModel.hpp"
 #include "Graphics/GfxSwapChain.hpp"
+#include "Graphics/SimpleRenderSystem.hpp"
 #include "KeyboardMovementController.hpp"
 #include "glm/fwd.hpp"
 #include <chrono>
@@ -17,7 +19,14 @@ struct GlobalUBO {
   glm::vec3 lightDirection = glm::normalize(glm::vec3(1.0f, -3.0f, -1.0f));
 };
 
-App::App() { loadGameObjects(); }
+App::App() {
+  globalPool = GfxDescriptorPool::Builder(gfxDevice)
+                   .setMaxSets(GfxSwapChain::MAX_FRAMES_IN_FLIGHT)
+                   .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                GfxSwapChain::MAX_FRAMES_IN_FLIGHT)
+                   .build();
+  loadGameObjects();
+}
 
 void App::run() {
   std::vector<std::unique_ptr<GfxBuffer>> uboBuffers(
@@ -30,6 +39,24 @@ void App::run() {
     uboBuffers[i]->map();
   }
 
+  auto globalSetLayout = GfxDescriptorSetLayout::Builder(gfxDevice)
+                             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                         VK_SHADER_STAGE_VERTEX_BIT)
+                             .build();
+
+  std::vector<VkDescriptorSet> globalDescriptorSets(
+      GfxSwapChain::MAX_FRAMES_IN_FLIGHT);
+
+  for (int i = 0; i < globalDescriptorSets.size(); i++) {
+    auto bufferInfo = uboBuffers[i]->descriptorInfo();
+    GfxDescriptorWriter(*globalSetLayout, *globalPool)
+        .writeBuffer(0, &bufferInfo)
+        .build(globalDescriptorSets[i]);
+  }
+
+  SimpleRenderSystem simpleRenderSystem{
+      gfxDevice, renderer.getSwapChainRenderPass(),
+      globalSetLayout->getDescriptorSetLayout()};
   Camera camera{};
 
   auto currentTime = std::chrono::high_resolution_clock::now();
@@ -65,6 +92,7 @@ void App::run() {
           .frameTime = frameTime,
           .commandBuffer = commandBuffer,
           .camera = camera,
+          .globalDescriptorSet = globalDescriptorSets[frameIndex],
       };
       uboBuffers[frameIndex]->writeToIndex(&ubo, frameIndex);
       uboBuffers[frameIndex]->flush();
@@ -137,5 +165,18 @@ void App::loadGameObjects() {
   cube.model = model;
   cube.transform.translation = {0.0f, 0.0f, 2.5f};
   cube.transform.scale = {0.5f, 0.5f, 0.5f};
+
+  auto cube2 = GameObject::createGameObject();
+  cube2.model = model;
+  cube2.transform.translation = {2.5f, 0.0f, 0.0f};
+  cube2.transform.scale = {0.5f, 0.5f, 0.5f};
+
+  auto cube3 = GameObject::createGameObject();
+  cube3.model = model;
+  cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
+  cube3.transform.scale = {0.5f, 0.5f, 0.5f};
+
   gameObjects.push_back(std::move(cube));
+  gameObjects.push_back(std::move(cube2));
+  gameObjects.push_back(std::move(cube3));
 }
