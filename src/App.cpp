@@ -7,6 +7,7 @@
 #include "Graphics/GfxSwapChain.hpp"
 #include "Graphics/SimpleRenderSystem.hpp"
 #include "KeyboardMovementController.hpp"
+#include "glm/ext/scalar_constants.hpp"
 #include "glm/fwd.hpp"
 #include <chrono>
 #include <glm/gtc/constants.hpp>
@@ -16,7 +17,7 @@
 
 struct GlobalUBO {
   glm::mat4 projectionView;
-  glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.02f};
+  glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.3f};
   glm::vec4 lightPos{-1.0f};
   glm::vec4 lightColor{1.0f};
 };
@@ -41,10 +42,11 @@ void App::run() {
     uboBuffers[i]->map();
   }
 
-  auto globalSetLayout = GfxDescriptorSetLayout::Builder(gfxDevice)
-                             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                                         VK_SHADER_STAGE_VERTEX_BIT)
-                             .build();
+  auto globalSetLayout =
+      GfxDescriptorSetLayout::Builder(gfxDevice)
+          .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+          .build();
 
   std::vector<VkDescriptorSet> globalDescriptorSets(
       GfxSwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -163,12 +165,13 @@ std::unique_ptr<GfxModel> createCubeModel(GfxDevice &device, glm::vec3 offset) {
 
 void App::loadGameObjects() {
   std::shared_ptr<GfxModel> model =
-      GfxModel::createGfxModelFromFile(gfxDevice, "models/smooth_vase.obj");
+      GfxModel::createGfxModelFromFile(gfxDevice, "models/tank.obj");
 
-  auto cube = GameObject::createGameObject();
-  cube.model = model;
-  cube.transform.translation = {0.0f, 0.0f, 2.5f};
-  cube.transform.scale = {0.5f, 0.5f, 0.5f};
+  auto obj = GameObject::createGameObject();
+  obj.model = model;
+  obj.transform.translation = {0.0f, 1.0f, 2.5f};
+  obj.transform.rotation = {glm::half_pi<float>(), 0.0f, 0.0f};
+  obj.transform.scale = {0.5f, 0.5f, 0.5f};
 
   // auto cube2 = GameObject::createGameObject();
   // cube2.model = model;
@@ -180,7 +183,7 @@ void App::loadGameObjects() {
   // cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
   // cube3.transform.scale = {0.5f, 0.5f, 0.5f};
 
-  gameObjects.push_back(std::move(cube));
+  gameObjects.push_back(std::move(obj));
   // gameObjects.push_back(std::move(cube2));
   // gameObjects.push_back(std::move(cube3));
 }
