@@ -7,6 +7,11 @@ layout(location = 3) in vec2 uv;
 
 layout(location = 0) out vec3 fragColor;
 
+layout(set = 0, binding = 0) uniform GlobalUbo {
+    mat4 projectionView;
+    vec3 directionToLight;
+} ubo;
+
 layout(push_constant) uniform Push {
     mat4 transform;
     mat4 model;
@@ -20,7 +25,7 @@ void main() {
 
     vec3 normalWorldSpace = normalize((push.model * vec4(normal, 0.0)).xyz);
 
-    float lightIntensity = AMBIENT + max(dot(normalWorldSpace, DIRECTION_TO_LIGHT), 0);
+    float lightIntensity = AMBIENT + max(dot(normalWorldSpace, ubo.directionToLight), 0);
 
     fragColor = lightIntensity * color;
 }

@@ -81,7 +81,7 @@ void App::run() {
     float aspectRatio = renderer.getAspectRatio();
 
     camera.setPerspectiveProjection(glm::radians(50.0f), aspectRatio, 0.1f,
-                                    10.0f);
+                                    100.0f);
     if (auto commandBuffer = renderer.beginFrame()) {
       int frameIndex = renderer.getFrameIndex();
 
@@ -94,7 +94,7 @@ void App::run() {
           .camera = camera,
           .globalDescriptorSet = globalDescriptorSets[frameIndex],
       };
-      uboBuffers[frameIndex]->writeToIndex(&ubo, frameIndex);
+      uboBuffers[frameIndex]->writeToBuffer(&ubo);
       uboBuffers[frameIndex]->flush();
 
       renderer.beginSwapChainRenderPass(commandBuffer);
@@ -166,17 +166,17 @@ void App::loadGameObjects() {
   cube.transform.translation = {0.0f, 0.0f, 2.5f};
   cube.transform.scale = {0.5f, 0.5f, 0.5f};
 
-  auto cube2 = GameObject::createGameObject();
-  cube2.model = model;
-  cube2.transform.translation = {2.5f, 0.0f, 0.0f};
-  cube2.transform.scale = {0.5f, 0.5f, 0.5f};
+  // auto cube2 = GameObject::createGameObject();
+  // cube2.model = model;
+  // cube2.transform.translation = {2.5f, 0.0f, 0.0f};
+  // cube2.transform.scale = {0.5f, 0.5f, 0.5f};
 
-  auto cube3 = GameObject::createGameObject();
-  cube3.model = model;
-  cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
-  cube3.transform.scale = {0.5f, 0.5f, 0.5f};
+  // auto cube3 = GameObject::createGameObject();
+  // cube3.model = model;
+  // cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
+  // cube3.transform.scale = {0.5f, 0.5f, 0.5f};
 
   gameObjects.push_back(std::move(cube));
-  gameObjects.push_back(std::move(cube2));
-  gameObjects.push_back(std::move(cube3));
+  // gameObjects.push_back(std::move(cube2));
+  // gameObjects.push_back(std::move(cube3));
 }
