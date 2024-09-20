@@ -3,8 +3,8 @@
 #include <vulkan/vulkan_core.h>
 
 struct PushConstantData {
-  glm::mat4 transform{1.0f};
-  glm::mat4 model{1.0f};
+  glm::mat4 modelMatrix{1.0f};
+  glm::mat4 normalMatrix{1.0f};
 };
 
 SimpleRenderSystem::SimpleRenderSystem(GfxDevice &gfxDevice,
@@ -33,8 +33,8 @@ void SimpleRenderSystem::renderGameObjects(
   for (auto &gameObject : gameObjects) {
     auto modelMatrix = gameObject.transform.mat4();
     PushConstantData push{
-        .transform = projectionView * modelMatrix,
-        .model = modelMatrix,
+        .modelMatrix = gameObject.transform.mat4(),
+        .normalMatrix = gameObject.transform.normalMatrix(),
     };
 
     vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,

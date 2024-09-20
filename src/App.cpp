@@ -85,8 +85,9 @@ void App::run() {
     if (auto commandBuffer = renderer.beginFrame()) {
       int frameIndex = renderer.getFrameIndex();
 
-      GlobalUBO ubo{};
-      ubo.projectionView = camera.getProjection() * camera.getView();
+      GlobalUBO ubo{
+        .projectionView = camera.getProjection() * camera.getView()
+      };
       FrameInfo frameInfo{
           .frameIndex = frameIndex,
           .frameTime = frameTime,

@@ -13,17 +13,16 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(push_constant) uniform Push {
-    mat4 transform;
     mat4 model;
+    mat4 normal;
 } push;
 
-const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1));
 const float AMBIENT = 0.02;
 
 void main() {
-    gl_Position = push.transform * vec4(position, 1.0);
+    gl_Position = ubo.projectionView * push.model * vec4(position, 1.0);
 
-    vec3 normalWorldSpace = normalize((push.model * vec4(normal, 0.0)).xyz);
+    vec3 normalWorldSpace = normalize((push.normal * vec4(normal, 0.0)).xyz);
 
     float lightIntensity = AMBIENT + max(dot(normalWorldSpace, ubo.directionToLight), 0);
 
