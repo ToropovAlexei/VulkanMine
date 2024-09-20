@@ -99,12 +99,13 @@ void App::run() {
           .commandBuffer = commandBuffer,
           .camera = camera,
           .globalDescriptorSet = globalDescriptorSets[frameIndex],
+          .gameObjects = gameObjects,
       };
       uboBuffers[frameIndex]->writeToBuffer(&ubo);
       uboBuffers[frameIndex]->flush();
 
       renderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
+      simpleRenderSystem.renderGameObjects(frameInfo);
       renderer.endSwapChainRenderPass(commandBuffer);
       renderer.endFrame();
     }
@@ -183,7 +184,7 @@ void App::loadGameObjects() {
   // cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
   // cube3.transform.scale = {0.5f, 0.5f, 0.5f};
 
-  gameObjects.push_back(std::move(obj));
+  gameObjects.emplace(obj.getId(), std::move(obj));
   // gameObjects.push_back(std::move(cube2));
   // gameObjects.push_back(std::move(cube3));
 }

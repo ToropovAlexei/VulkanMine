@@ -4,6 +4,7 @@
 #include "glm/fwd.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
+#include <unordered_map>
 
 struct TransformComponent {
   glm::vec3 translation{};
@@ -70,6 +71,7 @@ struct TransformComponent {
 class GameObject {
 public:
   using id_t = unsigned int;
+  using Map = std::unordered_map<id_t, GameObject>;
 
   GameObject(const GameObject &) = delete;
   GameObject &operator=(const GameObject &) = delete;

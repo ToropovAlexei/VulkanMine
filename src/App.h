@@ -7,7 +7,6 @@
 #include "Window.h"
 #include "utils/NonCopyable.hpp"
 #include <memory>
-#include <vector>
 #include <vulkan/vulkan_core.h>
 
 class App : NonCopyable {
@@ -29,5 +28,5 @@ private:
   Renderer renderer{window, gfxDevice};
 
   std::unique_ptr<GfxDescriptorPool> globalPool{};
-  std::vector<GameObject> gameObjects;
+  GameObject::Map gameObjects;
 };

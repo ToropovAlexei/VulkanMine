@@ -19,8 +19,7 @@ SimpleRenderSystem::~SimpleRenderSystem() {
   vkDestroyPipelineLayout(gfxDevice.device(), pipelineLayout, nullptr);
 }
 
-void SimpleRenderSystem::renderGameObjects(
-    FrameInfo &frameInfo, std::vector<GameObject> &gameObjects) {
+void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
   gfxPipeline->bind(frameInfo.commandBuffer);
 
   vkCmdBindDescriptorSets(frameInfo.commandBuffer,
@@ -30,19 +29,19 @@ void SimpleRenderSystem::renderGameObjects(
   auto projectionView =
       frameInfo.camera.getProjection() * frameInfo.camera.getView();
 
-  for (auto &gameObject : gameObjects) {
-    auto modelMatrix = gameObject.transform.mat4();
+  for (auto &gameObject : frameInfo.gameObjects) {
+    auto modelMatrix = gameObject.second.transform.mat4();
     PushConstantData push{
-        .modelMatrix = gameObject.transform.mat4(),
-        .normalMatrix = gameObject.transform.normalMatrix(),
+        .modelMatrix = gameObject.second.transform.mat4(),
+        .normalMatrix = gameObject.second.transform.normalMatrix(),
     };
 
     vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT |
                            VK_SHADER_STAGE_FRAGMENT_BIT,
                        0, sizeof(PushConstantData), &push);
-    gameObject.model->bind(frameInfo.commandBuffer);
-    gameObject.model->draw(frameInfo.commandBuffer);
+    gameObject.second.model->bind(frameInfo.commandBuffer);
+    gameObject.second.model->draw(frameInfo.commandBuffer);
   }
 }
 
