@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameObject.hpp"
+#include "Keyboard.hpp"
 #include <GLFW/glfw3.h>
 
 class KeyboardMovementController {
@@ -18,7 +19,7 @@ public:
     int lookDown = GLFW_KEY_DOWN;
   };
 
-  void moveInPlaneXZ(GLFWwindow *window, float dt, GameObject &gameObject);
+  void moveInPlaneXZ(Keyboard, float dt, GameObject &gameObject);
 
 public:
   KeyMappings keys{};

@@ -4,6 +4,7 @@
 #include "Graphics/GfxDescriptors.hpp"
 #include "Graphics/GfxDevice.hpp"
 #include "Graphics/Renderer.hpp"
+#include "Keyboard.hpp"
 #include "Window.h"
 #include "utils/NonCopyable.hpp"
 #include <memory>
@@ -26,6 +27,7 @@ private:
   Window window{WIDTH, HEIGHT, "Vulkan"};
   GfxDevice gfxDevice{window};
   Renderer renderer{window, gfxDevice};
+  std::unique_ptr<Keyboard> keyboard;
 
   std::unique_ptr<GfxDescriptorPool> globalPool{};
   GameObject::Map gameObjects;

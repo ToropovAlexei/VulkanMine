@@ -4,20 +4,20 @@
 #include "glm/gtc/constants.hpp"
 #include <limits>
 
-void KeyboardMovementController::moveInPlaneXZ(GLFWwindow *window, float dt,
+void KeyboardMovementController::moveInPlaneXZ(Keyboard kbd, float dt,
                                                GameObject &gameObject) {
   glm::vec3 rotate{0};
 
-  if (glfwGetKey(window, keys.lookRight) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.lookRight)) {
     rotate.y += 1.0f;
   }
-  if (glfwGetKey(window, keys.lookLeft) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.lookLeft)) {
     rotate.y -= 1.0f;
   }
-  if (glfwGetKey(window, keys.lookUp) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.lookUp)) {
     rotate.x += 1.0f;
   }
-  if (glfwGetKey(window, keys.lookDown) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.lookDown)) {
     rotate.x -= 1.0f;
   }
 
@@ -36,26 +36,27 @@ void KeyboardMovementController::moveInPlaneXZ(GLFWwindow *window, float dt,
   const glm::vec3 upDir{0.f, -1.f, 0.f};
 
   glm::vec3 moveDir{0};
-  if (glfwGetKey(window, keys.moveForward) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.moveForward)) {
     moveDir += forwardDir;
   }
-  if (glfwGetKey(window, keys.moveBackward) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.moveBackward)) {
     moveDir -= forwardDir;
   }
-  if (glfwGetKey(window, keys.moveRight) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.moveRight)) {
     moveDir += rightDir;
   }
-  if (glfwGetKey(window, keys.moveLeft) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.moveLeft)) {
     moveDir -= rightDir;
   }
-  if (glfwGetKey(window, keys.moveUp) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.moveUp)) {
     moveDir += upDir;
   }
-  if (glfwGetKey(window, keys.moveDown) == GLFW_PRESS) {
+  if (kbd.isKeyPressed(keys.moveDown)) {
     moveDir -= upDir;
   }
 
   if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon()) {
-    gameObject.transform.translation += moveSpeed * dt * glm::normalize(moveDir);
+    gameObject.transform.translation +=
+        moveSpeed * dt * glm::normalize(moveDir);
   }
 }
