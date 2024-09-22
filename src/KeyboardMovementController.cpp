@@ -4,22 +4,14 @@
 #include "glm/gtc/constants.hpp"
 #include <limits>
 
-void KeyboardMovementController::moveInPlaneXZ(Keyboard kbd, float dt,
+void KeyboardMovementController::moveInPlaneXZ(std::unique_ptr<Keyboard> &kbd,
+                                               std::unique_ptr<Mouse> &mouse,
+                                               float dt,
                                                GameObject &gameObject) {
   glm::vec3 rotate{0};
 
-  if (kbd.isKeyPressed(keys.lookRight)) {
-    rotate.y += 1.0f;
-  }
-  if (kbd.isKeyPressed(keys.lookLeft)) {
-    rotate.y -= 1.0f;
-  }
-  if (kbd.isKeyPressed(keys.lookUp)) {
-    rotate.x += 1.0f;
-  }
-  if (kbd.isKeyPressed(keys.lookDown)) {
-    rotate.x -= 1.0f;
-  }
+  rotate.x = -mouse->getDeltaY();
+  rotate.y = mouse->getDeltaX();
 
   if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon()) {
     gameObject.transform.rotation += lookSpeed * dt * glm::normalize(rotate);
@@ -36,22 +28,22 @@ void KeyboardMovementController::moveInPlaneXZ(Keyboard kbd, float dt,
   const glm::vec3 upDir{0.f, -1.f, 0.f};
 
   glm::vec3 moveDir{0};
-  if (kbd.isKeyPressed(keys.moveForward)) {
+  if (kbd->isKeyPressed(keys.moveForward)) {
     moveDir += forwardDir;
   }
-  if (kbd.isKeyPressed(keys.moveBackward)) {
+  if (kbd->isKeyPressed(keys.moveBackward)) {
     moveDir -= forwardDir;
   }
-  if (kbd.isKeyPressed(keys.moveRight)) {
+  if (kbd->isKeyPressed(keys.moveRight)) {
     moveDir += rightDir;
   }
-  if (kbd.isKeyPressed(keys.moveLeft)) {
+  if (kbd->isKeyPressed(keys.moveLeft)) {
     moveDir -= rightDir;
   }
-  if (kbd.isKeyPressed(keys.moveUp)) {
+  if (kbd->isKeyPressed(keys.moveUp)) {
     moveDir += upDir;
   }
-  if (kbd.isKeyPressed(keys.moveDown)) {
+  if (kbd->isKeyPressed(keys.moveDown)) {
     moveDir -= upDir;
   }
 

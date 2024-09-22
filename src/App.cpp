@@ -28,7 +28,8 @@ App::App() {
                                 GfxSwapChain::MAX_FRAMES_IN_FLIGHT)
                    .build();
   loadGameObjects();
-  keyboard = std::make_unique<Keyboard>(window.getGLFWwindow());
+  m_keyboard = std::make_unique<Keyboard>(window.getGLFWwindow());
+  m_mouse = std::make_unique<Mouse>(window.getGLFWwindow());
 }
 
 void App::run() {
@@ -67,7 +68,11 @@ void App::run() {
   auto viewerObject = GameObject::createGameObject();
   KeyboardMovementController cameraController{};
 
+  window.hideCursor();
+
   while (!window.shouldClose()) {
+    m_keyboard->update();
+    m_mouse->update();
     glfwPollEvents();
 
     auto newTime = std::chrono::high_resolution_clock::now();
@@ -77,7 +82,7 @@ void App::run() {
             .count();
     currentTime = newTime;
 
-    cameraController.moveInPlaneXZ(window.getGLFWwindow(), frameTime,
+    cameraController.moveInPlaneXZ(m_keyboard, m_mouse, frameTime,
                                    viewerObject);
     camera.setViewYXZ(viewerObject.transform.translation,
                       viewerObject.transform.rotation);

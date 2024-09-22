@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/NonCopyable.hpp"
+#include "../utils/NonCopyable.hpp"
 #include <GLFW/glfw3.h>
 #include <bitset>
 
@@ -18,7 +18,8 @@ private:
                           int mods);
 
 private:
+  static std::bitset<GLFW_KEY_LAST + 1> keyStates;
+  static std::bitset<GLFW_KEY_LAST + 1> justPressed;
+
   GLFWwindow *m_window;
-  static std::bitset<GLFW_KEY_LAST + 1> m_keyStates;
-  static std::bitset<GLFW_KEY_LAST + 1> m_justPressed;
 };

@@ -15,6 +15,12 @@ public:
   }
   bool wasWindowResized() { return framebufferResized; }
   void resetWindowResizedFlag() { framebufferResized = false; }
+  void hideCursor() {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  }
+  void showCursor() {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
 
   GLFWwindow *getGLFWwindow() const { return window; }
 
