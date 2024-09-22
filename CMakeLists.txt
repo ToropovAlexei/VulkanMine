@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.30)
 include(FetchContent)
 include(FindVulkan)
 
-project(KhronosTutorial LANGUAGES CXX)
+project(Engine LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
