@@ -12,7 +12,6 @@ public:
   struct Vertex {
     glm::vec3 pos{};
     glm::vec3 color{};
-    glm::vec3 normal{};
     glm::vec2 uv{};
 
     static std::vector<VkVertexInputBindingDescription>
@@ -21,17 +20,12 @@ public:
     getAttributeDescriptions();
 
     bool operator==(const Vertex &other) const {
-      return pos == other.pos && color == other.color &&
-             normal == other.normal && uv == other.uv;
+      return pos == other.pos && color == other.color && uv == other.uv;
     }
   };
 
-  struct Builder {
-    std::vector<Vertex> vertices{};
-    std::vector<uint32_t> indices{};
-  };
-
-  GfxModel(GfxDevice &gfxDevice, const Builder &builder);
+  GfxModel(GfxDevice &gfxDevice, const std::vector<Vertex> &vertices,
+           const std::vector<uint32_t> &indices);
 
   void bind(VkCommandBuffer commandBuffer);
   void draw(VkCommandBuffer commandBuffer);
@@ -41,11 +35,10 @@ private:
   void createIndexBuffer(const std::vector<uint32_t> &indices);
 
 private:
-  GfxDevice &gfxDevice;
-  std::unique_ptr<GfxBuffer> vertexBuffer;
-  uint32_t vertexCount;
+  GfxDevice &m_gfxDevice;
+  std::unique_ptr<GfxBuffer> m_vertexBuffer;
+  uint32_t m_vertexCount;
 
-  bool hasIndexBuffer = false;
-  std::unique_ptr<GfxBuffer> indexBuffer;
-  uint32_t indexCount;
+  std::unique_ptr<GfxBuffer> m_indexBuffer;
+  uint32_t m_indexCount;
 };

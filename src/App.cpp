@@ -8,6 +8,7 @@
 #include "Graphics/GfxSwapChain.hpp"
 #include "KeyboardMovementController.hpp"
 #include "RenderSystems/ChunkRenderSystem.hpp"
+#include "World/Chunk.hpp"
 #include "glm/fwd.hpp"
 #include <chrono>
 #include <glm/gtc/constants.hpp>
@@ -35,10 +36,10 @@ generateTerrainMesh(int width, int height, float scale, float amplitude) {
       } else {
         color = glm::vec3(1.0f, 1.0f, 1.0f); // Белый снег
       }
-      vertices.push_back(
-          {.pos = glm::vec3(x, heightValue, z),
-           .color = color,
-           .normal = glm::vec3(0, 1, 0)}); // Нормали будут обновлены позже
+      vertices.push_back({
+          .pos = glm::vec3(x, heightValue, z),
+          .color = color,
+      });
     }
   }
   return vertices;
@@ -67,35 +68,6 @@ std::vector<uint32_t> generateTerrainIndices(int width, int height) {
   }
 
   return indices;
-}
-
-void calculateNormals(std::vector<GfxModel::Vertex> &vertices,
-                      const std::vector<uint32_t> &indices) {
-  // Сброс нормалей
-  for (auto &vertex : vertices) {
-    vertex.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-  }
-
-  // Рассчитываем нормали для треугольников
-  for (size_t i = 0; i < indices.size(); i += 3) {
-    GfxModel::Vertex &v0 = vertices[indices[i]];
-    GfxModel::Vertex &v1 = vertices[indices[i + 1]];
-    GfxModel::Vertex &v2 = vertices[indices[i + 2]];
-
-    glm::vec3 edge1 = v1.pos - v0.pos;
-    glm::vec3 edge2 = v2.pos - v0.pos;
-
-    glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
-
-    v0.normal += normal;
-    v1.normal += normal;
-    v2.normal += normal;
-  }
-
-  // Нормализация всех нормалей
-  for (auto &vertex : vertices) {
-    vertex.normal = glm::normalize(vertex.normal);
-  }
 }
 
 struct GlobalUBO {
@@ -200,26 +172,17 @@ void App::run() {
 }
 
 void App::loadGameObjects() {
-  // auto cube2 = GameObject::createGameObject();
-  // cube2.model = model;
-  // cube2.transform.translation = {2.5f, 0.0f, 0.0f};
-  // cube2.transform.scale = {0.5f, 0.5f, 0.5f};
-
-  // auto cube3 = GameObject::createGameObject();
-  // cube3.model = model;
-  // cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
-  // cube3.transform.scale = {0.5f, 0.5f, 0.5f};
-  GfxModel::Builder terrainBuilder;
-  terrainBuilder.vertices = generateTerrainMesh(256, 256, 0.5f, 10.0f);
-  terrainBuilder.indices = generateTerrainIndices(256, 256);
-  calculateNormals(terrainBuilder.vertices, terrainBuilder.indices);
+  auto vertices = generateTerrainMesh(256, 256, 0.5f, 10.0f);
+  auto indices = generateTerrainIndices(256, 256);
   std::shared_ptr<GfxModel> terrainModel =
-      std::make_shared<GfxModel>(gfxDevice, terrainBuilder);
+      std::make_shared<GfxModel>(gfxDevice, vertices, indices);
   auto terrain = GameObject::createGameObject();
   terrain.model = terrainModel;
   terrain.transform.rotation = {glm::pi<float>(), 0.0f, 0.0f};
+  std::shared_ptr<GfxModel> chunkModel = Chunk::getTestChunkModel(gfxDevice);
+  auto chunk = GameObject::createGameObject();
+  chunk.model = chunkModel;
 
   gameObjects.emplace(terrain.getId(), std::move(terrain));
-  // gameObjects.push_back(std::move(cube2));
-  // gameObjects.push_back(std::move(cube3));
+  gameObjects.emplace(chunk.getId(), std::move(chunk));
 }

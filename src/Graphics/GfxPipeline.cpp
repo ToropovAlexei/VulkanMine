@@ -34,9 +34,6 @@ void GfxPipeline::createGfxPipeline(const std::string &vertFilePath,
   auto vertShaderCode = readFile(vertFilePath);
   auto fragShaderCode = readFile(fragFilePath);
 
-  std::cout << "Vert Shader Code Size: " << vertShaderCode.size() << std::endl;
-  std::cout << "Frag Shader Code Size: " << fragShaderCode.size() << std::endl;
-
   createShaderModule(vertShaderCode, &vertShaderModule);
   createShaderModule(fragShaderCode, &fragShaderModule);
 
