@@ -6,8 +6,8 @@
 #include "Graphics/GfxDevice.hpp"
 #include "Graphics/GfxModel.hpp"
 #include "Graphics/GfxSwapChain.hpp"
-#include "Graphics/SimpleRenderSystem.hpp"
 #include "KeyboardMovementController.hpp"
+#include "RenderSystems/ChunkRenderSystem.hpp"
 #include "glm/fwd.hpp"
 #include <chrono>
 #include <glm/gtc/constants.hpp>
@@ -100,9 +100,6 @@ void calculateNormals(std::vector<GfxModel::Vertex> &vertices,
 
 struct GlobalUBO {
   glm::mat4 projectionView;
-  glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.83f};
-  glm::vec4 lightPos{-1.0f};
-  glm::vec4 lightColor{1.0f};
 };
 
 App::App() {
@@ -143,7 +140,7 @@ void App::run() {
         .build(globalDescriptorSets[i]);
   }
 
-  SimpleRenderSystem simpleRenderSystem{
+  ChunkRenderSystem chunkRenderSystem{
       gfxDevice, renderer.getSwapChainRenderPass(),
       globalSetLayout->getDescriptorSetLayout()};
   Camera camera{};
@@ -180,7 +177,6 @@ void App::run() {
 
       GlobalUBO ubo{
           .projectionView = camera.getProjection() * camera.getView(),
-          .lightPos = glm::vec4(viewerObject.transform.translation, 1.0f),
       };
       FrameInfo frameInfo{
           .frameIndex = frameIndex,
@@ -194,7 +190,7 @@ void App::run() {
       uboBuffers[frameIndex]->flush();
 
       renderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(frameInfo);
+      chunkRenderSystem.renderChunks(frameInfo);
       renderer.endSwapChainRenderPass(commandBuffer);
       renderer.endFrame();
     }

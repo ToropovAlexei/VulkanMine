@@ -1,39 +1,36 @@
-#include "SimpleRenderSystem.hpp"
+#include "ChunkRenderSystem.hpp"
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
 struct PushConstantData {
   glm::mat4 modelMatrix{1.0f};
-  glm::mat4 normalMatrix{1.0f};
 };
 
-SimpleRenderSystem::SimpleRenderSystem(GfxDevice &gfxDevice,
-                                       VkRenderPass renderPass,
-                                       VkDescriptorSetLayout globalSetLayout)
-    : gfxDevice{gfxDevice} {
+ChunkRenderSystem::ChunkRenderSystem(GfxDevice &gfxDevice,
+                                     VkRenderPass renderPass,
+                                     VkDescriptorSetLayout globalSetLayout)
+    : m_gfxDevice{gfxDevice} {
   createPipelineLayout(globalSetLayout);
   createPipeline(renderPass);
 }
 
-SimpleRenderSystem::~SimpleRenderSystem() {
-  vkDestroyPipelineLayout(gfxDevice.device(), pipelineLayout, nullptr);
+ChunkRenderSystem::~ChunkRenderSystem() {
+  vkDestroyPipelineLayout(m_gfxDevice.device(), m_pipelineLayout, nullptr);
 }
 
-void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
-  gfxPipeline->bind(frameInfo.commandBuffer);
+void ChunkRenderSystem::renderChunks(FrameInfo &frameInfo) {
+  m_gfxPipeline->bind(frameInfo.commandBuffer);
 
   vkCmdBindDescriptorSets(frameInfo.commandBuffer,
-                          VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
-                          &frameInfo.globalDescriptorSet, 0, nullptr);
+                          VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0,
+                          1, &frameInfo.globalDescriptorSet, 0, nullptr);
 
   for (auto &gameObject : frameInfo.gameObjects) {
-    auto modelMatrix = gameObject.second.transform.mat4();
     PushConstantData push{
         .modelMatrix = gameObject.second.transform.mat4(),
-        .normalMatrix = gameObject.second.transform.normalMatrix(),
     };
 
-    vkCmdPushConstants(frameInfo.commandBuffer, pipelineLayout,
+    vkCmdPushConstants(frameInfo.commandBuffer, m_pipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT |
                            VK_SHADER_STAGE_FRAGMENT_BIT,
                        0, sizeof(PushConstantData), &push);
@@ -42,7 +39,7 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
   }
 }
 
-void SimpleRenderSystem::createPipelineLayout(
+void ChunkRenderSystem::createPipelineLayout(
     VkDescriptorSetLayout globalSetLayout) {
   VkPushConstantRange pushConstantRange{
       .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -59,19 +56,19 @@ void SimpleRenderSystem::createPipelineLayout(
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange};
 
-  if (vkCreatePipelineLayout(gfxDevice.device(), &pipelineLayoutInfo, nullptr,
-                             &pipelineLayout) != VK_SUCCESS) {
+  if (vkCreatePipelineLayout(m_gfxDevice.device(), &pipelineLayoutInfo, nullptr,
+                             &m_pipelineLayout) != VK_SUCCESS) {
     throw std::runtime_error("failed to create pipeline layout!");
   }
 }
 
-void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
+void ChunkRenderSystem::createPipeline(VkRenderPass renderPass) {
   GfxPipelineConfigInfo pipelineConfig{};
   GfxPipeline::defaultGfxPipelineConfigInfo(pipelineConfig);
 
   pipelineConfig.renderPass = renderPass;
-  pipelineConfig.pipelineLayout = pipelineLayout;
-  gfxPipeline = std::make_unique<GfxPipeline>(
-      gfxDevice, "shaders/simple_shader.vert.spv",
-      "shaders/simple_shader.frag.spv", pipelineConfig);
+  pipelineConfig.pipelineLayout = m_pipelineLayout;
+  m_gfxPipeline = std::make_unique<GfxPipeline>(
+      m_gfxDevice, "shaders/chunk_shader.vert.spv",
+      "shaders/chunk_shader.frag.spv", pipelineConfig);
 }
