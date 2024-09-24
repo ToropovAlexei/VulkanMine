@@ -42,8 +42,8 @@ private:
   void createShaderModule(const std::vector<char> &code,
                           VkShaderModule *shaderModule);
 
-  GfxDevice &gfxDevice;
-  VkPipeline graphicsPipeline;
-  VkShaderModule vertShaderModule;
-  VkShaderModule fragShaderModule;
+  GfxDevice &m_gfxDevice;
+  VkPipeline m_graphicsPipeline;
+  VkShaderModule m_vertShaderModule;
+  VkShaderModule m_fragShaderModule;
 };

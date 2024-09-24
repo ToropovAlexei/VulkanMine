@@ -92,7 +92,7 @@ public:
   void overwrite(VkDescriptorSet &set);
 
 private:
-  GfxDescriptorSetLayout &setLayout;
-  GfxDescriptorPool &pool;
-  std::vector<VkWriteDescriptorSet> writes;
+  GfxDescriptorSetLayout &m_setLayout;
+  GfxDescriptorPool &m_pool;
+  std::vector<VkWriteDescriptorSet> m_writes;
 };

@@ -25,19 +25,19 @@ GfxBuffer::GfxBuffer(GfxDevice &device, VkDeviceSize instanceSize,
                      uint32_t instanceCount, VkBufferUsageFlags usageFlags,
                      VkMemoryPropertyFlags memoryPropertyFlags,
                      VkDeviceSize minOffsetAlignment)
-    : gfxDevice{device}, instanceSize{instanceSize},
-      instanceCount{instanceCount}, usageFlags{usageFlags},
-      memoryPropertyFlags{memoryPropertyFlags} {
-  alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
-  bufferSize = alignmentSize * instanceCount;
-  device.createBuffer(bufferSize, usageFlags, memoryPropertyFlags, buffer,
-                      memory);
+    : m_gfxDevice{device}, m_instanceSize{instanceSize},
+      m_instanceCount{instanceCount}, m_usageFlags{usageFlags},
+      m_memoryPropertyFlags{memoryPropertyFlags} {
+  m_alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
+  m_bufferSize = m_alignmentSize * instanceCount;
+  device.createBuffer(m_bufferSize, usageFlags, memoryPropertyFlags, m_buffer,
+                      m_memory);
 }
 
 GfxBuffer::~GfxBuffer() {
   unmap();
-  vkDestroyBuffer(gfxDevice.device(), buffer, nullptr);
-  vkFreeMemory(gfxDevice.device(), memory, nullptr);
+  vkDestroyBuffer(m_gfxDevice.device(), m_buffer, nullptr);
+  vkFreeMemory(m_gfxDevice.device(), m_memory, nullptr);
 }
 
 /**
@@ -51,8 +51,9 @@ GfxBuffer::~GfxBuffer() {
  * @return VkResult of the buffer mapping call
  */
 VkResult GfxBuffer::map(VkDeviceSize size, VkDeviceSize offset) {
-  assert(buffer && memory && "Called map on buffer before create");
-  return vkMapMemory(gfxDevice.device(), memory, offset, size, 0, &mapped);
+  assert(m_buffer && m_memory && "Called map on buffer before create");
+  return vkMapMemory(m_gfxDevice.device(), m_memory, offset, size, 0,
+                     &m_mapped);
 }
 
 /**
@@ -61,9 +62,9 @@ VkResult GfxBuffer::map(VkDeviceSize size, VkDeviceSize offset) {
  * @note Does not return a result as vkUnmapMemory can't fail
  */
 void GfxBuffer::unmap() {
-  if (mapped) {
-    vkUnmapMemory(gfxDevice.device(), memory);
-    mapped = nullptr;
+  if (m_mapped) {
+    vkUnmapMemory(m_gfxDevice.device(), m_memory);
+    m_mapped = nullptr;
   }
 }
 
@@ -79,12 +80,12 @@ void GfxBuffer::unmap() {
  */
 void GfxBuffer::writeToBuffer(void *data, VkDeviceSize size,
                               VkDeviceSize offset) {
-  assert(mapped && "Cannot copy to unmapped buffer");
+  assert(m_mapped && "Cannot copy to unmapped buffer");
 
   if (size == VK_WHOLE_SIZE) {
-    memcpy(mapped, data, bufferSize);
+    memcpy(m_mapped, data, m_bufferSize);
   } else {
-    char *memOffset = (char *)mapped;
+    char *memOffset = (char *)m_mapped;
     memOffset += offset;
     memcpy(memOffset, data, size);
   }
@@ -104,10 +105,10 @@ void GfxBuffer::writeToBuffer(void *data, VkDeviceSize size,
 VkResult GfxBuffer::flush(VkDeviceSize size, VkDeviceSize offset) {
   VkMappedMemoryRange mappedRange = {};
   mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  mappedRange.memory = memory;
+  mappedRange.memory = m_memory;
   mappedRange.offset = offset;
   mappedRange.size = size;
-  return vkFlushMappedMemoryRanges(gfxDevice.device(), 1, &mappedRange);
+  return vkFlushMappedMemoryRanges(m_gfxDevice.device(), 1, &mappedRange);
 }
 
 /**
@@ -124,10 +125,10 @@ VkResult GfxBuffer::flush(VkDeviceSize size, VkDeviceSize offset) {
 VkResult GfxBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset) {
   VkMappedMemoryRange mappedRange = {};
   mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  mappedRange.memory = memory;
+  mappedRange.memory = m_memory;
   mappedRange.offset = offset;
   mappedRange.size = size;
-  return vkInvalidateMappedMemoryRanges(gfxDevice.device(), 1, &mappedRange);
+  return vkInvalidateMappedMemoryRanges(m_gfxDevice.device(), 1, &mappedRange);
 }
 
 /**
@@ -141,7 +142,7 @@ VkResult GfxBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset) {
 VkDescriptorBufferInfo GfxBuffer::descriptorInfo(VkDeviceSize size,
                                                  VkDeviceSize offset) {
   return VkDescriptorBufferInfo{
-      buffer,
+      m_buffer,
       offset,
       size,
   };
@@ -156,7 +157,7 @@ VkDescriptorBufferInfo GfxBuffer::descriptorInfo(VkDeviceSize size,
  *
  */
 void GfxBuffer::writeToIndex(void *data, int index) {
-  writeToBuffer(data, instanceSize, index * alignmentSize);
+  writeToBuffer(data, m_instanceSize, index * m_alignmentSize);
 }
 
 /**
@@ -167,7 +168,7 @@ void GfxBuffer::writeToIndex(void *data, int index) {
  *
  */
 VkResult GfxBuffer::flushIndex(int index) {
-  return flush(alignmentSize, index * alignmentSize);
+  return flush(m_alignmentSize, index * m_alignmentSize);
 }
 
 /**
@@ -178,7 +179,7 @@ VkResult GfxBuffer::flushIndex(int index) {
  * @return VkDescriptorBufferInfo for instance at index
  */
 VkDescriptorBufferInfo GfxBuffer::descriptorInfoForIndex(int index) {
-  return descriptorInfo(alignmentSize, index * alignmentSize);
+  return descriptorInfo(m_alignmentSize, index * m_alignmentSize);
 }
 
 /**
@@ -191,5 +192,5 @@ VkDescriptorBufferInfo GfxBuffer::descriptorInfoForIndex(int index) {
  * @return VkResult of the invalidate call
  */
 VkResult GfxBuffer::invalidateIndex(int index) {
-  return invalidate(alignmentSize, index * alignmentSize);
+  return invalidate(m_alignmentSize, index * m_alignmentSize);
 }

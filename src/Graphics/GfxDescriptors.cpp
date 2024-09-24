@@ -136,15 +136,15 @@ void GfxDescriptorPool::resetPool() {
 
 GfxDescriptorWriter::GfxDescriptorWriter(GfxDescriptorSetLayout &setLayout,
                                          GfxDescriptorPool &pool)
-    : setLayout{setLayout}, pool{pool} {}
+    : m_setLayout{setLayout}, m_pool{pool} {}
 
 GfxDescriptorWriter &
 GfxDescriptorWriter::writeBuffer(uint32_t binding,
                                  VkDescriptorBufferInfo *bufferInfo) {
-  assert(setLayout.bindings.count(binding) == 1 &&
+  assert(m_setLayout.bindings.count(binding) == 1 &&
          "Layout does not contain specified binding");
 
-  auto &bindingDescription = setLayout.bindings[binding];
+  auto &bindingDescription = m_setLayout.bindings[binding];
 
   assert(bindingDescription.descriptorCount == 1 &&
          "Binding single descriptor info, but binding expects multiple");
@@ -156,17 +156,17 @@ GfxDescriptorWriter::writeBuffer(uint32_t binding,
   write.pBufferInfo = bufferInfo;
   write.descriptorCount = 1;
 
-  writes.push_back(write);
+  m_writes.push_back(write);
   return *this;
 }
 
 GfxDescriptorWriter &
 GfxDescriptorWriter::writeImage(uint32_t binding,
                                 VkDescriptorImageInfo *imageInfo) {
-  assert(setLayout.bindings.count(binding) == 1 &&
+  assert(m_setLayout.bindings.count(binding) == 1 &&
          "Layout does not contain specified binding");
 
-  auto &bindingDescription = setLayout.bindings[binding];
+  auto &bindingDescription = m_setLayout.bindings[binding];
 
   assert(bindingDescription.descriptorCount == 1 &&
          "Binding single descriptor info, but binding expects multiple");
@@ -178,13 +178,13 @@ GfxDescriptorWriter::writeImage(uint32_t binding,
   write.pImageInfo = imageInfo;
   write.descriptorCount = 1;
 
-  writes.push_back(write);
+  m_writes.push_back(write);
   return *this;
 }
 
 bool GfxDescriptorWriter::build(VkDescriptorSet &set) {
   bool success =
-      pool.allocateDescriptor(setLayout.getDescriptorSetLayout(), set);
+      m_pool.allocateDescriptor(m_setLayout.getDescriptorSetLayout(), set);
   if (!success) {
     return false;
   }
@@ -193,9 +193,9 @@ bool GfxDescriptorWriter::build(VkDescriptorSet &set) {
 }
 
 void GfxDescriptorWriter::overwrite(VkDescriptorSet &set) {
-  for (auto &write : writes) {
+  for (auto &write : m_writes) {
     write.dstSet = set;
   }
-  vkUpdateDescriptorSets(pool.gfxDevice.device(), writes.size(), writes.data(),
-                         0, nullptr);
+  vkUpdateDescriptorSets(m_pool.gfxDevice.device(), m_writes.size(),
+                         m_writes.data(), 0, nullptr);
 }

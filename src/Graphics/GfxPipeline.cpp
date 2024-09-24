@@ -7,7 +7,7 @@
 GfxPipeline::GfxPipeline(GfxDevice &gfxDevice, const std::string &vertFilePath,
                          const std::string &fragFilePath,
                          const GfxPipelineConfigInfo &configInfo)
-    : gfxDevice(gfxDevice) {
+    : m_gfxDevice(gfxDevice) {
   createGfxPipeline(vertFilePath, fragFilePath, configInfo);
 }
 
@@ -34,13 +34,13 @@ void GfxPipeline::createGfxPipeline(const std::string &vertFilePath,
   auto vertShaderCode = readFile(vertFilePath);
   auto fragShaderCode = readFile(fragFilePath);
 
-  createShaderModule(vertShaderCode, &vertShaderModule);
-  createShaderModule(fragShaderCode, &fragShaderModule);
+  createShaderModule(vertShaderCode, &m_vertShaderModule);
+  createShaderModule(fragShaderCode, &m_fragShaderModule);
 
   VkPipelineShaderStageCreateInfo shaderStages[2];
   shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-  shaderStages[0].module = vertShaderModule;
+  shaderStages[0].module = m_vertShaderModule;
   shaderStages[0].pName = "main";
   shaderStages[0].flags = 0;
   shaderStages[0].pNext = nullptr;
@@ -48,7 +48,7 @@ void GfxPipeline::createGfxPipeline(const std::string &vertFilePath,
 
   shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-  shaderStages[1].module = fragShaderModule;
+  shaderStages[1].module = m_fragShaderModule;
   shaderStages[1].pName = "main";
   shaderStages[1].flags = 0;
   shaderStages[1].pNext = nullptr;
@@ -86,17 +86,17 @@ void GfxPipeline::createGfxPipeline(const std::string &vertFilePath,
   pipelineInfo.basePipelineIndex = -1;
   pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-  if (vkCreateGraphicsPipelines(gfxDevice.device(), VK_NULL_HANDLE, 1,
+  if (vkCreateGraphicsPipelines(m_gfxDevice.device(), VK_NULL_HANDLE, 1,
                                 &pipelineInfo, nullptr,
-                                &graphicsPipeline) != VK_SUCCESS) {
+                                &m_graphicsPipeline) != VK_SUCCESS) {
     throw std::runtime_error("failed to create graphics pipeline!");
   }
 }
 
 GfxPipeline::~GfxPipeline() {
-  vkDestroyShaderModule(gfxDevice.device(), fragShaderModule, nullptr);
-  vkDestroyShaderModule(gfxDevice.device(), vertShaderModule, nullptr);
-  vkDestroyPipeline(gfxDevice.device(), graphicsPipeline, nullptr);
+  vkDestroyShaderModule(m_gfxDevice.device(), m_fragShaderModule, nullptr);
+  vkDestroyShaderModule(m_gfxDevice.device(), m_vertShaderModule, nullptr);
+  vkDestroyPipeline(m_gfxDevice.device(), m_graphicsPipeline, nullptr);
 }
 
 void GfxPipeline::createShaderModule(const std::vector<char> &code,
@@ -106,7 +106,7 @@ void GfxPipeline::createShaderModule(const std::vector<char> &code,
   createInfo.codeSize = code.size();
   createInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
-  if (vkCreateShaderModule(gfxDevice.device(), &createInfo, nullptr,
+  if (vkCreateShaderModule(m_gfxDevice.device(), &createInfo, nullptr,
                            shaderModule) != VK_SUCCESS) {
     throw std::runtime_error("failed to create shader module!");
   }
@@ -199,5 +199,5 @@ void GfxPipeline::defaultGfxPipelineConfigInfo(
 
 void GfxPipeline::bind(VkCommandBuffer commandBuffer) {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    graphicsPipeline);
+                    m_graphicsPipeline);
 }
