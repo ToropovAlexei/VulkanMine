@@ -25,6 +25,12 @@ FetchContent_Declare(
 	GIT_TAG 	bf71a834948186f4097caa076cd2663c69a10e1e #refs/tags/1.0.1
 )
 
+FetchContent_Declare(
+  stb
+  GIT_REPOSITORY https://github.com/nothings/stb.git
+  GIT_TAG master
+)
+
 # FetchContent_Declare (
 #   tracy
 #   GIT_REPOSITORY https://github.com/wolfpld/tracy.git
@@ -35,8 +41,9 @@ FetchContent_Declare(
 
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
+add_subdirectory(libs/VulkanMemoryAllocator)
 
-FetchContent_MakeAvailable(glm glfw)
+FetchContent_MakeAvailable(glm glfw stb)
 # FetchContent_MakeAvailable(glm glfw tracy)
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
@@ -47,7 +54,9 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
 
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
+target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} libs/VulkanMemoryAllocator/src)
+target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VMA_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 # target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES "shaders/*.frag" "shaders/*.vert")
@@ -73,3 +82,4 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${PROJECT_BINARY_DIR}/shaders"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
         )
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
