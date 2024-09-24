@@ -204,15 +204,6 @@ void App::run() {
 }
 
 void App::loadGameObjects() {
-  std::shared_ptr<GfxModel> model =
-      GfxModel::createGfxModelFromFile(gfxDevice, "models/tank.obj");
-
-  auto obj = GameObject::createGameObject();
-  obj.model = model;
-  obj.transform.translation = {0.0f, 1.0f, 2.5f};
-  obj.transform.rotation = {glm::half_pi<float>(), 0.0f, 0.0f};
-  obj.transform.scale = {0.5f, 0.5f, 0.5f};
-
   // auto cube2 = GameObject::createGameObject();
   // cube2.model = model;
   // cube2.transform.translation = {2.5f, 0.0f, 0.0f};
@@ -232,7 +223,6 @@ void App::loadGameObjects() {
   terrain.model = terrainModel;
   terrain.transform.rotation = {glm::pi<float>(), 0.0f, 0.0f};
 
-  gameObjects.emplace(obj.getId(), std::move(obj));
   gameObjects.emplace(terrain.getId(), std::move(terrain));
   // gameObjects.push_back(std::move(cube2));
   // gameObjects.push_back(std::move(cube3));

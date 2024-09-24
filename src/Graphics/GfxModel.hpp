@@ -29,14 +29,9 @@ public:
   struct Builder {
     std::vector<Vertex> vertices{};
     std::vector<uint32_t> indices{};
-
-    void loadModel(const std::string &filepath);
   };
 
   GfxModel(GfxDevice &gfxDevice, const Builder &builder);
-
-  static std::unique_ptr<GfxModel>
-  createGfxModelFromFile(GfxDevice &gfxDevice, const std::string &filepath);
 
   void bind(VkCommandBuffer commandBuffer);
   void draw(VkCommandBuffer commandBuffer);

@@ -33,16 +33,10 @@ FetchContent_Declare(
 #   GIT_PROGRESS TRUE
 # )
 
-FetchContent_Declare(
-    tinyobjloader
-    GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
-    GIT_TAG release
-)
-
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
 
-FetchContent_MakeAvailable(glm glfw tinyobjloader)
+FetchContent_MakeAvailable(glm glfw)
 # FetchContent_MakeAvailable(glm glfw tracy)
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
@@ -53,8 +47,7 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
 
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} tinyobjloader)
-target_compile_definitions(${PROJECT_NAME} PRIVATE TINYOBJLOADER_IMPLEMENTATION)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES})
 # target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES "shaders/*.frag" "shaders/*.vert")
@@ -80,5 +73,3 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         "${PROJECT_BINARY_DIR}/shaders"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
         )
-
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/models DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
