@@ -1,4 +1,5 @@
 #include "App.h"
+#include "FastNoiseLite.h"
 #include "Graphics/FrameInfo.hpp"
 #include "Graphics/GfxBuffer.hpp"
 #include "Graphics/GfxDescriptors.hpp"
@@ -14,9 +15,92 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+std::vector<GfxModel::Vertex>
+generateTerrainMesh(int width, int height, float scale, float amplitude) {
+  std::vector<GfxModel::Vertex> vertices;
+  FastNoiseLite noise;
+  noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+  noise.SetFrequency(0.05f); // Контролирует частоту шума
+
+  // Генерация вершин с использованием Perlin noise для высоты
+  for (int z = 0; z < height; ++z) {
+    for (int x = 0; x < width; ++x) {
+      float heightValue =
+          noise.GetNoise((float)x * scale, (float)z * scale) * amplitude;
+      glm::vec3 color;
+      if (heightValue < 0.3f) {
+        color = glm::vec3(0.1f, 0.4f, 0.1f); // Зеленая трава
+      } else if (heightValue < 0.8f) {
+        color = glm::vec3(0.5f, 0.3f, 0.2f); // Коричневая земля
+      } else {
+        color = glm::vec3(1.0f, 1.0f, 1.0f); // Белый снег
+      }
+      vertices.push_back(
+          {.pos = glm::vec3(x, heightValue, z),
+           .color = color,
+           .normal = glm::vec3(0, 1, 0)}); // Нормали будут обновлены позже
+    }
+  }
+  return vertices;
+}
+
+std::vector<uint32_t> generateTerrainIndices(int width, int height) {
+  std::vector<uint32_t> indices;
+
+  for (int z = 0; z < height - 1; ++z) {
+    for (int x = 0; x < width - 1; ++x) {
+      int topLeft = (z * width) + x;
+      int topRight = topLeft + 1;
+      int bottomLeft = ((z + 1) * width) + x;
+      int bottomRight = bottomLeft + 1;
+
+      // Первый треугольник
+      indices.push_back(topLeft);
+      indices.push_back(bottomLeft);
+      indices.push_back(topRight);
+
+      // Второй треугольник
+      indices.push_back(topRight);
+      indices.push_back(bottomLeft);
+      indices.push_back(bottomRight);
+    }
+  }
+
+  return indices;
+}
+
+void calculateNormals(std::vector<GfxModel::Vertex> &vertices,
+                      const std::vector<uint32_t> &indices) {
+  // Сброс нормалей
+  for (auto &vertex : vertices) {
+    vertex.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+  }
+
+  // Рассчитываем нормали для треугольников
+  for (size_t i = 0; i < indices.size(); i += 3) {
+    GfxModel::Vertex &v0 = vertices[indices[i]];
+    GfxModel::Vertex &v1 = vertices[indices[i + 1]];
+    GfxModel::Vertex &v2 = vertices[indices[i + 2]];
+
+    glm::vec3 edge1 = v1.pos - v0.pos;
+    glm::vec3 edge2 = v2.pos - v0.pos;
+
+    glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+
+    v0.normal += normal;
+    v1.normal += normal;
+    v2.normal += normal;
+  }
+
+  // Нормализация всех нормалей
+  for (auto &vertex : vertices) {
+    vertex.normal = glm::normalize(vertex.normal);
+  }
+}
+
 struct GlobalUBO {
   glm::mat4 projectionView;
-  glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.3f};
+  glm::vec4 ambientLightColor{1.0f, 1.0f, 1.0f, 0.83f};
   glm::vec4 lightPos{-1.0f};
   glm::vec4 lightColor{1.0f};
 };
@@ -138,8 +222,18 @@ void App::loadGameObjects() {
   // cube3.model = model;
   // cube3.transform.translation = {-2.5f, 0.0f, 0.0f};
   // cube3.transform.scale = {0.5f, 0.5f, 0.5f};
+  GfxModel::Builder terrainBuilder;
+  terrainBuilder.vertices = generateTerrainMesh(256, 256, 0.5f, 10.0f);
+  terrainBuilder.indices = generateTerrainIndices(256, 256);
+  calculateNormals(terrainBuilder.vertices, terrainBuilder.indices);
+  std::shared_ptr<GfxModel> terrainModel =
+      std::make_shared<GfxModel>(gfxDevice, terrainBuilder);
+  auto terrain = GameObject::createGameObject();
+  terrain.model = terrainModel;
+  terrain.transform.rotation = {glm::pi<float>(), 0.0f, 0.0f};
 
   gameObjects.emplace(obj.getId(), std::move(obj));
+  gameObjects.emplace(terrain.getId(), std::move(terrain));
   // gameObjects.push_back(std::move(cube2));
   // gameObjects.push_back(std::move(cube3));
 }

@@ -26,9 +26,6 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo) {
                           VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                           &frameInfo.globalDescriptorSet, 0, nullptr);
 
-  auto projectionView =
-      frameInfo.camera.getProjection() * frameInfo.camera.getView();
-
   for (auto &gameObject : frameInfo.gameObjects) {
     auto modelMatrix = gameObject.second.transform.mat4();
     PushConstantData push{
