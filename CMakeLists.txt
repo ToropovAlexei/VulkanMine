@@ -55,7 +55,7 @@ add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE
 
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
-target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} libs/VulkanMemoryAllocator/src)
+target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} SYSTEM libs/VulkanMemoryAllocator/src)
 target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VMA_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 # target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
 
