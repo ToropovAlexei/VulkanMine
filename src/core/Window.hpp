@@ -15,6 +15,17 @@ public:
   vk::Extent2D getExtent() const noexcept {
     return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
   }
+  bool shouldClose() const { return glfwWindowShouldClose(m_window); }
+  void createWindowSurface(vk::Instance& instance, vk::SurfaceKHR &surface);
+  void hideCursor() {
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  }
+  void showCursor() {
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
+  int getWidth() const { return m_width; }
+  int getHeight() const { return m_height; }
+  void pollEvents() { glfwPollEvents(); }
 
 private:
   void initWindow();

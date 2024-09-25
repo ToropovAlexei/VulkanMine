@@ -10,6 +10,19 @@ Window::~Window() {
   glfwTerminate();
 }
 
+void Window::createWindowSurface(vk::Instance &instance,
+                                 vk::SurfaceKHR &surface) {
+  VkSurfaceKHR rawSurface;
+  VkResult result =
+      glfwCreateWindowSurface(instance, m_window, nullptr, &rawSurface);
+
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create window surface!");
+  }
+
+  surface = vk::SurfaceKHR(rawSurface);
+}
+
 void Window::initWindow() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
