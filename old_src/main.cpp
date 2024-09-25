@@ -1,6 +1,6 @@
-#include "core/App.hpp"
-#include <cstdlib>
+#include "App.h"
 #include <iostream>
+// #include <tracy/Tracy.hpp>
 
 int main() {
   try {
