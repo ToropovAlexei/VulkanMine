@@ -1,6 +1,6 @@
 #include "RenderDeviceVk.hpp"
 #include "../../core/Logger.hpp"
-#include <iostream>
+#include <string>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
@@ -15,11 +15,6 @@ const std::vector<const char *> deviceExtensions = {
     "VK_KHR_shader_subgroup_extended_types", "VK_EXT_descriptor_indexing",
     "VK_EXT_sampler_filter_minmax", "VK_EXT_host_query_reset",
     "VK_KHR_shader_float16_int8", "VK_KHR_shader_atomic_int64"};
-
-#define RESET_COLOR "\033[0m"
-#define RED_COLOR "\033[31m"
-#define YELLOW_COLOR "\033[33m"
-#define BLUE_COLOR "\033[34m"
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -77,7 +72,7 @@ void RenderDeviceVk::initVulkan() {
   auto remainingRequiredExtensions = requiredExtensions;
   if (!checkInstanceExtensionSupport(remainingRequiredExtensions)) {
     for (auto &extension : remainingRequiredExtensions) {
-      std::cerr << "Missing required extension: " << extension << std::endl;
+      Logger::error("Missing required extension: " + std::string(extension));
     }
 
     throw std::runtime_error("Required extensions are missing!");
