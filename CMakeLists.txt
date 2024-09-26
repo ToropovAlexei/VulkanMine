@@ -41,7 +41,8 @@ FetchContent_Declare(
 
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
-add_subdirectory(libs/VulkanMemoryAllocator)
+# TODO REMOVE LIBS/VulkanMemoryAllocator
+# add_subdirectory(libs/VulkanMemoryAllocator)
 
 FetchContent_MakeAvailable(glm glfw stb)
 # FetchContent_MakeAvailable(glm glfw tracy)
@@ -53,11 +54,29 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
 
 add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
 
+find_package(VulkanMemoryAllocator CONFIG REQUIRED PATHS /usr/include/vk_mem_alloc.h)
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} VulkanMemoryAllocator)
-target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} SYSTEM libs/VulkanMemoryAllocator/src)
-target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VMA_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
-# target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} TracyClient)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator) # TracyClient
+target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+  -Wall               # Все базовые предупреждения
+  -Wextra             # Дополнительные предупреждения
+  -Wpedantic          # Соответствие стандартам C++
+  -Wshadow            # Предупреждение при затенении переменных
+  -Wnon-virtual-dtor  # Виртуальные деструкторы
+  -Wcast-align        # Несоответствие выравнивания при приведении типов
+  -Woverloaded-virtual # Перекрытие виртуальных функций
+  -Wconversion        # Предупреждение при опасных преобразованиях типов
+  -Wsign-conversion   # Предупреждение при изменении знака
+  -Wnull-dereference  # Отключение предупреждения о разыменовании nullptr
+  -Wdouble-promotion  # Автоматическое преобразование float в double
+  -Wformat=2          # Проверка форматирования строк
+  -Wredundant-decls   # Повторяющиеся объявления
+  -Wunreachable-code  # Невыполнимый код
+)
+
+target_compile_options(glfw PRIVATE -w)
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES "shaders/*.frag" "shaders/*.vert")
 
