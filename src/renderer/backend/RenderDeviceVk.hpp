@@ -2,6 +2,7 @@
 
 #include "../../core/NonCopyable.hpp"
 #include "../../core/Window.hpp"
+#include <vk_mem_alloc.h>
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -49,6 +50,7 @@ private:
   vk::Instance m_instance;
   vk::PhysicalDevice m_physicalDevice;
   vk::Device m_device;
+  VmaAllocator m_allocator;
 
   vk::Queue m_graphicsQueue;
   vk::Queue m_transferQueue;

@@ -1,3 +1,4 @@
+#define VMA_IMPLEMENTATION
 #include "RenderDeviceVk.hpp"
 #include "../../core/Logger.hpp"
 #include <map>
@@ -20,9 +21,9 @@ const std::vector<const char *> deviceExtensions = {
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-              VkDebugUtilsMessageTypeFlagsEXT messageType,
+              [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
               const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-              void *pUserData) {
+              [[maybe_unused]] void *pUserData) {
   if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
     Logger::error(pCallbackData->pMessage);
   } else if (messageSeverity &
@@ -48,6 +49,7 @@ RenderDeviceVk::RenderDeviceVk(Window *window) : m_window{window} {
 }
 
 RenderDeviceVk::~RenderDeviceVk() {
+  vmaDestroyAllocator(m_allocator);
   m_device.destroy();
 
   if (m_debugMessenger) {
@@ -161,8 +163,8 @@ void RenderDeviceVk::createLogicalDevice() {
 
   vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptorIndexingFeatures = {
       .pNext = &shaderSubgroupFeatures,
-      .runtimeDescriptorArray = VK_TRUE,
       .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+      .runtimeDescriptorArray = VK_TRUE,
   };
 
   vk::PhysicalDeviceShaderAtomicInt64FeaturesKHR atomicInt64Features = {
@@ -177,18 +179,21 @@ void RenderDeviceVk::createLogicalDevice() {
 
   vk::PhysicalDeviceFeatures2 deviceFeatures = {
       .pNext = &float16Int8Features,
-      .features = {.samplerAnisotropy = VK_TRUE,
-                   .fragmentStoresAndAtomics = VK_TRUE,
-                   .vertexPipelineStoresAndAtomics = VK_TRUE,
-                   .shaderInt64 = VK_TRUE,
-                   .multiDrawIndirect = VK_TRUE,
-                   .drawIndirectFirstInstance = VK_TRUE,
-                   .independentBlend = VK_TRUE,
-                   .geometryShader = VK_TRUE,
-                   .fillModeNonSolid = VK_TRUE,
-                   .depthClamp = VK_TRUE,
-                   .shaderStorageImageReadWithoutFormat = VK_TRUE,
-                   .shaderImageGatherExtended = VK_TRUE},
+      .features =
+          {
+              .independentBlend = VK_TRUE,
+              .geometryShader = VK_TRUE,
+              .multiDrawIndirect = VK_TRUE,
+              .drawIndirectFirstInstance = VK_TRUE,
+              .depthClamp = VK_TRUE,
+              .fillModeNonSolid = VK_TRUE,
+              .samplerAnisotropy = VK_TRUE,
+              .vertexPipelineStoresAndAtomics = VK_TRUE,
+              .fragmentStoresAndAtomics = VK_TRUE,
+              .shaderImageGatherExtended = VK_TRUE,
+              .shaderStorageImageReadWithoutFormat = VK_TRUE,
+              .shaderInt64 = VK_TRUE,
+          },
   };
   // TODO Check if device features are supported
   // checkDeviceFeatureSupport(m_physicalDevice, deviceFeatures);
@@ -227,7 +232,23 @@ void RenderDeviceVk::createLogicalDevice() {
   m_presentQueue = m_device.getQueue(indices.presentFamily.value(), 0);
 }
 
-void RenderDeviceVk::createAllocator() {}
+void RenderDeviceVk::createAllocator() {
+  VmaAllocatorCreateInfo allocatorInfo = {
+      .flags = 0,
+      .physicalDevice = m_physicalDevice,
+      .device = m_device,
+      .preferredLargeHeapBlockSize = 0,
+      .pAllocationCallbacks = NULL,
+      .pDeviceMemoryCallbacks = NULL,
+      .pHeapSizeLimit = NULL,
+      .pVulkanFunctions = NULL,
+      .instance = m_instance,
+      .vulkanApiVersion = VK_API_VERSION_1_3,
+      .pTypeExternalMemoryHandleTypes = NULL,
+  };
+
+  vmaCreateAllocator(&allocatorInfo, &m_allocator);
+}
 
 void RenderDeviceVk::createCommandPool() {}
 
@@ -299,7 +320,7 @@ void RenderDeviceVk::populateDebugMessengerCreateInfo(
 
 int RenderDeviceVk::rateDeviceSuitability(const vk::PhysicalDevice &device) {
   vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
-  vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
+  // vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
 
   int score = 0;
 
@@ -358,7 +379,8 @@ RenderDeviceVk::findQueueFamilies(const vk::PhysicalDevice device) {
           queueFamily.timestampValidBits > 0;
     }
 
-    VkBool32 presentSupport = device.getSurfaceSupportKHR(i, m_surface);
+    VkBool32 presentSupport =
+        device.getSurfaceSupportKHR(static_cast<uint32_t>(i), m_surface);
 
     if (queueFamily.queueCount > 0 && presentSupport) {
       indices.presentFamily = i;
