@@ -40,6 +40,7 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 RenderDeviceVk::RenderDeviceVk(Window *window) : m_window{window} {
   initVulkan();
   setupDebugMessenger();
+  createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
   createAllocator();
@@ -47,9 +48,13 @@ RenderDeviceVk::RenderDeviceVk(Window *window) : m_window{window} {
 }
 
 RenderDeviceVk::~RenderDeviceVk() {
+  m_device.destroy();
+
   if (m_debugMessenger) {
     m_instance.destroyDebugUtilsMessengerEXT(m_debugMessenger, nullptr, dldi);
   }
+
+  m_instance.destroySurfaceKHR(m_surface);
   m_instance.destroy();
 }
 
@@ -107,6 +112,10 @@ void RenderDeviceVk::setupDebugMessenger() {
 #endif
 }
 
+void RenderDeviceVk::createSurface() {
+  m_window->createWindowSurface(m_instance, m_surface);
+}
+
 void RenderDeviceVk::pickPhysicalDevice() {
   auto devices = m_instance.enumeratePhysicalDevices();
 
@@ -126,7 +135,97 @@ void RenderDeviceVk::pickPhysicalDevice() {
   }
 }
 
-void RenderDeviceVk::createLogicalDevice() {}
+void RenderDeviceVk::createLogicalDevice() {
+  QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+
+  std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+  std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(),
+                                            indices.transferFamily.value(),
+                                            indices.presentFamily.value()};
+
+  float queuePriority = 1.0f;
+  for (uint32_t queueFamily : uniqueQueueFamilies) {
+    queueCreateInfos.push_back({.queueFamilyIndex = queueFamily,
+                                .queueCount = 1,
+                                .pQueuePriorities = &queuePriority});
+  }
+
+  vk::PhysicalDeviceHostQueryResetFeaturesEXT resetFeatures = {.hostQueryReset =
+                                                                   VK_TRUE};
+
+  vk::PhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR
+      shaderSubgroupFeatures = {
+          .pNext = &resetFeatures,
+          .shaderSubgroupExtendedTypes = VK_TRUE,
+      };
+
+  vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptorIndexingFeatures = {
+      .pNext = &shaderSubgroupFeatures,
+      .runtimeDescriptorArray = VK_TRUE,
+      .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+  };
+
+  vk::PhysicalDeviceShaderAtomicInt64FeaturesKHR atomicInt64Features = {
+      .pNext = &descriptorIndexingFeatures,
+      .shaderBufferInt64Atomics = VK_TRUE,
+  };
+
+  vk::PhysicalDeviceFloat16Int8FeaturesKHR float16Int8Features = {
+      .pNext = &atomicInt64Features,
+      .shaderFloat16 = VK_TRUE,
+  };
+
+  vk::PhysicalDeviceFeatures2 deviceFeatures = {
+      .pNext = &float16Int8Features,
+      .features = {.samplerAnisotropy = VK_TRUE,
+                   .fragmentStoresAndAtomics = VK_TRUE,
+                   .vertexPipelineStoresAndAtomics = VK_TRUE,
+                   .shaderInt64 = VK_TRUE,
+                   .multiDrawIndirect = VK_TRUE,
+                   .drawIndirectFirstInstance = VK_TRUE,
+                   .independentBlend = VK_TRUE,
+                   .geometryShader = VK_TRUE,
+                   .fillModeNonSolid = VK_TRUE,
+                   .depthClamp = VK_TRUE,
+                   .shaderStorageImageReadWithoutFormat = VK_TRUE,
+                   .shaderImageGatherExtended = VK_TRUE},
+  };
+  // TODO Check if device features are supported
+  // checkDeviceFeatureSupport(m_physicalDevice, deviceFeatures);
+
+  vk::DeviceCreateInfo createInfo = {
+      .pNext = &deviceFeatures,
+      .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+      .pQueueCreateInfos = queueCreateInfos.data(),
+      .pEnabledFeatures = NULL,
+  };
+
+  std::vector<const char *> enabledExtensions;
+  for (const char *extension : deviceExtensions) {
+    enabledExtensions.push_back(extension);
+  }
+
+  createInfo.enabledExtensionCount =
+      static_cast<uint32_t>(enabledExtensions.size());
+  createInfo.ppEnabledExtensionNames = enabledExtensions.data();
+
+#ifndef NDEBUG
+  std::vector<const char *> enabledLayers;
+  for (const char *layer : validationLayers) {
+    enabledLayers.push_back(layer);
+  }
+
+  createInfo.enabledLayerCount = static_cast<uint32_t>(enabledLayers.size());
+  createInfo.ppEnabledLayerNames = enabledLayers.data();
+#else
+  createInfo.enabledLayerCount = 0;
+#endif
+
+  m_device = m_physicalDevice.createDevice(createInfo);
+  m_graphicsQueue = m_device.getQueue(indices.graphicsFamily.value(), 0);
+  m_transferQueue = m_device.getQueue(indices.transferFamily.value(), 0);
+  m_presentQueue = m_device.getQueue(indices.presentFamily.value(), 0);
+}
 
 void RenderDeviceVk::createAllocator() {}
 
@@ -233,4 +332,46 @@ bool RenderDeviceVk::checkDeviceExtensionSupport(
   }
 
   return requiredExtensions.empty();
+}
+
+QueueFamilyIndices
+RenderDeviceVk::findQueueFamilies(const vk::PhysicalDevice device) {
+  QueueFamilyIndices indices;
+
+  auto queueFamilies = device.getQueueFamilyProperties();
+
+  vk::QueueFlags transferQueueFlags = vk::QueueFlagBits::eTransfer;
+
+  int i = 0;
+  for (const auto &queueFamily : queueFamilies) {
+    if (queueFamily.queueCount > 0 &&
+        queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
+      indices.graphicsFamily = i;
+      indices.graphicsFamilySupportsTimeStamps =
+          queueFamily.timestampValidBits > 0;
+    }
+
+    if (queueFamily.queueCount > 0 &&
+        (queueFamily.queueFlags & transferQueueFlags) == transferQueueFlags) {
+      indices.transferFamily = i;
+      indices.transferFamilySupportsTimeStamps =
+          queueFamily.timestampValidBits > 0;
+    }
+
+    VkBool32 presentSupport = device.getSurfaceSupportKHR(i, m_surface);
+
+    if (queueFamily.queueCount > 0 && presentSupport) {
+      indices.presentFamily = i;
+      indices.presentFamilySupportsTimeStamps =
+          queueFamily.timestampValidBits > 0;
+    }
+
+    if (indices.IsComplete()) {
+      break;
+    }
+
+    i++;
+  }
+
+  return indices;
 }

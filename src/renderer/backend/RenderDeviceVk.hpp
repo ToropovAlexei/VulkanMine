@@ -27,6 +27,7 @@ public:
 private:
   void initVulkan();
   void setupDebugMessenger();
+  void createSurface();
   void pickPhysicalDevice();
   void createLogicalDevice();
   void createAllocator();
@@ -40,11 +41,19 @@ private:
   std::vector<const char *> getRequiredExtensions();
   int rateDeviceSuitability(const vk::PhysicalDevice &device);
   bool checkDeviceExtensionSupport(const vk::PhysicalDevice &device);
+  QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice device);
 
 private:
   Window *m_window;
+  vk::SurfaceKHR m_surface;
   vk::Instance m_instance;
   vk::PhysicalDevice m_physicalDevice;
+  vk::Device m_device;
+
+  vk::Queue m_graphicsQueue;
+  vk::Queue m_transferQueue;
+  vk::Queue m_presentQueue;
+
   vk::DebugUtilsMessengerEXT m_debugMessenger;
   vk::DispatchLoaderDynamic dldi;
 };
