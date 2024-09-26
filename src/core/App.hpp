@@ -1,4 +1,6 @@
 #pragma once
+
+#include "../renderer/backend/RenderDeviceVk.hpp"
 #include "NonCopyable.hpp"
 #include "Window.hpp"
 #include <memory>
@@ -11,4 +13,5 @@ public:
 
 private:
   std::unique_ptr<Window> m_window;
+  std::unique_ptr<RenderDeviceVk> m_renderDevice;
 };

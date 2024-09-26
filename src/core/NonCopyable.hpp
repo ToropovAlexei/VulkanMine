@@ -1,3 +1,5 @@
+#pragma once
+
 class NonCopyable {
 public:
   NonCopyable(const NonCopyable &) = delete;
