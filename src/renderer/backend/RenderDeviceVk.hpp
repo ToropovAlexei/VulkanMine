@@ -38,10 +38,13 @@ private:
   void populateDebugMessengerCreateInfo(
       vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
   std::vector<const char *> getRequiredExtensions();
+  int rateDeviceSuitability(const vk::PhysicalDevice &device);
+  bool checkDeviceExtensionSupport(const vk::PhysicalDevice &device);
 
 private:
   Window *m_window;
   vk::Instance m_instance;
+  vk::PhysicalDevice m_physicalDevice;
   vk::DebugUtilsMessengerEXT m_debugMessenger;
   vk::DispatchLoaderDynamic dldi;
 };

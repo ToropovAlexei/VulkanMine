@@ -1,5 +1,7 @@
 #include "RenderDeviceVk.hpp"
 #include "../../core/Logger.hpp"
+#include <map>
+#include <set>
 #include <string>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -105,7 +107,24 @@ void RenderDeviceVk::setupDebugMessenger() {
 #endif
 }
 
-void RenderDeviceVk::pickPhysicalDevice() {}
+void RenderDeviceVk::pickPhysicalDevice() {
+  auto devices = m_instance.enumeratePhysicalDevices();
+
+  // Use an ordered map to automatically sort candidates by increasing score
+  std::multimap<int, vk::PhysicalDevice> candidates;
+
+  for (const auto &device : devices) {
+    int score = rateDeviceSuitability(device);
+    candidates.insert(std::make_pair(score, device));
+  }
+
+  // Check if the best candidate is suitable at all
+  if (candidates.rbegin()->first > 0) {
+    m_physicalDevice = candidates.rbegin()->second;
+  } else {
+    throw std::runtime_error("Failed to find a suitable GPU!");
+  }
+}
 
 void RenderDeviceVk::createLogicalDevice() {}
 
@@ -114,11 +133,7 @@ void RenderDeviceVk::createAllocator() {}
 void RenderDeviceVk::createCommandPool() {}
 
 void RenderDeviceVk::checkValidationLayerSupport() {
-  uint32_t layerCount;
-  vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-  std::vector<VkLayerProperties> availableLayers(layerCount);
-  vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+  auto availableLayers = vk::enumerateInstanceLayerProperties();
 
   for (const char *layerName : validationLayers) {
     bool layerFound = false;
@@ -139,11 +154,7 @@ void RenderDeviceVk::checkValidationLayerSupport() {
 
 bool RenderDeviceVk::checkInstanceExtensionSupport(
     std::vector<const char *> &requiredExtensions) {
-  uint32_t extensionCount = 0;
-  vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-  std::vector<VkExtensionProperties> extensions(extensionCount);
-  vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
-                                         extensions.data());
+  auto extensions = vk::enumerateInstanceExtensionProperties();
 
   for (auto extension : extensions) {
     requiredExtensions.erase(
@@ -185,4 +196,41 @@ void RenderDeviceVk::populateDebugMessengerCreateInfo(
                            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
                            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
   createInfo.pfnUserCallback = debugCallback;
+}
+
+int RenderDeviceVk::rateDeviceSuitability(const vk::PhysicalDevice &device) {
+  vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
+  vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
+
+  int score = 0;
+
+  // Discrete GPUs have a significant performance advantage
+  if (deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+    score += 1000;
+  }
+
+  // Maximum possible size of textures affects graphics quality
+  score += deviceProperties.limits.maxImageDimension2D;
+
+  // Make sure it supports the extensions we need
+  bool extensionsSupported = checkDeviceExtensionSupport(device);
+  if (!extensionsSupported) {
+    return 0;
+  }
+
+  return score;
+}
+
+bool RenderDeviceVk::checkDeviceExtensionSupport(
+    const vk::PhysicalDevice &device) {
+  auto availableExtensions = device.enumerateDeviceExtensionProperties();
+
+  std::set<std::string> requiredExtensions(deviceExtensions.begin(),
+                                           deviceExtensions.end());
+
+  for (const auto &extension : availableExtensions) {
+    requiredExtensions.erase(extension.extensionName);
+  }
+
+  return requiredExtensions.empty();
 }
