@@ -8,7 +8,7 @@
       "type": "lldb",
       "request": "launch",
       "name": "Debug",
-      "program": "${workspaceFolder}/build/KhronosTutorial",
+      "program": "${workspaceFolder}/build/VulkanMine",
       "args": [],
       "cwd": "${workspaceFolder}"
     }

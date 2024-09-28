@@ -9,6 +9,7 @@
 class App : NonCopyable {
 public:
   App();
+  ~App();
 
   void run();
 

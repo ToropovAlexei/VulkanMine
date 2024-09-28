@@ -7,4 +7,18 @@ App::App() {
   m_renderer = std::make_unique<Renderer>(m_window.get(), m_renderDevice.get());
 }
 
-void App::run() {}
+App::~App() { m_renderDevice->getDevice().waitIdle(); }
+
+void App::run() {
+  while (!m_window->shouldClose()) {
+    glfwPollEvents();
+
+    if (auto commandBuffer = m_renderer->beginFrame()) {
+      int frameIndex = m_renderer->getFrameIndex();
+
+      m_renderer->beginSwapChainRenderPass(commandBuffer);
+      m_renderer->endSwapChainRenderPass(commandBuffer);
+      m_renderer->endFrame();
+    }
+  }
+}
