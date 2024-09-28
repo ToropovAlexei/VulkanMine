@@ -2,7 +2,9 @@
 
 #include "../../core/NonCopyable.hpp"
 #include "../../core/Window.hpp"
+#include <vector>
 #include <vk_mem_alloc.h>
+#include <vulkan/vulkan_handles.hpp>
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -25,6 +27,9 @@ public:
   RenderDeviceVk(Window *window);
   ~RenderDeviceVk();
 
+public:
+  static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
+
 private:
   void initVulkan();
   void setupDebugMessenger();
@@ -33,6 +38,7 @@ private:
   void createLogicalDevice();
   void createAllocator();
   void createCommandPool();
+  void createCommandBuffers();
 
   void checkValidationLayerSupport();
   bool
@@ -55,6 +61,9 @@ private:
   vk::Queue m_graphicsQueue;
   vk::Queue m_transferQueue;
   vk::Queue m_presentQueue;
+
+  std::vector<vk::CommandPool> m_commandPools;
+  std::vector<vk::CommandBuffer> m_commandBuffers;
 
   vk::DebugUtilsMessengerEXT m_debugMessenger;
   vk::DispatchLoaderDynamic dldi;
