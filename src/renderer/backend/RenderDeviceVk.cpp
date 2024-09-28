@@ -47,21 +47,11 @@ RenderDeviceVk::RenderDeviceVk(Window *window) : m_window{window} {
   createLogicalDevice();
   createAllocator();
   createCommandPool();
-  createCommandBuffers();
 }
 
 RenderDeviceVk::~RenderDeviceVk() {
   vmaDestroyAllocator(m_allocator);
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    if (m_commandBuffers[i]) {
-      m_device.freeCommandBuffers(m_commandPools[i], 1, &m_commandBuffers[i]);
-    }
-  }
-  for (auto commandPool : m_commandPools) {
-    if (commandPool) {
-      m_device.destroyCommandPool(commandPool);
-    }
-  }
+  m_device.destroyCommandPool(m_commandPool);
   m_device.destroy();
 
   if (m_debugMessenger) {
@@ -270,28 +260,7 @@ void RenderDeviceVk::createCommandPool() {
       .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value(),
   };
 
-  m_commandPools.resize(MAX_FRAMES_IN_FLIGHT);
-  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    m_commandPools[i] = m_device.createCommandPool(poolInfo);
-  }
-}
-
-void RenderDeviceVk::createCommandBuffers() {
-  m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    vk::CommandBufferAllocateInfo allocInfo = {
-        .commandPool = m_commandPools[i],
-        .level = vk::CommandBufferLevel::ePrimary,
-        .commandBufferCount = 1,
-    };
-    auto result =
-        m_device.allocateCommandBuffers(&allocInfo, &m_commandBuffers[i]);
-
-    if (result != vk::Result::eSuccess) {
-      throw std::runtime_error("failed to allocate command buffers!");
-    }
-  }
+  m_commandPool = m_device.createCommandPool(poolInfo);
 }
 
 void RenderDeviceVk::checkValidationLayerSupport() {

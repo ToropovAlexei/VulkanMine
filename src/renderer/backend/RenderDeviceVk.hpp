@@ -27,6 +27,16 @@ public:
   RenderDeviceVk(Window *window);
   ~RenderDeviceVk();
 
+  QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice device);
+
+  vk::Device &getDevice() noexcept { return m_device; };
+  vk::PhysicalDevice &getPhysicalDevice() noexcept { return m_physicalDevice; };
+  vk::SurfaceKHR &getSurface() noexcept { return m_surface; };
+  vk::Queue &getGraphicsQueue() noexcept { return m_graphicsQueue; };
+  vk::Queue &getTransferQueue() noexcept { return m_transferQueue; };
+  vk::Queue &getPresentQueue() noexcept { return m_presentQueue; };
+  VmaAllocator &getAllocator() noexcept { return m_allocator; };
+
 public:
   static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 
@@ -38,7 +48,6 @@ private:
   void createLogicalDevice();
   void createAllocator();
   void createCommandPool();
-  void createCommandBuffers();
 
   void checkValidationLayerSupport();
   bool
@@ -48,7 +57,6 @@ private:
   std::vector<const char *> getRequiredExtensions();
   int rateDeviceSuitability(const vk::PhysicalDevice &device);
   bool checkDeviceExtensionSupport(const vk::PhysicalDevice &device);
-  QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice device);
 
 private:
   Window *m_window;
@@ -62,8 +70,7 @@ private:
   vk::Queue m_transferQueue;
   vk::Queue m_presentQueue;
 
-  std::vector<vk::CommandPool> m_commandPools;
-  std::vector<vk::CommandBuffer> m_commandBuffers;
+  vk::CommandPool m_commandPool;
 
   vk::DebugUtilsMessengerEXT m_debugMessenger;
   vk::DispatchLoaderDynamic dldi;
