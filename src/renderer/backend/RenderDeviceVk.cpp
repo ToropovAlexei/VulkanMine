@@ -408,3 +408,51 @@ RenderDeviceVk::findQueueFamilies(const vk::PhysicalDevice device) {
 
   return indices;
 }
+
+SwapChainSupportDetails RenderDeviceVk::getSwapChainSupport() {
+  return {
+      .capabilities = m_physicalDevice.getSurfaceCapabilitiesKHR(m_surface),
+      .formats = m_physicalDevice.getSurfaceFormatsKHR(m_surface),
+      .presentModes = m_physicalDevice.getSurfacePresentModesKHR(m_surface),
+  };
+}
+
+void RenderDeviceVk::createImageWithInfo(const vk::ImageCreateInfo &imageInfo,
+                                         VmaMemoryUsage memoryUsage,
+                                         vk::Image &image,
+                                         VmaAllocation &imageAllocation) {
+  vk::ImageCreateInfo imageCreateInfo = imageInfo;
+
+  VmaAllocationCreateInfo allocCreateInfo{};
+  allocCreateInfo.usage = memoryUsage;
+
+  VkImage rawImage;
+  if (vmaCreateImage(
+          m_allocator,
+          reinterpret_cast<const VkImageCreateInfo *>(&imageCreateInfo),
+          &allocCreateInfo, &rawImage, &imageAllocation,
+          nullptr) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create image!");
+  }
+
+  image = vk::Image(rawImage);
+}
+
+vk::Format
+RenderDeviceVk::findSupportedFormat(const std::vector<vk::Format> &candidates,
+                                    vk::ImageTiling tiling,
+                                    vk::FormatFeatureFlags features) {
+  for (vk::Format format : candidates) {
+
+    vk::FormatProperties props = m_physicalDevice.getFormatProperties(format);
+
+    if (tiling == vk::ImageTiling::eLinear &&
+        (props.linearTilingFeatures & features) == features) {
+      return format;
+    } else if (tiling == vk::ImageTiling::eOptimal &&
+               (props.optimalTilingFeatures & features) == features) {
+      return format;
+    }
+  }
+  throw std::runtime_error("failed to find supported format!");
+}

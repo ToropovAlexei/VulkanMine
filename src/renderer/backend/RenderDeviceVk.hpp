@@ -6,6 +6,12 @@
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan_handles.hpp>
 
+struct SwapChainSupportDetails {
+  vk::SurfaceCapabilitiesKHR capabilities;
+  std::vector<vk::SurfaceFormatKHR> formats;
+  std::vector<vk::PresentModeKHR> presentModes;
+};
+
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
   bool graphicsFamilySupportsTimeStamps;
@@ -28,6 +34,10 @@ public:
   ~RenderDeviceVk();
 
   QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice device);
+  QueueFamilyIndices findQueueFamilies() {
+    return findQueueFamilies(m_physicalDevice);
+  }
+  SwapChainSupportDetails getSwapChainSupport();
 
   vk::Device &getDevice() noexcept { return m_device; };
   vk::PhysicalDevice &getPhysicalDevice() noexcept { return m_physicalDevice; };
@@ -37,8 +47,12 @@ public:
   vk::Queue &getPresentQueue() noexcept { return m_presentQueue; };
   VmaAllocator &getAllocator() noexcept { return m_allocator; };
 
-public:
-  static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
+  void createImageWithInfo(const vk::ImageCreateInfo &imageInfo,
+                           VmaMemoryUsage memoryUsage, vk::Image &image,
+                           VmaAllocation &imageAllocation);
+  vk::Format findSupportedFormat(const std::vector<vk::Format> &candidates,
+                                 vk::ImageTiling tiling,
+                                 vk::FormatFeatureFlags features);
 
 private:
   void initVulkan();
