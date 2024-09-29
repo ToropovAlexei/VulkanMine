@@ -40,4 +40,6 @@ void App::run() {
       m_renderer->endFrame();
     }
   }
+
+  m_renderDevice->getDevice().waitIdle();
 }
