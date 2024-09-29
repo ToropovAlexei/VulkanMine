@@ -1,5 +1,6 @@
 #include "App.hpp"
 #include <memory>
+#include <vector>
 
 App::App() {
   m_window = std::make_unique<Window>(800, 600, "VulkanMine");
@@ -12,15 +13,26 @@ App::App() {
 App::~App() { m_renderDevice->getDevice().waitIdle(); }
 
 void App::run() {
+  std::vector<Vertex> vertices = {
+      {{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // Вершина 1 (красная)
+      {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // Вершина 2 (зеленая)
+      {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}} // Вершина 3 (синяя)
+  };
+  std::vector<uint32_t> indices = {0, 1, 2};
+  std::vector<Mesh<Vertex>> meshes = {};
+  meshes.emplace_back(m_renderDevice.get(), vertices, indices);
+  FrameData frameData = {
+      .commandBuffer = nullptr,
+      .meshes = std::move(meshes),
+  };
+
   while (!m_window->shouldClose()) {
     glfwPollEvents();
 
     if (auto commandBuffer = m_renderer->beginFrame()) {
       // int frameIndex = m_renderer->getFrameIndex();
 
-      FrameData frameData;
       frameData.commandBuffer = commandBuffer;
-      // frameData.meshes = {};
 
       m_renderer->beginSwapChainRenderPass(commandBuffer);
       m_chunkRenderSystem->render(frameData);
