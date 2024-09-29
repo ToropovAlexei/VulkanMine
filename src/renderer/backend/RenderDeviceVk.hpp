@@ -54,6 +54,13 @@ public:
   vk::Format findSupportedFormat(const std::vector<vk::Format> &candidates,
                                  vk::ImageTiling tiling,
                                  vk::FormatFeatureFlags features);
+  vk::CommandBuffer beginSingleTimeCommands();
+  void endSingleTimeCommands(vk::CommandBuffer commandBuffer);
+  void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
+                    VmaMemoryUsage memoryUsage, vk::Buffer &buffer,
+                    VmaAllocation &allocation, VmaAllocationInfo &allocInfo);
+  void copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer,
+                  vk::DeviceSize size);
 
 private:
   void initVulkan();

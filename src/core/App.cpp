@@ -14,7 +14,7 @@ void App::run() {
     glfwPollEvents();
 
     if (auto commandBuffer = m_renderer->beginFrame()) {
-      int frameIndex = m_renderer->getFrameIndex();
+      // int frameIndex = m_renderer->getFrameIndex();
 
       m_renderer->beginSwapChainRenderPass(commandBuffer);
       m_renderer->endSwapChainRenderPass(commandBuffer);

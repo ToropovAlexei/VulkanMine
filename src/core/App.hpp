@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../renderSystems/ChunkRenderSystem.hpp"
 #include "../renderer/backend/RenderDeviceVk.hpp"
 #include "../renderer/backend/Renderer.hpp"
 #include "NonCopyable.hpp"
@@ -17,4 +18,5 @@ private:
   std::unique_ptr<Window> m_window;
   std::unique_ptr<RenderDeviceVk> m_renderDevice;
   std::unique_ptr<Renderer> m_renderer;
+  std::unique_ptr<ChunkRenderSystem> m_chunkRenderSystem;
 };

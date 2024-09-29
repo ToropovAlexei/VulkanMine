@@ -456,3 +456,63 @@ RenderDeviceVk::findSupportedFormat(const std::vector<vk::Format> &candidates,
   }
   throw std::runtime_error("failed to find supported format!");
 }
+
+vk::CommandBuffer RenderDeviceVk::beginSingleTimeCommands() {
+  vk::CommandBufferAllocateInfo allocInfo = {
+      .commandPool = m_commandPool,
+      .level = vk::CommandBufferLevel::ePrimary,
+      .commandBufferCount = 1};
+
+  vk::CommandBuffer commandBuffer =
+      m_device.allocateCommandBuffers(allocInfo).front();
+
+  vk::CommandBufferBeginInfo beginInfo = {
+      .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
+
+  commandBuffer.begin(beginInfo);
+  return commandBuffer;
+}
+
+void RenderDeviceVk::endSingleTimeCommands(vk::CommandBuffer commandBuffer) {
+  commandBuffer.end();
+
+  vk::SubmitInfo submitInfo = {};
+  submitInfo.setCommandBuffers(commandBuffer);
+
+  m_graphicsQueue.submit(submitInfo, nullptr);
+  m_graphicsQueue.waitIdle();
+
+  m_device.freeCommandBuffers(m_commandPool, commandBuffer);
+}
+
+void RenderDeviceVk::createBuffer(vk::DeviceSize size,
+                                  vk::BufferUsageFlags usage,
+                                  VmaMemoryUsage memoryUsage,
+                                  vk::Buffer &buffer, VmaAllocation &allocation,
+                                  VmaAllocationInfo &allocInfo) {
+  vk::BufferCreateInfo bufferInfo = {
+      .size = size, .usage = usage, .sharingMode = vk::SharingMode::eExclusive};
+
+  VmaAllocationCreateInfo allocCreateInfo{};
+  allocCreateInfo.usage = memoryUsage;
+
+  VkBuffer bufferRaw;
+  if (vmaCreateBuffer(m_allocator,
+                      reinterpret_cast<const VkBufferCreateInfo *>(&bufferInfo),
+                      &allocCreateInfo, &bufferRaw, &allocation,
+                      &allocInfo) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create buffer with VMA!");
+  }
+
+  buffer = vk::Buffer(bufferRaw);
+}
+
+void RenderDeviceVk::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer,
+                                vk::DeviceSize size) {
+  vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+
+  vk::BufferCopy copyRegion = {.srcOffset = 0, .dstOffset = 0, .size = size};
+  commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
+
+  endSingleTimeCommands(commandBuffer);
+}
