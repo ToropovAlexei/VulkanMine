@@ -7,10 +7,9 @@ struct PushConstantData {
 };
 
 ChunkRenderSystem::ChunkRenderSystem(RenderDeviceVk *device,
-                                     vk::RenderPass renderPass,
-                                     vk::DescriptorSetLayout globalSetLayout)
+                                     vk::RenderPass renderPass)
     : m_device{device} {
-  createPipelineLayout(globalSetLayout);
+  createPipelineLayout();
   createPipeline(renderPass);
 }
 
@@ -27,8 +26,7 @@ void ChunkRenderSystem::render(FrameData &frameData) {
   }
 }
 
-void ChunkRenderSystem::createPipelineLayout(
-    vk::DescriptorSetLayout globalSetLayout) {
+void ChunkRenderSystem::createPipelineLayout() {
   vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
 
   m_pipelineLayout =
@@ -41,6 +39,10 @@ void ChunkRenderSystem::createPipeline(vk::RenderPass renderPass) {
 
   pipelineConfig.renderPass = renderPass;
   pipelineConfig.pipelineLayout = m_pipelineLayout;
+  pipelineConfig.vertexInputAttributeDescriptions =
+      Vertex::getAttributeDescriptions();
+  pipelineConfig.vertexInputBindingDescriptions =
+      Vertex::getBindingDescriptions();
   m_pipeline = std::make_unique<PipelineVk>(
       m_device, "shaders/test_shader.vert.spv", "shaders/test_shader.frag.spv",
       pipelineConfig);

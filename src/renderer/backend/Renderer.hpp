@@ -9,6 +9,9 @@ class Renderer {
 public:
   Renderer(Window *window, RenderDeviceVk *device);
 
+  VkRenderPass getSwapChainRenderPass() const {
+    return m_swapChain->getRenderPass();
+  }
   size_t getFrameIndex() const {
     assert(m_isFrameStarted &&
            "Cannog get frame index when frame not in progress");
