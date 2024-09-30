@@ -3,6 +3,7 @@
 #include "../input/Keyboard.hpp"
 #include "../input/Mouse.hpp"
 #include "../renderSystems/ChunkRenderSystem.hpp"
+#include "../renderer/backend/DescriptorsVk.hpp"
 #include "../renderer/backend/RenderDeviceVk.hpp"
 #include "../renderer/backend/Renderer.hpp"
 #include "NonCopyable.hpp"
@@ -24,5 +25,6 @@ private:
   std::unique_ptr<ChunkRenderSystem> m_chunkRenderSystem;
   std::unique_ptr<Keyboard> m_keyboard;
   std::unique_ptr<Mouse> m_mouse;
+  std::unique_ptr<DescriptorPoolVk> globalPool{};
   Timer m_timer;
 };

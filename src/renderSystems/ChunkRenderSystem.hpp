@@ -43,17 +43,20 @@ struct GameObject {
 struct FrameData {
   vk::CommandBuffer commandBuffer;
   std::vector<GameObject> gameObjects;
+  vk::DescriptorSet globalDescriptorSet;
+  
 };
 
 class ChunkRenderSystem : NonCopyable {
 public:
-  ChunkRenderSystem(RenderDeviceVk *device, vk::RenderPass renderPass);
+  ChunkRenderSystem(RenderDeviceVk *device, vk::RenderPass renderPass,
+                    vk::DescriptorSetLayout descriptorSetLayout);
   ~ChunkRenderSystem();
 
   void render(FrameData &frameData);
 
 private:
-  void createPipelineLayout();
+  void createPipelineLayout(vk::DescriptorSetLayout descriptorSetLayout);
   void createPipeline(vk::RenderPass renderPass);
 
 private:

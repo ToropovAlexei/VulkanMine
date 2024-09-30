@@ -1,4 +1,5 @@
 #include "App.hpp"
+#include "../renderer/backend/DescriptorsVk.hpp"
 #include "Camera.hpp"
 #include "Logger.hpp"
 #include "glm/fwd.hpp"
@@ -8,14 +9,21 @@
 #include <utility>
 #include <vector>
 
+struct GlobalUBO {
+  glm::mat4 projectionView;
+};
+
 App::App() {
   m_window = std::make_unique<Window>(800, 600, "VulkanMine");
   m_renderDevice = std::make_unique<RenderDeviceVk>(m_window.get());
   m_renderer = std::make_unique<Renderer>(m_window.get(), m_renderDevice.get());
-  m_chunkRenderSystem = std::make_unique<ChunkRenderSystem>(
-      m_renderDevice.get(), m_renderer->getSwapChainRenderPass());
   m_keyboard = std::make_unique<Keyboard>(m_window->getGLFWwindow());
   m_mouse = std::make_unique<Mouse>(m_window->getGLFWwindow());
+  globalPool = DescriptorPoolVk::Builder(m_renderDevice.get())
+                   .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
+                   .addPoolSize(vk::DescriptorType::eUniformBuffer,
+                                SwapChainVk::MAX_FRAMES_IN_FLIGHT)
+                   .build();
 }
 
 App::~App() { m_renderDevice->getDevice().waitIdle(); }
@@ -58,19 +66,50 @@ void App::run() {
   //                                  // Верхняя грань
   //                                  3, 2, 6, 6, 7, 3};
   Camera camera{};
-  camera.setProjection(glm::radians(50.0f), m_renderer->getAspectRatio(), 0.1f,
-                       1000.0f);
 
   std::vector<Mesh<Vertex>> meshes = {};
   std::vector<PushConstantData> pushConstants = {};
   GameObject gameObject = {
       .mesh = Mesh<Vertex>(m_renderDevice.get(), vertices, indices),
-      .model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f)),
+      .model = glm::mat4(1.0f),
   };
   std::vector<GameObject> gameObjects;
   gameObjects.emplace_back(std::move(gameObject));
   FrameData frameData = {.commandBuffer = nullptr,
                          .gameObjects = std::move(gameObjects)};
+
+  std::vector<std::unique_ptr<BufferVk>> uboBuffers(
+      SwapChainVk::MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < SwapChainVk::MAX_FRAMES_IN_FLIGHT; i++) {
+    uboBuffers[i] = std::make_unique<BufferVk>(
+        m_renderDevice.get(), sizeof(GlobalUBO), 1,
+        vk::BufferUsageFlagBits::eUniformBuffer,
+        VMA_MEMORY_USAGE_CPU_TO_GPU); // TODO Check VMA_MEMORY_USAGE_CPU_TO_GPU
+    uboBuffers[i]->map();
+  }
+
+  auto globalSetLayout = DescriptorSetLayoutVk::Builder(m_renderDevice.get())
+                             .addBinding(0, vk::DescriptorType::eUniformBuffer,
+                                         vk::ShaderStageFlagBits::eVertex |
+                                             vk::ShaderStageFlagBits::eFragment)
+                             .build();
+
+  std::vector<vk::DescriptorSet> globalDescriptorSets(
+      SwapChainVk::MAX_FRAMES_IN_FLIGHT);
+
+  for (size_t i = 0; i < globalDescriptorSets.size(); i++) {
+    auto bufferInfo = uboBuffers[i]->descriptorInfo();
+    DescriptorWriterVk(*globalSetLayout, *globalPool)
+        .writeBuffer(0, &bufferInfo)
+        .build(globalDescriptorSets[i]);
+  }
+
+  m_chunkRenderSystem = std::make_unique<ChunkRenderSystem>(
+      m_renderDevice.get(), m_renderer->getSwapChainRenderPass(),
+      globalSetLayout->getDescriptorSetLayout());
+
+  GlobalUBO ubo = {};
 
   m_timer.reset();
   while (!m_window->shouldClose()) {
@@ -80,25 +119,36 @@ void App::run() {
 
     glm::vec3 movementDirection(0.0f);
     if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
-      movementDirection += camera.getFront() * deltaTime;
+      movementDirection += camera.getFront();
     }
     if (m_keyboard->isKeyPressed(GLFW_KEY_S)) {
-      movementDirection -= camera.getFront() * deltaTime;
+      movementDirection -= camera.getFront();
     }
     if (m_keyboard->isKeyPressed(GLFW_KEY_A)) {
-      movementDirection -= camera.getRight() * deltaTime;
+      movementDirection -= camera.getRight();
     }
     if (m_keyboard->isKeyPressed(GLFW_KEY_D)) {
-      movementDirection += camera.getRight() * deltaTime;
+      movementDirection += camera.getRight();
     }
 
-    camera.move(movementDirection);
+    if (glm::dot(movementDirection, movementDirection) >
+        std::numeric_limits<float>::epsilon()) {
+      camera.move(deltaTime * 100.0f * glm::normalize(movementDirection));
+    }
+    camera.setProjection(glm::radians(50.0f), m_renderer->getAspectRatio(),
+                         0.1f, 1000.0f);
+
+    ubo.projectionView = camera.getProjectionMatrix() * camera.getViewMatrix();
+
     Logger::debug("Camera position: " + std::to_string(camera.getPosition().x) +
                   ", " + std::to_string(camera.getPosition().y) + ", " +
                   std::to_string(camera.getPosition().z));
 
     if (auto commandBuffer = m_renderer->beginFrame()) {
-      // int frameIndex = m_renderer->getFrameIndex();
+      auto frameIndex = m_renderer->getFrameIndex();
+      frameData.globalDescriptorSet = globalDescriptorSets[frameIndex];
+      uboBuffers[frameIndex]->writeToBuffer(&ubo);
+      uboBuffers[frameIndex]->flush();
       frameData.gameObjects[0].model =
           glm::rotate(frameData.gameObjects[0].model, 0.00005f,
                       glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)));

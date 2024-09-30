@@ -2,10 +2,11 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 
-ChunkRenderSystem::ChunkRenderSystem(RenderDeviceVk *device,
-                                     vk::RenderPass renderPass)
+ChunkRenderSystem::ChunkRenderSystem(
+    RenderDeviceVk *device, vk::RenderPass renderPass,
+    vk::DescriptorSetLayout descriptorSetLayout)
     : m_device{device} {
-  createPipelineLayout();
+  createPipelineLayout(descriptorSetLayout);
   createPipeline(renderPass);
 }
 
@@ -15,6 +16,10 @@ ChunkRenderSystem::~ChunkRenderSystem() {
 
 void ChunkRenderSystem::render(FrameData &frameData) {
   m_pipeline->bind(frameData.commandBuffer);
+
+  frameData.commandBuffer.bindDescriptorSets(
+      vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
+      &frameData.globalDescriptorSet, 0, nullptr);
 
   for (auto &gameObject : frameData.gameObjects) {
     PushConstantData push = {
@@ -29,7 +34,8 @@ void ChunkRenderSystem::render(FrameData &frameData) {
   }
 }
 
-void ChunkRenderSystem::createPipelineLayout() {
+void ChunkRenderSystem::createPipelineLayout(
+    vk::DescriptorSetLayout descriptorSetLayout) {
   vk::PushConstantRange pushConstantRange = {
       .stageFlags =
           vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
@@ -37,7 +43,12 @@ void ChunkRenderSystem::createPipelineLayout() {
       .size = sizeof(PushConstantData),
   };
 
+  std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{
+      descriptorSetLayout};
+
   vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {
+      .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
+      .pSetLayouts = descriptorSetLayouts.data(),
       .pushConstantRangeCount = 1,
       .pPushConstantRanges = &pushConstantRange,
   };
