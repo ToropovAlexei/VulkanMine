@@ -1,10 +1,6 @@
 #include "ChunkRenderSystem.hpp"
-#include "glm/ext/matrix_float4x4.hpp"
 #include <vulkan/vulkan_core.h>
-
-struct PushConstantData {
-  glm::mat4 modelMatrix{1.0f};
-};
+#include <vulkan/vulkan_enums.hpp>
 
 ChunkRenderSystem::ChunkRenderSystem(RenderDeviceVk *device,
                                      vk::RenderPass renderPass)
@@ -20,14 +16,31 @@ ChunkRenderSystem::~ChunkRenderSystem() {
 void ChunkRenderSystem::render(FrameData &frameData) {
   m_pipeline->bind(frameData.commandBuffer);
 
-  for (auto &mesh : frameData.meshes) {
-    mesh.bind(frameData.commandBuffer);
-    mesh.draw(frameData.commandBuffer);
+  for (auto &gameObject : frameData.gameObjects) {
+    PushConstantData push = {
+        .modelMatrix = gameObject.model,
+    };
+    frameData.commandBuffer.pushConstants(
+        m_pipelineLayout,
+        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+        0, sizeof(PushConstantData), &push);
+    gameObject.mesh.bind(frameData.commandBuffer);
+    gameObject.mesh.draw(frameData.commandBuffer);
   }
 }
 
 void ChunkRenderSystem::createPipelineLayout() {
-  vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
+  vk::PushConstantRange pushConstantRange = {
+      .stageFlags =
+          vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+      .offset = 0,
+      .size = sizeof(PushConstantData),
+  };
+
+  vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {
+      .pushConstantRangeCount = 1,
+      .pPushConstantRanges = &pushConstantRange,
+  };
 
   m_pipelineLayout =
       m_device->getDevice().createPipelineLayout(pipelineLayoutInfo);

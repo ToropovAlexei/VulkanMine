@@ -3,10 +3,14 @@
 #include "../core/NonCopyable.hpp"
 #include "../renderer/Mesh.hpp"
 #include "../renderer/backend/PipelineVk.hpp"
-#include "glm/ext/vector_float3.hpp"
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
+struct PushConstantData {
+  glm::mat4 modelMatrix{1.0f};
+};
 
 struct Vertex {
   glm::vec3 pos;
@@ -31,9 +35,14 @@ struct Vertex {
   }
 };
 
+struct GameObject {
+  Mesh<Vertex> mesh;
+  glm::mat4 model;
+};
+
 struct FrameData {
   vk::CommandBuffer commandBuffer;
-  std::vector<Mesh<Vertex>> meshes;
+  std::vector<GameObject> gameObjects;
 };
 
 class ChunkRenderSystem : NonCopyable {
