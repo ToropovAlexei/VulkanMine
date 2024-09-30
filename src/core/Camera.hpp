@@ -41,6 +41,7 @@ public:
   float getPitch() const { return m_pitch; }
   glm::vec3 getFront() const { return m_front; }
   glm::vec3 getRight() const { return m_right; }
+  glm::vec3 getUp() const { return m_up; }
 
   void move(const glm::vec3 &direction) { m_position += direction; }
 
