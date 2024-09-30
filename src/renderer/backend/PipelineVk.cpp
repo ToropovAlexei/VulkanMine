@@ -44,8 +44,9 @@ void PipelineVk::createPipelineVk(const PipelineVkConfigInfo &configInfo) {
       .layout = configInfo.pipelineLayout,
       .renderPass = configInfo.renderPass,
       .subpass = configInfo.subpass,
+      .basePipelineHandle = VK_NULL_HANDLE,
       .basePipelineIndex = -1,
-      .basePipelineHandle = VK_NULL_HANDLE};
+  };
 
   auto result =
       m_device->getDevice().createGraphicsPipeline(nullptr, pipelineInfo);

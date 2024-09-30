@@ -12,6 +12,8 @@ App::App() {
   m_renderer = std::make_unique<Renderer>(m_window.get(), m_renderDevice.get());
   m_chunkRenderSystem = std::make_unique<ChunkRenderSystem>(
       m_renderDevice.get(), m_renderer->getSwapChainRenderPass());
+  m_keyboard = std::make_unique<Keyboard>(m_window->getGLFWwindow());
+  m_mouse = std::make_unique<Mouse>(m_window->getGLFWwindow());
 }
 
 App::~App() { m_renderDevice->getDevice().waitIdle(); }
