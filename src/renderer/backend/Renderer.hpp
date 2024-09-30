@@ -9,6 +9,7 @@ class Renderer {
 public:
   Renderer(Window *window, RenderDeviceVk *device);
 
+  float getAspectRatio() const { return m_swapChain->extentAspectRatio(); }
   VkRenderPass getSwapChainRenderPass() const {
     return m_swapChain->getRenderPass();
   }

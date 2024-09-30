@@ -1,4 +1,6 @@
 #include "App.hpp"
+#include "Camera.hpp"
+#include "Logger.hpp"
 #include "glm/fwd.hpp"
 #include "glm/geometric.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -55,6 +57,10 @@ void App::run() {
   //                                  0, 1, 5, 5, 4, 0,
   //                                  // Верхняя грань
   //                                  3, 2, 6, 6, 7, 3};
+  Camera camera{};
+  camera.setProjection(glm::radians(50.0f), m_renderer->getAspectRatio(), 0.1f,
+                       1000.0f);
+
   std::vector<Mesh<Vertex>> meshes = {};
   std::vector<PushConstantData> pushConstants = {};
   GameObject gameObject = {
@@ -66,8 +72,30 @@ void App::run() {
   FrameData frameData = {.commandBuffer = nullptr,
                          .gameObjects = std::move(gameObjects)};
 
+  m_timer.reset();
   while (!m_window->shouldClose()) {
     glfwPollEvents();
+    m_timer.update();
+    float deltaTime = m_timer.getDeltaTime();
+
+    glm::vec3 movementDirection(0.0f);
+    if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
+      movementDirection += camera.getFront() * deltaTime;
+    }
+    if (m_keyboard->isKeyPressed(GLFW_KEY_S)) {
+      movementDirection -= camera.getFront() * deltaTime;
+    }
+    if (m_keyboard->isKeyPressed(GLFW_KEY_A)) {
+      movementDirection -= camera.getRight() * deltaTime;
+    }
+    if (m_keyboard->isKeyPressed(GLFW_KEY_D)) {
+      movementDirection += camera.getRight() * deltaTime;
+    }
+
+    camera.move(movementDirection);
+    Logger::debug("Camera position: " + std::to_string(camera.getPosition().x) +
+                  ", " + std::to_string(camera.getPosition().y) + ", " +
+                  std::to_string(camera.getPosition().z));
 
     if (auto commandBuffer = m_renderer->beginFrame()) {
       // int frameIndex = m_renderer->getFrameIndex();
