@@ -20,7 +20,6 @@ public:
   glm::mat4 getProjectionMatrix() const {
     auto projection = glm::perspective(glm::radians(m_fov), m_aspectRatio,
                                        m_nearPlane, m_farPlane);
-    projection[1][1] *= -1; // Инвертируем ось Y для Vulkan
     return projection;
   }
   void setProjection(float newFov, float newAspectRatio, float newNearPlane,

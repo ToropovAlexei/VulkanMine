@@ -91,13 +91,13 @@ void Scene::update(float dt) {
   }
 
   m_camera->rotate(m_mouse->getDeltaX() * 0.001f,
-                   -m_mouse->getDeltaY() * 0.001f);
+                   m_mouse->getDeltaY() * 0.001f);
 }
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
   m_ubo.projectionView =
       m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
-  m_camera->setProjection(glm::radians(50.0f), m_renderer->getAspectRatio(),
+  m_camera->setProjection(glm::radians(75.0f), m_renderer->getAspectRatio(),
                           0.1f, 1000.0f);
 
   auto frameIndex = m_renderer->getFrameIndex();
