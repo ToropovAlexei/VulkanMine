@@ -23,14 +23,14 @@ void ChunkRenderSystem::render(FrameData &frameData) {
 
   for (auto &gameObject : frameData.gameObjects) {
     PushConstantData push = {
-        .modelMatrix = gameObject.model,
+        .modelMatrix = gameObject->model,
     };
     frameData.commandBuffer.pushConstants(
         m_pipelineLayout,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         0, sizeof(PushConstantData), &push);
-    gameObject.mesh.bind(frameData.commandBuffer);
-    gameObject.mesh.draw(frameData.commandBuffer);
+    gameObject->mesh.bind(frameData.commandBuffer);
+    gameObject->mesh.draw(frameData.commandBuffer);
   }
 }
 

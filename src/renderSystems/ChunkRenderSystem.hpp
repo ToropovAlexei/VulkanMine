@@ -42,9 +42,8 @@ struct GameObject {
 
 struct FrameData {
   vk::CommandBuffer commandBuffer;
-  std::vector<GameObject> gameObjects;
+  std::vector<std::shared_ptr<GameObject>> gameObjects;
   vk::DescriptorSet globalDescriptorSet;
-  
 };
 
 class ChunkRenderSystem : NonCopyable {
