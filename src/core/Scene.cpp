@@ -43,13 +43,13 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
       .mesh = Mesh<Vertex>(m_device, vertices, indices),
       .model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 2.0f))}));
 
-  for (int x = 0; x < 10; x++) {
-    for (int y = 0; y < 10; y++) {
-      for (int z = 0; z < 10; z++) {
+  for (int x = 0; x < 25; x++) {
+    for (int y = 0; y < 25; y++) {
+      for (int z = 0; z < 25; z++) {
         m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
             .mesh = Mesh<Vertex>(m_device, vertices, indices),
             .model = glm::translate(glm::mat4(1.0f),
-                                    glm::vec3(x * 3.0f, y * 3.0f, z * 3.0f))}));
+                                    glm::vec3(x * 2.0f, y * 2.0f, z * 2.0f))}));
       }
     }
   }
@@ -86,8 +86,7 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
 Scene::~Scene() { globalPool.reset(); }
 
 void Scene::update(float dt) {
-  m_camera->setProjection(glm::radians(50.0f), m_renderer->getAspectRatio(),
-                          0.1f, 1000.0f);
+  m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 1000.0f);
   glm::vec3 movementDirection(0.0f);
   if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
     movementDirection += m_camera->getFront();
@@ -103,10 +102,10 @@ void Scene::update(float dt) {
   }
 
   if (m_keyboard->isKeyPressed(GLFW_KEY_SPACE)) {
-    movementDirection += m_camera->getUp();
+    movementDirection += glm::vec3(0.0f, -1.0f, 0.0f);
   }
-  if (m_keyboard->isKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
-    movementDirection -= m_camera->getUp();
+  if (m_keyboard->isKeyPressed(GLFW_KEY_X)) {
+    movementDirection += glm::vec3(0.0f, 1.0f, 0.0f);
   }
 
   if (glm::dot(movementDirection, movementDirection) >
@@ -114,8 +113,7 @@ void Scene::update(float dt) {
     m_camera->move(dt * 25.0f * glm::normalize(movementDirection));
   }
 
-  m_camera->rotate(m_mouse->getDeltaX() * 0.001f,
-                   m_mouse->getDeltaY() * 0.001f);
+  m_camera->rotate(m_mouse->getDeltaX() * 0.05f, m_mouse->getDeltaY() * 0.05f);
 }
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
