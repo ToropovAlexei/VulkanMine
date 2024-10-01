@@ -1,5 +1,6 @@
 #include "Scene.hpp"
 #include "../renderer/backend/SwapChainVk.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include <memory>
 
@@ -13,14 +14,14 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
                                 SwapChainVk::MAX_FRAMES_IN_FLIGHT)
                    .build();
 
-  std::vector<Vertex> vertices = {{{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-                                  {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
-                                  {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
-                                  {{-1.0f, 1.0f, -1.0f}, {1.0f, 1.0f, 0.0f}},
-                                  {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 1.0f}},
-                                  {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}},
-                                  {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-                                  {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}}};
+  std::vector<Vertex> vertices = {{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                                  {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                                  {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+                                  {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
+                                  {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 1.0f}},
+                                  {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
+                                  {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+                                  {{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 0.0f}}};
 
   std::vector<uint32_t> indices = {0, 1, 3, 3, 1, 2, 1, 5, 2, 2, 5, 6,
                                    5, 4, 6, 6, 4, 7, 4, 0, 7, 7, 0, 3,
@@ -31,6 +32,27 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
   m_gameObjects.push_back(std::make_shared<GameObject>(
       GameObject{.mesh = Mesh<Vertex>(m_device, vertices, indices),
                  .model = glm::mat4(1.0f)}));
+
+  m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
+      .mesh = Mesh<Vertex>(m_device, vertices, indices),
+      .model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f))}));
+  m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
+      .mesh = Mesh<Vertex>(m_device, vertices, indices),
+      .model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 0.0f))}));
+  m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
+      .mesh = Mesh<Vertex>(m_device, vertices, indices),
+      .model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 2.0f))}));
+
+  for (int x = 0; x < 10; x++) {
+    for (int y = 0; y < 10; y++) {
+      for (int z = 0; z < 10; z++) {
+        m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
+            .mesh = Mesh<Vertex>(m_device, vertices, indices),
+            .model = glm::translate(glm::mat4(1.0f),
+                                    glm::vec3(x * 3.0f, y * 3.0f, z * 3.0f))}));
+      }
+    }
+  }
 
   m_globalBuffers.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
 
@@ -64,6 +86,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
 Scene::~Scene() { globalPool.reset(); }
 
 void Scene::update(float dt) {
+  m_camera->setProjection(glm::radians(50.0f), m_renderer->getAspectRatio(),
+                          0.1f, 1000.0f);
   glm::vec3 movementDirection(0.0f);
   if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
     movementDirection += m_camera->getFront();
@@ -97,8 +121,6 @@ void Scene::update(float dt) {
 void Scene::render(vk::CommandBuffer commandBuffer) {
   m_ubo.projectionView =
       m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
-  m_camera->setProjection(glm::radians(75.0f), m_renderer->getAspectRatio(),
-                          0.1f, 1000.0f);
 
   auto frameIndex = m_renderer->getFrameIndex();
   FrameData frameData = {
