@@ -75,8 +75,7 @@ void PipelineVk::defaultPipelineVkConfigInfo(PipelineVkConfigInfo &configInfo) {
   configInfo.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
   configInfo.rasterizationInfo.polygonMode = vk::PolygonMode::eFill;
   configInfo.rasterizationInfo.lineWidth = 1.0f;
-  configInfo.rasterizationInfo.cullMode =
-      vk::CullModeFlagBits::eNone; // TODO Change it
+  configInfo.rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
   configInfo.rasterizationInfo.frontFace = vk::FrontFace::eClockwise;
   configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
   configInfo.rasterizationInfo.depthBiasConstantFactor = 0.0f;

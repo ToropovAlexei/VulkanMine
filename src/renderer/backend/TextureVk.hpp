@@ -4,7 +4,7 @@
 #include "RenderDeviceVk.hpp"
 #include <string>
 
-class TextureVk {
+class TextureVk : NonCopyable {
 public:
   TextureVk(RenderDeviceVk *device, const std::string &filePath);
   ~TextureVk();
@@ -28,7 +28,7 @@ private:
                        unsigned char *&data);
   void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout,
                              vk::ImageLayout newLayout);
-  void copyBufferToImage(BufferVk& buffer, vk::Image image, uint32_t width,
+  void copyBufferToImage(BufferVk &buffer, vk::Image image, uint32_t width,
                          uint32_t height);
   void createImageView();
 

@@ -2,6 +2,7 @@
 #include "BufferVk.hpp"
 #include <stb_image.h>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_core.h>
 
 TextureVk::TextureVk(RenderDeviceVk *device, const std::string &filePath)
     : m_device(device), m_filename(filePath) {
@@ -78,7 +79,7 @@ void TextureVk::createTextureImage() {
 
 void TextureVk::createTextureSampler() {
   vk::SamplerCreateInfo samplerInfo{};
-  samplerInfo.setMagFilter(vk::Filter::eLinear)
+  samplerInfo.setMagFilter(vk::Filter::eNearest)
       .setMinFilter(vk::Filter::eLinear)
       .setAddressModeU(vk::SamplerAddressMode::eRepeat)
       .setAddressModeV(vk::SamplerAddressMode::eRepeat)
