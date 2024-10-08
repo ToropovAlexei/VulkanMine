@@ -5,6 +5,7 @@
 #include "../renderSystems/ChunkRenderSystem.hpp"
 #include "../renderer/backend/DescriptorsVk.hpp"
 #include "../renderer/backend/Renderer.hpp"
+#include "../renderer/backend/TextureVk.hpp"
 #include "Camera.hpp"
 #include <memory>
 
@@ -33,4 +34,5 @@ private:
   std::vector<std::unique_ptr<BufferVk>> m_globalBuffers;
   GlobalUBO m_ubo;
   std::vector<std::shared_ptr<GameObject>> m_gameObjects;
+  TextureVk m_texture;
 };

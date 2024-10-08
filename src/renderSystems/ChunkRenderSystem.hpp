@@ -14,7 +14,7 @@ struct PushConstantData {
 
 struct Vertex {
   glm::vec3 pos;
-  glm::vec3 color;
+  glm::vec2 uv;
 
   static std::vector<vk::VertexInputBindingDescription>
   getBindingDescriptions() {
@@ -30,7 +30,7 @@ struct Vertex {
   getAttributeDescriptions() {
     return {
         {0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, pos)},
-        {1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)},
+        {1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, uv)},
     };
   }
 };

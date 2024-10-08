@@ -2,26 +2,33 @@
 #include "../renderer/backend/SwapChainVk.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
+#include <cstddef>
 #include <memory>
+#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_structs.hpp>
 
 Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
-      m_renderer{renderer} {
+      m_renderer{renderer}, m_texture{device, "res/textures/debugF.png"} {
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
                    .addPoolSize(vk::DescriptorType::eUniformBuffer,
                                 SwapChainVk::MAX_FRAMES_IN_FLIGHT)
+                   .addPoolSize(vk::DescriptorType::eCombinedImageSampler,
+                                SwapChainVk::MAX_FRAMES_IN_FLIGHT)
                    .build();
 
-  std::vector<Vertex> vertices = {{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-                                  {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-                                  {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
-                                  {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 0.0f}},
-                                  {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 1.0f}},
-                                  {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
-                                  {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-                                  {{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 0.0f}}};
+  std::vector<Vertex> vertices = {
+      {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // Нижний левый передний
+      {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // Нижний правый передний
+      {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}}, // Верхний правый передний
+      {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}}, // Верхний левый передний
+      {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // Нижний левый задний
+      {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}}, // Нижний правый задний
+      {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}}, // Верхний правый задний
+      {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}} // Верхний левый задний
+  };
 
   std::vector<uint32_t> indices = {0, 1, 3, 3, 1, 2, 1, 5, 2, 2, 5, 6,
                                    5, 4, 6, 6, 4, 7, 4, 0, 7, 7, 0, 3,
@@ -63,18 +70,23 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
     m_globalBuffers[i]->map();
   }
 
-  auto globalSetLayout = DescriptorSetLayoutVk::Builder(m_device)
-                             .addBinding(0, vk::DescriptorType::eUniformBuffer,
-                                         vk::ShaderStageFlagBits::eVertex |
-                                             vk::ShaderStageFlagBits::eFragment)
-                             .build();
+  auto globalSetLayout =
+      DescriptorSetLayoutVk::Builder(m_device)
+          .addBinding(0, vk::DescriptorType::eUniformBuffer,
+                      vk::ShaderStageFlagBits::eVertex |
+                          vk::ShaderStageFlagBits::eFragment)
+          .addBinding(1, vk::DescriptorType::eCombinedImageSampler,
+                      vk::ShaderStageFlagBits::eFragment)
+          .build();
 
   m_globalDescriptorSets.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < m_globalDescriptorSets.size(); i++) {
     auto bufferInfo = m_globalBuffers[i]->descriptorInfo();
+    auto imgInfo = m_texture.getDescriptorInfo();
     DescriptorWriterVk(*globalSetLayout, *globalPool)
         .writeBuffer(0, &bufferInfo)
+        .writeImage(1, &imgInfo)
         .build(m_globalDescriptorSets[i]);
   }
 
