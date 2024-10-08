@@ -47,6 +47,7 @@ public:
   vk::Queue &getPresentQueue() noexcept { return m_presentQueue; };
   VmaAllocator &getAllocator() noexcept { return m_allocator; };
   vk::CommandPool &getCommandPool() noexcept { return m_commandPool; };
+  vk::Instance &getInstance() noexcept { return m_instance; };
 
   void createImageWithInfo(const vk::ImageCreateInfo &imageInfo,
                            VmaMemoryUsage memoryUsage, vk::Image &image,

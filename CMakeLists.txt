@@ -12,6 +12,10 @@ set(GLFW_BUILD_X11 OFF)
 # option(TRACY_ENABLE "" ON)
 # option(TRACY_ON_DEMAND "" ON)
 
+set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
+
+file(GLOB IMGUI_SOURCES ${IMGUI_DIR}/*.cpp)
+
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -50,14 +54,14 @@ FetchContent_MakeAvailable(glm glfw stb)
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${IMGUI_SOURCES})
 
 add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
 
 find_package(VulkanMemoryAllocator CONFIG REQUIRED PATHS /usr/include/vk_mem_alloc.h)
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator) # TracyClient
-target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} ${IMGUI_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 
 target_compile_options(${PROJECT_NAME} PRIVATE

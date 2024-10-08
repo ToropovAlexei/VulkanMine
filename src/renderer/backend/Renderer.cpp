@@ -54,6 +54,10 @@ vk::CommandBuffer Renderer::beginFrame() {
 
   if (result == vk::Result::eErrorOutOfDateKHR) {
     recreateSwapChain();
+    // ImGui_ImplVulkanH_CreateOrResizeWindow(
+    //     m_device->getInstance(), m_device->getPhysicalDevice(),
+    //     m_device->getDevice(), &g_MainWindowData, g_QueueFamily, nullptr,
+    //     fb_width, fb_height, g_MinImageCount);
     return nullptr;
   }
 
