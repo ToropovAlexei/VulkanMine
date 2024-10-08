@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BufferVk.hpp"
 #include "RenderDeviceVk.hpp"
 #include <string>
 
@@ -27,7 +28,7 @@ private:
                        unsigned char *&data);
   void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout,
                              vk::ImageLayout newLayout);
-  void copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width,
+  void copyBufferToImage(BufferVk& buffer, vk::Image image, uint32_t width,
                          uint32_t height);
   void createImageView();
 

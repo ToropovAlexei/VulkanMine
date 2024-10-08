@@ -1,4 +1,5 @@
 #include "TextureVk.hpp"
+#include "BufferVk.hpp"
 #include <stb_image.h>
 #include <vulkan/vulkan.hpp>
 
@@ -56,20 +57,15 @@ void TextureVk::createTextureImage() {
                         vk::ImageLayout::eTransferDstOptimal);
 
   // Создание временного буфера для загрузки текстуры
-  vk::Buffer stagingBuffer;
-  VmaAllocation stagingBufferAllocation;
-  VmaAllocationInfo stagingAllocInfo;
-
   vk::DeviceSize bufferSize =
       static_cast<vk::DeviceSize>(width * height * channels);
-  m_device->createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
-                         VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer,
-                         stagingBufferAllocation, stagingAllocInfo);
+  BufferVk stagingBuffer(m_device, bufferSize, 1,
+                         vk::BufferUsageFlagBits::eTransferSrc,
+                         VMA_MEMORY_USAGE_CPU_ONLY);
 
-  void *mappedData;
-  vmaMapMemory(m_device->getAllocator(), stagingBufferAllocation, &mappedData);
-  memcpy(mappedData, data, static_cast<size_t>(bufferSize));
-  vmaUnmapMemory(m_device->getAllocator(), stagingBufferAllocation);
+  stagingBuffer.map();
+  stagingBuffer.writeToBuffer(data);
+  stagingBuffer.unmap(); // OPTIONAL as unmapped when destroying
 
   copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(width),
                     static_cast<uint32_t>(height));
@@ -77,9 +73,6 @@ void TextureVk::createTextureImage() {
   transitionImageLayout(m_textureImage, vk::ImageLayout::eTransferDstOptimal,
                         vk::ImageLayout::eShaderReadOnlyOptimal);
 
-  // Освобождение временного буфера
-  vmaDestroyBuffer(m_device->getAllocator(), stagingBuffer,
-                   stagingBufferAllocation);
   stbi_image_free(data);
 }
 
@@ -151,7 +144,7 @@ void TextureVk::transitionImageLayout(vk::Image image,
   m_device->endSingleTimeCommands(commandBuffer);
 }
 
-void TextureVk::copyBufferToImage(vk::Buffer buffer, vk::Image image,
+void TextureVk::copyBufferToImage(BufferVk &buffer, vk::Image image,
                                   uint32_t width, uint32_t height) {
   vk::CommandBuffer commandBuffer = m_device->beginSingleTimeCommands();
 
@@ -163,7 +156,7 @@ void TextureVk::copyBufferToImage(vk::Buffer buffer, vk::Image image,
       .setImageOffset({0, 0, 0})
       .setImageExtent({width, height, 1});
 
-  commandBuffer.copyBufferToImage(buffer, image,
+  commandBuffer.copyBufferToImage(buffer.getBuffer(), image,
                                   vk::ImageLayout::eTransferDstOptimal, region);
 
   m_device->endSingleTimeCommands(commandBuffer);
