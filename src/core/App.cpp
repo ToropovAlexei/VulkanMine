@@ -28,14 +28,13 @@ void App::run() {
     glfwPollEvents();
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    ImGui::Begin("Hello, world!");
-    ImGui::Text("This is some useful text.");
-    ImGui::End();
-    ImGui::Render();
     m_timer.update();
     float deltaTime = m_timer.getDeltaTime();
     m_scene->update(deltaTime);
+
+    ImGui::NewFrame();
+    m_scene->renderUI();
+    ImGui::Render();
 
     if (auto commandBuffer = m_renderer->beginFrame()) {
       m_renderer->beginSwapChainRenderPass(commandBuffer);

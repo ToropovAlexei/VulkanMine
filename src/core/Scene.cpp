@@ -2,6 +2,8 @@
 #include "../renderer/backend/SwapChainVk.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
+#include "imgui.h"
+#include "imgui_internal.h"
 #include <cstddef>
 #include <memory>
 #include <vulkan/vulkan_core.h>
@@ -42,15 +44,15 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
       {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // Верхний правый
       {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},   // Верхний левый
       // Верхняя грань
-      {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},  // Нижний левый
+      {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // Нижний левый
       {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // Нижний правый
-      {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // Верхний правый
-      {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}}, // Верхний левый
+      {{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}},  // Верхний правый
+      {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}}, // Верхний левый
       // Нижняя грань
-      {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // Нижний левый
-      {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // Нижний правый
-      {{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f}},   // Верхний правый
-      {{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}}   // Верхний левый
+      {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}}, // Нижний левый
+      {{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},  // Нижний правый
+      {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},   // Верхний правый
+      {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}   // Верхний левый
   };
 
   std::vector<uint32_t> indices = {// Передняя грань
@@ -146,10 +148,10 @@ void Scene::update(float dt) {
   }
 
   if (m_keyboard->isKeyPressed(GLFW_KEY_SPACE)) {
-    movementDirection += glm::vec3(0.0f, -1.0f, 0.0f);
+    movementDirection += glm::vec3(0.0f, 1.0f, 0.0f);
   }
   if (m_keyboard->isKeyPressed(GLFW_KEY_X)) {
-    movementDirection += glm::vec3(0.0f, 1.0f, 0.0f);
+    movementDirection += glm::vec3(0.0f, -1.0f, 0.0f);
   }
 
   if (glm::dot(movementDirection, movementDirection) >
@@ -157,7 +159,7 @@ void Scene::update(float dt) {
     m_camera->move(dt * 25.0f * glm::normalize(movementDirection));
   }
 
-  m_camera->rotate(m_mouse->getDeltaX() * 0.05f, m_mouse->getDeltaY() * 0.05f);
+  m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);
 }
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
@@ -177,4 +179,24 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
   //                 glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)));
 
   m_chunkRenderSystem->render(frameData);
+}
+
+void Scene::renderUI() {
+  ImGuiContext &g = *GImGui;
+  ImGuiIO &io = g.IO;
+  ImGui::Begin("Engine info");
+  ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate,
+              io.Framerate);
+  ImGui::Text("%d vertices, %d indices (%d triangles)",
+              io.MetricsRenderVertices, io.MetricsRenderIndices,
+              io.MetricsRenderIndices / 3);
+  ImGui::End();
+
+  ImGui::Begin("Player");
+  ImGui::Text("Position: (x: %.1f, y: %.1f, z: %.1f)",
+              m_camera->getPosition().x, m_camera->getPosition().y,
+              m_camera->getPosition().z);
+  ImGui::Text("Rotation: (x: %.1f, y: %.1f, z: %.1f)", m_camera->getFront().x,
+              m_camera->getFront().y, m_camera->getFront().z);
+  ImGui::End();
 }

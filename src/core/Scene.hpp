@@ -21,6 +21,7 @@ public:
 
   void update(float dt);
   void render(vk::CommandBuffer commandBuffer);
+  void renderUI();
 
 private:
   RenderDeviceVk *m_device;
