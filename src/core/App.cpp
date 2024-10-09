@@ -34,11 +34,10 @@ void App::run() {
     ZoneScopedN("Main Loop");
     m_keyboard->update();
     m_mouse->update();
+    glfwPollEvents();
     m_timer.update();
     float deltaTime = m_timer.getDeltaTime();
     m_scene->update(deltaTime);
-
-    glfwPollEvents();
 
     {
       ZoneScopedN("Prepare UI");
