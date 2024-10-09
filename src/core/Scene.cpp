@@ -1,6 +1,5 @@
 #include "Scene.hpp"
 #include "../renderer/backend/SwapChainVk.hpp"
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -21,78 +20,17 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
                                 SwapChainVk::MAX_FRAMES_IN_FLIGHT)
                    .build();
 
-  // Обновленные вершины для куба с корректными UV-координатами
-  std::vector<Vertex> vertices = {
-      // Передняя грань
-      {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // Нижний левый
-      {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // Нижний правый
-      {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // Верхний правый
-      {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // Верхний левый
-      // Задняя грань
-      {{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}},  // Нижний левый
-      {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // Нижний правый
-      {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // Верхний правый
-      {{0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},   // Верхний левый
-      // Левая грань
-      {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // Нижний левый
-      {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // Нижний правый
-      {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // Верхний правый
-      {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // Верхний левый
-      // Правая грань
-      {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // Нижний левый
-      {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // Нижний правый
-      {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // Верхний правый
-      {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},   // Верхний левый
-      // Верхняя грань
-      {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // Нижний левый
-      {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // Нижний правый
-      {{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}},  // Верхний правый
-      {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}}, // Верхний левый
-      // Нижняя грань
-      {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}}, // Нижний левый
-      {{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}},  // Нижний правый
-      {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},   // Верхний правый
-      {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}   // Верхний левый
-  };
-
-  std::vector<uint32_t> indices = {// Передняя грань
-                                   0, 1, 2, 2, 3, 0,
-                                   // Задняя грань
-                                   4, 5, 6, 6, 7, 4,
-                                   // Левая грань
-                                   8, 9, 10, 10, 11, 8,
-                                   // Правая грань
-                                   12, 13, 14, 14, 15, 12,
-                                   // Верхняя грань
-                                   16, 17, 18, 18, 19, 16,
-                                   // Нижняя грань
-                                   20, 21, 22, 22, 23, 20};
-
   m_camera = std::make_unique<Camera>();
+  m_camera->setPosition({0.0f, 257.0f, 0.0f});
 
-  m_gameObjects.push_back(std::make_shared<GameObject>(
-      GameObject{.mesh = Mesh<Vertex>(m_device, vertices, indices),
-                 .model = glm::mat4(1.0f)}));
-
-  m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
-      .mesh = Mesh<Vertex>(m_device, vertices, indices),
-      .model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f))}));
-  m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
-      .mesh = Mesh<Vertex>(m_device, vertices, indices),
-      .model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, 0.0f))}));
-  m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
-      .mesh = Mesh<Vertex>(m_device, vertices, indices),
-      .model = glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 2.0f))}));
-
-  for (int x = 0; x < 25; x++) {
-    for (int y = 0; y < 25; y++) {
-      for (int z = 0; z < 25; z++) {
-        m_gameObjects.push_back(std::make_shared<GameObject>(GameObject{
-            .mesh = Mesh<Vertex>(m_device, vertices, indices),
-            .model = glm::translate(glm::mat4(1.0f),
-                                    glm::vec3(x * 2.0f, y * 2.0f, z * 2.0f))}));
-      }
+  for (int x = 0; x < 3; x++) {
+    for (int z = 0; z < 3; z++) {
+      m_chunks.emplace_back(std::make_shared<Chunk>(x, z));
     }
+  }
+
+  for (auto &chunk : m_chunks) {
+    chunk->generateMesh(m_device);
   }
 
   m_globalBuffers.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
@@ -169,7 +107,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
   auto frameIndex = m_renderer->getFrameIndex();
   FrameData frameData = {
       .commandBuffer = commandBuffer,
-      .gameObjects = m_gameObjects,
+      .chunks = m_chunks,
       .globalDescriptorSet = m_globalDescriptorSets[frameIndex],
   };
   m_globalBuffers[frameIndex]->writeToBuffer(&m_ubo);

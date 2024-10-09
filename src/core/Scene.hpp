@@ -34,6 +34,6 @@ private:
   std::vector<vk::DescriptorSet> m_globalDescriptorSets;
   std::vector<std::unique_ptr<BufferVk>> m_globalBuffers;
   GlobalUBO m_ubo;
-  std::vector<std::shared_ptr<GameObject>> m_gameObjects;
+  std::vector<std::shared_ptr<Chunk>> m_chunks;
   TextureVk m_texture;
 };

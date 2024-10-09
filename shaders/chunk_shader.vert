@@ -11,12 +11,12 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 projectionView;
 } ubo;
 
-layout(push_constant) uniform Push {
-    mat4 model;
-} push;
+// layout(push_constant) uniform Push {
+//     vec2 chunkPos;
+// } push;
 
 void main() {
-    vec4 worldPos = push.model * vec4(position, 1.0);
+    vec4 worldPos = vec4(position, 1.0);
     gl_Position = ubo.projectionView * worldPos;
 
     fragWorldPos = worldPos.xyz;

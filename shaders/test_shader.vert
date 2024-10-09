@@ -10,11 +10,11 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(push_constant) uniform Push {
-    mat4 model;
+    vec2 chunkPos;
 } push;
 
 void main() {
-    vec4 worldPos = push.model * vec4(position, 1.0);
+    vec4 worldPos = vec4(push.chunkPos.x, 0.0, push.chunkPos.y, 0.0) + vec4(position, 1.0);
     gl_Position = ubo.projectionView * worldPos;
     fragTexCoord = inTexCoord;
 }

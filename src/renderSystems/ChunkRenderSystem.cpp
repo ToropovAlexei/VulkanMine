@@ -1,4 +1,5 @@
 #include "ChunkRenderSystem.hpp"
+#include "ChunkVertex.hpp"
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 
@@ -21,16 +22,19 @@ void ChunkRenderSystem::render(FrameData &frameData) {
       vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
       &frameData.globalDescriptorSet, 0, nullptr);
 
-  for (auto &gameObject : frameData.gameObjects) {
+  for (auto &chunk : frameData.chunks) {
     PushConstantData push = {
-        .modelMatrix = gameObject->model,
+        .chunkPos = {chunk->x() * Chunk::CHUNK_SIZE,
+                     chunk->z() * Chunk::CHUNK_SIZE},
     };
     frameData.commandBuffer.pushConstants(
         m_pipelineLayout,
         vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
         0, sizeof(PushConstantData), &push);
-    gameObject->mesh.bind(frameData.commandBuffer);
-    gameObject->mesh.draw(frameData.commandBuffer);
+    if (chunk->getMesh() != nullptr) {
+      chunk->getMesh()->bind(frameData.commandBuffer);
+      chunk->getMesh()->draw(frameData.commandBuffer);
+    }
   }
 }
 
@@ -64,9 +68,9 @@ void ChunkRenderSystem::createPipeline(vk::RenderPass renderPass) {
   pipelineConfig.renderPass = renderPass;
   pipelineConfig.pipelineLayout = m_pipelineLayout;
   pipelineConfig.vertexInputAttributeDescriptions =
-      Vertex::getAttributeDescriptions();
+      ChunkVertex::getAttributeDescriptions();
   pipelineConfig.vertexInputBindingDescriptions =
-      Vertex::getBindingDescriptions();
+      ChunkVertex::getBindingDescriptions();
   m_pipeline = std::make_unique<PipelineVk>(
       m_device, "shaders/test_shader.vert.spv", "shaders/test_shader.frag.spv",
       pipelineConfig);
