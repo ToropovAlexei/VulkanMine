@@ -5,7 +5,8 @@
 #include <memory>
 #include <vector>
 
-Chunk::Chunk(int x, int z) : m_x{x}, m_z{z} {
+Chunk::Chunk(int x, int z)
+    : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)} {
   for (int i = 0; i < CHUNK_VOLUME; i++) {
     m_voxels.push_back(Voxel(BlockId::Grass));
   }
@@ -20,12 +21,12 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
         // Voxel &voxel =
         //     m_voxels[x + z * CHUNK_SIZE + y * CHUNK_SIZE * CHUNK_SIZE];
-        addTopFace(m_x + x, y, m_z + z, vertices, indices);
-        addBottomFace(m_x + x, y, m_z + z, vertices, indices);
-        addFrontFace(m_x + x, y, m_z + z, vertices, indices);
-        addBackFace(m_x + x, y, m_z + z, vertices, indices);
-        addLeftFace(m_x + x, y, m_z + z, vertices, indices);
-        addRightFace(m_x + x, y, m_z + z, vertices, indices);
+        addTopFace(x, y, z, vertices, indices);
+        addBottomFace(x, y, z, vertices, indices);
+        addFrontFace(x, y, z, vertices, indices);
+        addBackFace(x, y, z, vertices, indices);
+        addLeftFace(x, y, z, vertices, indices);
+        addRightFace(x, y, z, vertices, indices);
       }
     }
   }
@@ -39,10 +40,10 @@ void Chunk::addFrontFace(int x, int y, int z,
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины передней грани (на +Z)
-  glm::vec3 v0 = glm::vec3(x - 0.5f, y - 0.5f, z + 0.5f); // Нижний левый
-  glm::vec3 v1 = glm::vec3(x + 0.5f, y - 0.5f, z + 0.5f); // Нижний правый
-  glm::vec3 v2 = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f); // Верхний правый
-  glm::vec3 v3 = glm::vec3(x - 0.5f, y + 0.5f, z + 0.5f); // Верхний левый
+  glm::vec3 v0 = glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f); // Нижний левый
+  glm::vec3 v1 = glm::vec3(x + 1.0f, y + 0.0f, z + 1.0f); // Нижний правый
+  glm::vec3 v2 = glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f); // Верхний правый
+  glm::vec3 v3 = glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f); // Верхний левый
 
   // Добавляем вершины
   vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
@@ -65,10 +66,10 @@ void Chunk::addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины задней грани (на -Z)
-  glm::vec3 v0 = glm::vec3(x + 0.5f, y - 0.5f, z - 0.5f); // Нижний левый
-  glm::vec3 v1 = glm::vec3(x - 0.5f, y - 0.5f, z - 0.5f); // Нижний правый
-  glm::vec3 v2 = glm::vec3(x - 0.5f, y + 0.5f, z - 0.5f); // Верхний правый
-  glm::vec3 v3 = glm::vec3(x + 0.5f, y + 0.5f, z - 0.5f); // Верхний левый
+  glm::vec3 v0 = glm::vec3(x + 1.0f, y + 0.0f, z + 0.0f); // Нижний левый
+  glm::vec3 v1 = glm::vec3(x + 0.0f, y + 0.0f, z + 0.0f); // Нижний правый
+  glm::vec3 v2 = glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f); // Верхний правый
+  glm::vec3 v3 = glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f); // Верхний левый
 
   // Добавляем вершины
   vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
@@ -91,10 +92,10 @@ void Chunk::addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины левой грани (на -X)
-  glm::vec3 v0 = glm::vec3(x - 0.5f, y - 0.5f, z - 0.5f); // Нижний левый
-  glm::vec3 v1 = glm::vec3(x - 0.5f, y - 0.5f, z + 0.5f); // Нижний правый
-  glm::vec3 v2 = glm::vec3(x - 0.5f, y + 0.5f, z + 0.5f); // Верхний правый
-  glm::vec3 v3 = glm::vec3(x - 0.5f, y + 0.5f, z - 0.5f); // Верхний левый
+  glm::vec3 v0 = glm::vec3(x + 0.0f, y + 0.0f, z + 0.0f); // Нижний левый
+  glm::vec3 v1 = glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f); // Нижний правый
+  glm::vec3 v2 = glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f); // Верхний правый
+  glm::vec3 v3 = glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f); // Верхний левый
 
   // Добавляем вершины
   vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
@@ -118,10 +119,10 @@ void Chunk::addRightFace(int x, int y, int z,
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины правой грани (на +X)
-  glm::vec3 v0 = glm::vec3(x + 0.5f, y - 0.5f, z + 0.5f); // Нижний левый
-  glm::vec3 v1 = glm::vec3(x + 0.5f, y - 0.5f, z - 0.5f); // Нижний правый
-  glm::vec3 v2 = glm::vec3(x + 0.5f, y + 0.5f, z - 0.5f); // Верхний правый
-  glm::vec3 v3 = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f); // Верхний левый
+  glm::vec3 v0 = glm::vec3(x + 1.0f, y + 0.0f, z + 1.0f); // Нижний левый
+  glm::vec3 v1 = glm::vec3(x + 1.0f, y + 0.0f, z + 0.0f); // Нижний правый
+  glm::vec3 v2 = glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f); // Верхний правый
+  glm::vec3 v3 = glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f); // Верхний левый
 
   // Добавляем вершины
   vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
@@ -144,10 +145,10 @@ void Chunk::addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины верхней грани (на +Y)
-  glm::vec3 v0 = glm::vec3(x - 0.5f, y + 0.5f, z + 0.5f); // Нижний левый
-  glm::vec3 v1 = glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f); // Нижний правый
-  glm::vec3 v2 = glm::vec3(x + 0.5f, y + 0.5f, z - 0.5f); // Верхний правый
-  glm::vec3 v3 = glm::vec3(x - 0.5f, y + 0.5f, z - 0.5f); // Верхний левый
+  glm::vec3 v0 = glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f); // Нижний левый
+  glm::vec3 v1 = glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f); // Нижний правый
+  glm::vec3 v2 = glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f); // Верхний правый
+  glm::vec3 v3 = glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f); // Верхний левый
 
   // Добавляем вершины
   vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
@@ -171,10 +172,10 @@ void Chunk::addBottomFace(int x, int y, int z,
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины нижней грани (на -Y)
-  glm::vec3 v0 = glm::vec3(x - 0.5f, y - 0.5f, z - 0.5f); // Нижний левый
-  glm::vec3 v1 = glm::vec3(x + 0.5f, y - 0.5f, z - 0.5f); // Нижний правый
-  glm::vec3 v2 = glm::vec3(x + 0.5f, y - 0.5f, z + 0.5f); // Верхний правый
-  glm::vec3 v3 = glm::vec3(x - 0.5f, y - 0.5f, z + 0.5f); // Верхний левый
+  glm::vec3 v0 = glm::vec3(x + 0.0f, y + 0.0f, z + 0.0f); // Нижний левый
+  glm::vec3 v1 = glm::vec3(x + 1.0f, y + 0.0f, z + 0.0f); // Нижний правый
+  glm::vec3 v2 = glm::vec3(x + 1.0f, y + 0.0f, z + 1.0f); // Верхний правый
+  glm::vec3 v3 = glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f); // Верхний левый
 
   // Добавляем вершины
   vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
@@ -191,3 +192,5 @@ void Chunk::addBottomFace(int x, int y, int z,
   indices.push_back(startIndex + 2);
   indices.push_back(startIndex + 3);
 }
+
+int Chunk::toWorldPos(int x) { return x * Chunk::CHUNK_SIZE; }

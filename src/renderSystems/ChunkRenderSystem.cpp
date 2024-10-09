@@ -24,8 +24,7 @@ void ChunkRenderSystem::render(FrameData &frameData) {
 
   for (auto &chunk : frameData.chunks) {
     PushConstantData push = {
-        .chunkPos = {chunk->x() * Chunk::CHUNK_SIZE,
-                     chunk->z() * Chunk::CHUNK_SIZE},
+        .chunkPos = {chunk->worldX(), chunk->worldZ()},
     };
     frameData.commandBuffer.pushConstants(
         m_pipelineLayout,

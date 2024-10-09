@@ -12,6 +12,8 @@ public:
 
   inline int x() const noexcept { return m_x; }
   inline int z() const noexcept { return m_z; }
+  inline int worldX() const noexcept { return m_worldX; }
+  inline int worldZ() const noexcept { return m_worldZ; }
 
   std::unique_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
   void generateMesh(RenderDeviceVk *device);
@@ -34,10 +36,13 @@ private:
                   std::vector<uint32_t> &indices);
   void addBottomFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
                      std::vector<uint32_t> &indices);
+  static int toWorldPos(int x);
 
 private:
   int m_x;
   int m_z;
+  int m_worldX;
+  int m_worldZ;
 
   std::vector<Voxel> m_voxels;
   std::unique_ptr<Mesh<ChunkVertex>> m_mesh;
