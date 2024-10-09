@@ -1,6 +1,7 @@
 #include "SwapChainVk.hpp"
 
 #include "../../core/Logger.hpp"
+#include "Tracy/tracy/Tracy.hpp"
 #include <array>
 #include <cstddef>
 #include <cstdlib>
@@ -10,6 +11,7 @@
 
 SwapChainVk::SwapChainVk(RenderDeviceVk *device, vk::Extent2D extent)
     : m_device{device}, m_windowExtent{extent} {
+  ZoneScoped;
   init();
 }
 
@@ -17,12 +19,14 @@ SwapChainVk::SwapChainVk(RenderDeviceVk *device, vk::Extent2D extent,
                          std::shared_ptr<SwapChainVk> previousSwapChain)
     : m_device{device}, m_windowExtent{extent},
       m_oldSwapChain{previousSwapChain} {
+  ZoneScoped;
   init();
 
   m_oldSwapChain = nullptr;
 }
 
 void SwapChainVk::init() {
+  ZoneScoped;
   createSwapChain();
   createImageViews();
   createRenderPass();
@@ -32,6 +36,7 @@ void SwapChainVk::init() {
 }
 
 SwapChainVk::~SwapChainVk() {
+  ZoneScoped;
   for (auto imageView : m_swapChainImageViews) {
     m_device->getDevice().destroyImageView(imageView);
   }
@@ -63,6 +68,7 @@ SwapChainVk::~SwapChainVk() {
 }
 
 vk::Result SwapChainVk::acquireNextImage(uint32_t *imageIndex) {
+  ZoneScoped;
   auto waitResult = m_device->getDevice().waitForFences(
       1, &m_inFlightFences[m_currentFrame], VK_TRUE,
       std::numeric_limits<uint64_t>::max());
@@ -80,6 +86,7 @@ vk::Result SwapChainVk::acquireNextImage(uint32_t *imageIndex) {
 
 vk::Result SwapChainVk::submitCommandBuffers(const vk::CommandBuffer *buffers,
                                              uint32_t *imageIndex) {
+  ZoneScoped;
   if (m_imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
     auto result = m_device->getDevice().waitForFences(
         1, &m_imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
@@ -135,6 +142,7 @@ vk::Result SwapChainVk::submitCommandBuffers(const vk::CommandBuffer *buffers,
 }
 
 void SwapChainVk::createSwapChain() {
+  ZoneScoped;
   SwapChainSupportDetails swapChainSupport = m_device->getSwapChainSupport();
 
   vk::SurfaceFormatKHR surfaceFormat =
@@ -195,6 +203,7 @@ void SwapChainVk::createSwapChain() {
 }
 
 void SwapChainVk::createImageViews() {
+  ZoneScoped;
   m_swapChainImageViews.resize(m_swapChainImages.size());
   for (size_t i = 0; i < m_swapChainImages.size(); i++) {
     vk::ImageViewCreateInfo viewInfo{
@@ -212,6 +221,7 @@ void SwapChainVk::createImageViews() {
 }
 
 void SwapChainVk::createRenderPass() {
+  ZoneScoped;
   vk::AttachmentDescription depthAttachment = {
       .format = findDepthFormat(),
       .samples = vk::SampleCountFlagBits::e1,
@@ -271,6 +281,7 @@ void SwapChainVk::createRenderPass() {
 }
 
 void SwapChainVk::createFramebuffers() {
+  ZoneScoped;
   m_swapChainFramebuffers.resize(imageCount());
   for (size_t i = 0; i < imageCount(); i++) {
     std::array<vk::ImageView, 2> attachments = {m_swapChainImageViews[i],
@@ -291,6 +302,7 @@ void SwapChainVk::createFramebuffers() {
 }
 
 void SwapChainVk::createDepthResources() {
+  ZoneScoped;
   vk::Format depthFormat = findDepthFormat();
   m_swapChainDepthFormat = depthFormat;
   vk::Extent2D swapChainExtent = getSwapChainExtent();
@@ -333,6 +345,7 @@ void SwapChainVk::createDepthResources() {
 }
 
 void SwapChainVk::createSyncObjects() {
+  ZoneScoped;
   m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
   m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -353,6 +366,7 @@ void SwapChainVk::createSyncObjects() {
 
 vk::SurfaceFormatKHR SwapChainVk::chooseSwapSurfaceFormat(
     const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
+  ZoneScoped;
   for (const auto &availableFormat : availableFormats) {
     if (availableFormat.format == vk::Format::eB8G8R8A8Unorm &&
         availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
@@ -365,6 +379,7 @@ vk::SurfaceFormatKHR SwapChainVk::chooseSwapSurfaceFormat(
 
 vk::PresentModeKHR SwapChainVk::chooseSwapPresentMode(
     const std::vector<vk::PresentModeKHR> &availablePresentModes) {
+  ZoneScoped;
   for (const auto &availablePresentMode : availablePresentModes) {
     if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
       Logger::info("Present mode: Mailbox");
@@ -378,6 +393,7 @@ vk::PresentModeKHR SwapChainVk::chooseSwapPresentMode(
 
 vk::Extent2D
 SwapChainVk::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities) {
+  ZoneScoped;
   if (capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
     return capabilities.currentExtent;
@@ -395,6 +411,7 @@ SwapChainVk::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities) {
 }
 
 vk::Format SwapChainVk::findDepthFormat() {
+  ZoneScoped;
   return m_device->findSupportedFormat(
       {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,
        vk::Format::eD24UnormS8Uint},

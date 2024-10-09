@@ -1,14 +1,17 @@
 #include "Renderer.hpp"
 #include "SwapChainVk.hpp"
+#include "Tracy/tracy/Tracy.hpp"
 #include <vulkan/vulkan.hpp>
 
 Renderer::Renderer(Window *window, RenderDeviceVk *device)
     : m_device{device}, m_window{window} {
+  ZoneScoped;
   recreateSwapChain();
   createCommandBuffers();
 }
 
 void Renderer::recreateSwapChain() {
+  ZoneScoped;
   auto extent = m_window->getExtent();
   while (extent.width == 0 || extent.height == 0) {
     extent = m_window->getExtent();
@@ -29,6 +32,7 @@ void Renderer::recreateSwapChain() {
 }
 
 void Renderer::createCommandBuffers() {
+  ZoneScoped;
   m_commandBuffers.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
 
   vk::CommandBufferAllocateInfo allocInfo = {
@@ -41,12 +45,14 @@ void Renderer::createCommandBuffers() {
 }
 
 void Renderer::freeCommandBuffers() {
+  ZoneScoped;
   m_device->getDevice().freeCommandBuffers(m_device->getCommandPool(),
                                            m_commandBuffers);
   m_commandBuffers.clear();
 }
 
 vk::CommandBuffer Renderer::beginFrame() {
+  ZoneScoped;
   assert(!m_isFrameStarted &&
          "Can't call beginFrame while already in progress");
 
@@ -76,6 +82,7 @@ vk::CommandBuffer Renderer::beginFrame() {
 }
 
 void Renderer::endFrame() {
+  ZoneScoped;
   assert(m_isFrameStarted && "Can't call endFrame while frame not in progress");
 
   auto commandBuffer = getCurrentCommandBuffer();
@@ -99,6 +106,7 @@ void Renderer::endFrame() {
 }
 
 void Renderer::beginSwapChainRenderPass(vk::CommandBuffer commandBuffer) {
+  ZoneScoped;
   assert(m_isFrameStarted && "Can't call beginSwapChainRenderPass "
                              "without first calling beginFrame");
   assert(commandBuffer == getCurrentCommandBuffer() &&
@@ -136,6 +144,7 @@ void Renderer::beginSwapChainRenderPass(vk::CommandBuffer commandBuffer) {
 }
 
 void Renderer::endSwapChainRenderPass(vk::CommandBuffer commandBuffer) {
+  ZoneScoped;
   assert(m_isFrameStarted && "Can't call endSwapChainRenderPass "
                              "without first calling beginFrame");
   assert(commandBuffer == getCurrentCommandBuffer() &&

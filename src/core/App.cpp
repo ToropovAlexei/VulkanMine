@@ -34,21 +34,28 @@ void App::run() {
     ZoneScopedN("Main Loop");
     m_keyboard->update();
     m_mouse->update();
-    glfwPollEvents();
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
     m_timer.update();
     float deltaTime = m_timer.getDeltaTime();
     m_scene->update(deltaTime);
 
-    ImGui::NewFrame();
-    m_scene->renderUI();
-    ImGui::Render();
+    glfwPollEvents();
+
+    {
+      ZoneScopedN("Prepare UI");
+      ImGui_ImplVulkan_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+      m_scene->renderUI();
+      ImGui::Render();
+    }
 
     if (auto commandBuffer = m_renderer->beginFrame()) {
       m_renderer->beginSwapChainRenderPass(commandBuffer);
       m_scene->render(commandBuffer);
-      ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+      {
+        ZoneScopedN("Render UI");
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+      }
       m_renderer->endSwapChainRenderPass(commandBuffer);
       m_renderer->endFrame();
     }
