@@ -1,8 +1,10 @@
 #include "core/App.hpp"
 #include <cstdlib>
 #include <iostream>
+#include "Tracy/tracy/Tracy.hpp"
 
 int main() {
+  ZoneScoped;
   try {
     App{}.run();
   } catch (const std::exception &e) {

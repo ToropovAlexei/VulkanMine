@@ -16,7 +16,7 @@ public:
     return {static_cast<uint32_t>(m_width), static_cast<uint32_t>(m_height)};
   }
   bool shouldClose() const { return glfwWindowShouldClose(m_window); }
-  void createWindowSurface(vk::Instance& instance, vk::SurfaceKHR &surface);
+  void createWindowSurface(vk::Instance &instance, vk::SurfaceKHR &surface);
   void hideCursor() {
     glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }

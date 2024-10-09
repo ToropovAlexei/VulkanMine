@@ -1,4 +1,6 @@
 #include "App.hpp"
+#include "Tracy/tracy/Tracy.hpp"
+#include "Tracy/tracy/TracyVulkan.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
@@ -6,6 +8,7 @@
 #include <memory>
 
 App::App() {
+  ZoneScoped;
   m_window = std::make_unique<Window>(800, 600, "VulkanMine");
   m_renderDevice = std::make_unique<RenderDeviceVk>(m_window.get());
   m_renderer = std::make_unique<Renderer>(m_window.get(), m_renderDevice.get());
@@ -16,13 +19,19 @@ App::App() {
   initImGUI();
 }
 
-App::~App() { cleanupImGUI(); }
+App::~App() {
+  ZoneScoped;
+  cleanupImGUI();
+}
 
 void App::run() {
+  ZoneScoped;
   m_window->hideCursor();
 
   m_timer.reset();
+
   while (!m_window->shouldClose()) {
+    ZoneScopedN("Main Loop");
     m_keyboard->update();
     m_mouse->update();
     glfwPollEvents();
@@ -49,6 +58,7 @@ void App::run() {
 }
 
 void App::initImGUI() {
+  ZoneScoped;
   vk::DescriptorPoolSize pool_sizes[] = {
       {vk::DescriptorType::eSampler, 1000},
       {vk::DescriptorType::eCombinedImageSampler, 1000},
@@ -104,6 +114,7 @@ void App::initImGUI() {
 }
 
 void App::cleanupImGUI() {
+  ZoneScoped;
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();

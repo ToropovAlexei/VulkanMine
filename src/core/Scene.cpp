@@ -1,5 +1,6 @@
 #include "Scene.hpp"
 #include "../renderer/backend/SwapChainVk.hpp"
+#include "Tracy/tracy/Tracy.hpp"
 #include "glm/fwd.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -12,6 +13,7 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
       m_renderer{renderer}, m_texture{device, "res/textures/dirt.png"} {
+  ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
                    .addPoolSize(vk::DescriptorType::eUniformBuffer,
@@ -23,8 +25,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
   m_camera = std::make_unique<Camera>();
   m_camera->setPosition({0.0f, 257.0f, 0.0f});
 
-  for (int x = 0; x < 3; x++) {
-    for (int z = 0; z < 3; z++) {
+  for (int x = -0; x < 4; x++) {
+    for (int z = -0; z < 4; z++) {
       m_chunks.emplace_back(std::make_shared<Chunk>(x, z));
     }
   }
@@ -67,9 +69,13 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
       globalSetLayout->getDescriptorSetLayout());
 }
 
-Scene::~Scene() { globalPool.reset(); }
+Scene::~Scene() {
+  ZoneScoped;
+  globalPool.reset();
+}
 
 void Scene::update(float dt) {
+  ZoneScoped;
   m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 1000.0f);
   glm::vec3 movementDirection(0.0f);
   if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
@@ -101,6 +107,7 @@ void Scene::update(float dt) {
 }
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
+  ZoneScoped;
   m_ubo.projectionView =
       m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
 
@@ -120,6 +127,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
 }
 
 void Scene::renderUI() {
+  ZoneScoped;
   ImGuiContext &g = *GImGui;
   ImGuiIO &io = g.IO;
   ImGui::Begin("Engine info");

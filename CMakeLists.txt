@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(GLFW_BUILD_WAYLAND ON)
 set(GLFW_BUILD_X11 OFF)
-# option(TRACY_ENABLE "" ON)
-# option(TRACY_ON_DEMAND "" ON)
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
 
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 
@@ -35,21 +35,20 @@ FetchContent_Declare(
   GIT_TAG master
 )
 
-# FetchContent_Declare (
-#   tracy
-#   GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-#   GIT_TAG v0.11.0
-#   GIT_SHALLOW TRUE
-#   GIT_PROGRESS TRUE
-# )
+FetchContent_Declare (
+  tracy
+  GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+  GIT_TAG v0.11.0
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE
+)
 
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
 # TODO REMOVE LIBS/VulkanMemoryAllocator
 # add_subdirectory(libs/VulkanMemoryAllocator)
 
-FetchContent_MakeAvailable(glm glfw stb)
-# FetchContent_MakeAvailable(glm glfw tracy)
+FetchContent_MakeAvailable(glm glfw stb tracy)
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
@@ -63,6 +62,7 @@ find_program(GLSL_VALIDATOR NAMES glslangValidator)
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator) # TracyClient
 target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} ${IMGUI_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
+target_link_libraries (${PROJECT_NAME} PUBLIC Tracy::TracyClient)
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   -Wall               # Все базовые предупреждения

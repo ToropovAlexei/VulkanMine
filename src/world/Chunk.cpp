@@ -1,5 +1,6 @@
 #include "Chunk.hpp"
 #include "BlockId.hpp"
+#include "Tracy/tracy/Tracy.hpp"
 #include "Voxel.hpp"
 #include <cstdint>
 #include <memory>
@@ -7,12 +8,14 @@
 
 Chunk::Chunk(int x, int z)
     : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)} {
+  ZoneScoped;
   for (int i = 0; i < CHUNK_VOLUME; i++) {
     m_voxels.push_back(Voxel(BlockId::Grass));
   }
 }
 
 void Chunk::generateMesh(RenderDeviceVk *device) {
+  ZoneScoped;
   std::vector<ChunkVertex> vertices;
   std::vector<uint32_t> indices;
 
@@ -37,6 +40,7 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
 void Chunk::addFrontFace(int x, int y, int z,
                          std::vector<ChunkVertex> &vertices,
                          std::vector<uint32_t> &indices) {
+  ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины передней грани (на +Z)
@@ -63,6 +67,7 @@ void Chunk::addFrontFace(int x, int y, int z,
 
 void Chunk::addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
                         std::vector<uint32_t> &indices) {
+  ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины задней грани (на -Z)
@@ -89,6 +94,7 @@ void Chunk::addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
 
 void Chunk::addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
                         std::vector<uint32_t> &indices) {
+  ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины левой грани (на -X)
@@ -116,6 +122,7 @@ void Chunk::addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
 void Chunk::addRightFace(int x, int y, int z,
                          std::vector<ChunkVertex> &vertices,
                          std::vector<uint32_t> &indices) {
+  ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины правой грани (на +X)
@@ -142,6 +149,7 @@ void Chunk::addRightFace(int x, int y, int z,
 
 void Chunk::addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
                        std::vector<uint32_t> &indices) {
+  ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины верхней грани (на +Y)
@@ -169,6 +177,7 @@ void Chunk::addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
 void Chunk::addBottomFace(int x, int y, int z,
                           std::vector<ChunkVertex> &vertices,
                           std::vector<uint32_t> &indices) {
+  ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
 
   // Вершины нижней грани (на -Y)

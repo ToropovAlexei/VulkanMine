@@ -1,5 +1,6 @@
 #include "ChunkRenderSystem.hpp"
 #include "ChunkVertex.hpp"
+#include "Tracy/tracy/Tracy.hpp"
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 
@@ -7,15 +8,18 @@ ChunkRenderSystem::ChunkRenderSystem(
     RenderDeviceVk *device, vk::RenderPass renderPass,
     vk::DescriptorSetLayout descriptorSetLayout)
     : m_device{device} {
+  ZoneScoped;
   createPipelineLayout(descriptorSetLayout);
   createPipeline(renderPass);
 }
 
 ChunkRenderSystem::~ChunkRenderSystem() {
+  ZoneScoped;
   m_device->getDevice().destroyPipelineLayout(m_pipelineLayout);
 }
 
 void ChunkRenderSystem::render(FrameData &frameData) {
+  ZoneScoped;
   m_pipeline->bind(frameData.commandBuffer);
 
   frameData.commandBuffer.bindDescriptorSets(
@@ -39,6 +43,7 @@ void ChunkRenderSystem::render(FrameData &frameData) {
 
 void ChunkRenderSystem::createPipelineLayout(
     vk::DescriptorSetLayout descriptorSetLayout) {
+  ZoneScoped;
   vk::PushConstantRange pushConstantRange = {
       .stageFlags =
           vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
@@ -61,6 +66,7 @@ void ChunkRenderSystem::createPipelineLayout(
 }
 
 void ChunkRenderSystem::createPipeline(vk::RenderPass renderPass) {
+  ZoneScoped;
   PipelineVkConfigInfo pipelineConfig = {};
   PipelineVk::defaultPipelineVkConfigInfo(pipelineConfig);
 
