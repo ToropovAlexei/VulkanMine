@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Tracy/tracy/Tracy.hpp"
 #include "backend/BufferVk.hpp"
 #include "backend/RenderDeviceVk.hpp"
 #include <memory>
@@ -9,11 +10,13 @@ public:
   Mesh(RenderDeviceVk *device, const std::vector<T> &vertices,
        const std::vector<uint32_t> &indices)
       : m_device{device} {
+    ZoneScoped;
     createVertexBuffers(vertices);
     createIndexBuffer(indices);
   };
 
   void bind(vk::CommandBuffer commandBuffer) {
+    ZoneScoped;
     vk::Buffer buffers[] = {m_vertexBuffer->getBuffer()};
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, buffers, offsets);
@@ -21,11 +24,13 @@ public:
                                   vk::IndexType::eUint32);
   };
   void draw(vk::CommandBuffer commandBuffer) {
+    ZoneScoped;
     commandBuffer.drawIndexed(m_indexCount, 1, 0, 0, 0);
   };
 
 private:
   void createVertexBuffers(const std::vector<T> &vertices) {
+    ZoneScoped;
     m_vertexCount = static_cast<uint32_t>(vertices.size());
     vk::DeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
     uint32_t vertexSize = sizeof(vertices[0]);
@@ -47,6 +52,7 @@ private:
                          bufferSize);
   };
   void createIndexBuffer(const std::vector<uint32_t> &indices) {
+    ZoneScoped;
     m_indexCount = static_cast<uint32_t>(indices.size());
     vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
     uint32_t indexSize = sizeof(indices[0]);

@@ -17,7 +17,9 @@ Chunk::Chunk(int x, int z)
 void Chunk::generateMesh(RenderDeviceVk *device) {
   ZoneScoped;
   std::vector<ChunkVertex> vertices;
+  vertices.reserve(1.6e6);
   std::vector<uint32_t> indices;
+  indices.reserve(2.4e6);
 
   for (int y = 0; y < CHUNK_HEIGHT; y++) {
     for (int x = 0; x < CHUNK_SIZE; x++) {
