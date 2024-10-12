@@ -61,7 +61,7 @@ find_package(VulkanMemoryAllocator CONFIG REQUIRED PATHS /usr/include/vk_mem_all
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator) # TracyClient
 target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} ${IMGUI_DIR})
-target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION STB_IMAGE_RESIZE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 target_link_libraries (${PROJECT_NAME} PUBLIC Tracy::TracyClient)
 
 target_compile_options(${PROJECT_NAME} PRIVATE

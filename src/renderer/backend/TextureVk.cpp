@@ -1,6 +1,8 @@
 #include "TextureVk.hpp"
 #include "BufferVk.hpp"
+#include <iostream>
 #include <stb_image.h>
+#include <stb_image_resize2.h>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
 
@@ -14,7 +16,7 @@ TextureVk::TextureVk(RenderDeviceVk *device, const std::string &filename)
 TextureVk::TextureVk(RenderDeviceVk *device,
                      const std::vector<std::string> &filenames)
     : m_device{device}, m_filenames{filenames} {
-  createTextureImage3D();
+  createTextureImage2DArrayWithMipmaps();
   createTextureSampler();
   createImageView();
 }
@@ -167,7 +169,8 @@ void TextureVk::createTextureSampler() {
       .setCompareOp(vk::CompareOp::eAlways)
       .setMipmapMode(vk::SamplerMipmapMode::eLinear)
       .setMinLod(0.0f)
-      .setMaxLod(0.0f);
+      .setMaxLod(static_cast<float>(m_mipLevels))
+      .setMipLodBias(0.0f);
 
   m_textureSampler = m_device->getDevice().createSampler(samplerInfo);
 }
@@ -193,7 +196,8 @@ void TextureVk::transitionImageLayout(vk::Image image,
   barrier.setOldLayout(oldLayout)
       .setNewLayout(newLayout)
       .setImage(image)
-      .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
+      .setSubresourceRange({vk::ImageAspectFlagBits::eColor, 0, m_mipLevels, 0,
+                            static_cast<uint32_t>(m_filenames.size())});
 
   // Определение нужных флагов
   vk::PipelineStageFlags sourceStage;
@@ -245,7 +249,7 @@ void TextureVk::createImageView() {
   vk::ImageViewCreateInfo viewInfo = {
       .image = m_textureImage,
       .viewType = m_filenames.size() == 1 ? vk::ImageViewType::e2D
-                                          : vk::ImageViewType::e3D,
+                                          : vk::ImageViewType::e2DArray,
       .format = vk::Format::eR8G8B8A8Srgb,
       .components = {vk::ComponentSwizzle::eIdentity,
                      vk::ComponentSwizzle::eIdentity,
@@ -253,9 +257,131 @@ void TextureVk::createImageView() {
                      vk::ComponentSwizzle::eIdentity},
       .subresourceRange = {.aspectMask = vk::ImageAspectFlagBits::eColor,
                            .baseMipLevel = 0,
-                           .levelCount = 1,
+                           .levelCount = m_mipLevels,
                            .baseArrayLayer = 0,
-                           .layerCount = 1}};
+                           .layerCount =
+                               static_cast<uint32_t>(m_filenames.size())}};
 
   m_imageView = m_device->getDevice().createImageView(viewInfo);
+}
+
+uint32_t TextureVk::calculateMipLevels(uint32_t width, uint32_t height) {
+  return static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) +
+         1;
+}
+
+void TextureVk::createTextureImage2DArrayWithMipmaps() {
+  std::vector<std::vector<unsigned char *>> mipDataLayers;
+  int width, height, channels;
+
+  // Загрузка каждой 2D текстуры и генерация mipmap-ов
+  for (const auto &filename : m_filenames) {
+    unsigned char *data = nullptr;
+    loadTextureData(filename, width, height, channels, data);
+    if (!data) {
+      throw std::runtime_error("Failed to load texture image: " + filename);
+    }
+
+    // Генерация mipmap-ов для этой текстуры
+    std::vector<unsigned char *> mipmaps;
+    mipmaps.push_back(data); // Level 0
+    int mipWidth = width;
+    int mipHeight = height;
+    m_mipLevels = calculateMipLevels(width, height);
+    for (uint32_t mip = 1; mip < m_mipLevels; mip++) {
+      mipWidth = std::max(1, mipWidth / 2);
+      mipHeight = std::max(1, mipHeight / 2);
+      unsigned char *mipData =
+          new unsigned char[mipWidth * mipHeight * channels];
+      // Используйте stb_image_resize для масштабирования
+      if (!stbir_resize_uint8_linear(
+              data, width, height, 0, mipData, mipWidth, mipHeight, 0,
+              static_cast<stbir_pixel_layout>(channels))) {
+        throw std::runtime_error("Failed to generate mipmap level " +
+                                 std::to_string(mip));
+      }
+      mipmaps.push_back(mipData);
+
+      // Освобождение предыдущего уровня, если необходимо
+    }
+    mipDataLayers.push_back(mipmaps);
+  }
+
+  // Общее количество mipmap-ов
+  uint32_t mipLevels = calculateMipLevels(width, height);
+  uint32_t arrayLayers = m_filenames.size();
+
+  // Создание 2D Array Texture
+  vk::ImageCreateInfo imageInfo{};
+  imageInfo.setImageType(vk::ImageType::e2D)
+      .setFormat(vk::Format::eR8G8B8A8Srgb)
+      .setExtent(vk::Extent3D{static_cast<uint32_t>(width),
+                              static_cast<uint32_t>(height), 1})
+      .setMipLevels(mipLevels)
+      .setArrayLayers(arrayLayers)
+      .setSamples(vk::SampleCountFlagBits::e1)
+      .setTiling(vk::ImageTiling::eOptimal)
+      .setUsage(vk::ImageUsageFlagBits::eTransferDst |
+                vk::ImageUsageFlagBits::eSampled);
+
+  VmaAllocationCreateInfo allocCreateInfo{};
+  allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+  if (vmaCreateImage(m_device->getAllocator(),
+                     reinterpret_cast<const VkImageCreateInfo *>(&imageInfo),
+                     &allocCreateInfo,
+                     reinterpret_cast<VkImage *>(&m_textureImage),
+                     &m_textureImageAllocation, nullptr) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create texture image!");
+  }
+
+  // Переход изображения в TransferDstOptimal
+  transitionImageLayout(m_textureImage, vk::ImageLayout::eUndefined,
+                        vk::ImageLayout::eTransferDstOptimal);
+
+  // Копирование данных в изображение для каждого mipmap-ов и слоя
+  for (size_t layer = 0; layer < mipDataLayers.size(); layer++) {
+    for (uint32_t mip = 0; mip < mipLevels; mip++) {
+      uint32_t mipWidth = std::max(1u, static_cast<uint32_t>(width >> mip));
+      uint32_t mipHeight = std::max(1u, static_cast<uint32_t>(height >> mip));
+
+      vk::DeviceSize bufferSize =
+          static_cast<vk::DeviceSize>(mipWidth * mipHeight * channels);
+      BufferVk stagingBuffer(m_device, bufferSize, 1,
+                             vk::BufferUsageFlagBits::eTransferSrc,
+                             VMA_MEMORY_USAGE_CPU_ONLY);
+
+      stagingBuffer.map();
+      stagingBuffer.writeToBuffer(mipDataLayers[layer][mip], bufferSize, 0);
+      stagingBuffer.unmap();
+
+      vk::BufferImageCopy region{};
+      region.setBufferOffset(0)
+          .setBufferRowLength(0)
+          .setBufferImageHeight(0)
+          .setImageSubresource({vk::ImageAspectFlagBits::eColor,
+                                mip, // mipmap-уровень
+                                static_cast<uint32_t>(layer), // слой
+                                1})
+          .setImageOffset({0, 0, 0})
+          .setImageExtent({mipWidth, mipHeight, 1});
+
+      vk::CommandBuffer commandBuffer = m_device->beginSingleTimeCommands();
+      commandBuffer.copyBufferToImage(stagingBuffer.getBuffer(), m_textureImage,
+                                      vk::ImageLayout::eTransferDstOptimal,
+                                      region);
+      m_device->endSingleTimeCommands(commandBuffer);
+    }
+  }
+
+  // Переход изображения в ShaderReadOnlyOptimal
+  transitionImageLayout(m_textureImage, vk::ImageLayout::eTransferDstOptimal,
+                        vk::ImageLayout::eShaderReadOnlyOptimal);
+
+  // Освобождение памяти mipmap-ов
+  for (auto &mipmaps : mipDataLayers) {
+    for (auto mipData : mipmaps) {
+      delete[] mipData;
+    }
+  }
 }

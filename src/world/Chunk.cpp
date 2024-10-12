@@ -27,12 +27,12 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
         // Voxel &voxel =
         //     m_voxels[x + z * CHUNK_SIZE + y * CHUNK_SIZE * CHUNK_SIZE];
         const float texIdx = 0.3f;
-        addTopFace(x, y, z, 9.0f / 9.0f, vertices, indices);
-        addBottomFace(x, y, z, 5.0f / 9.0f, vertices, indices);
-        addFrontFace(x, y, z, 6.0f / 9.0f, vertices, indices);
-        addBackFace(x, y, z, 4.0f / 9.0f, vertices, indices);
-        addLeftFace(x, y, z, 7.0f / 9.0f, vertices, indices);
-        addRightFace(x, y, z, 8.0f / 9.0f, vertices, indices);
+        addTopFace(x, y, z, 9.0f, vertices, indices);
+        addBottomFace(x, y, z, 5.0f, vertices, indices);
+        addFrontFace(x, y, z, 6.0f, vertices, indices);
+        addBackFace(x, y, z, 4.0f, vertices, indices);
+        addLeftFace(x, y, z, 7.0f, vertices, indices);
+        addRightFace(x, y, z, 8.0f, vertices, indices);
       }
     }
   }

@@ -2,6 +2,7 @@
 
 #include "BufferVk.hpp"
 #include "RenderDeviceVk.hpp"
+#include <cstdint>
 #include <string>
 
 class TextureVk : NonCopyable {
@@ -32,11 +33,14 @@ private:
   void copyBufferToImage(BufferVk &buffer, vk::Image image, uint32_t width,
                          uint32_t height, uint32_t depth = 1);
   void createImageView();
+  uint32_t calculateMipLevels(uint32_t width, uint32_t height);
+  void createTextureImage2DArrayWithMipmaps();
 
 private:
   RenderDeviceVk *m_device;
   std::vector<std::string> m_filenames;
 
+  uint32_t m_mipLevels;
   vk::Image m_textureImage = VK_NULL_HANDLE;
   vk::ImageView m_imageView = VK_NULL_HANDLE;
   VmaAllocation m_textureImageAllocation = VK_NULL_HANDLE;
