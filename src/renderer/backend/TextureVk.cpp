@@ -175,6 +175,7 @@ void TextureVk::createTextureSampler() {
 void TextureVk::loadTextureData(const std::string &filename, int &width,
                                 int &height, int &channels,
                                 unsigned char *&data) {
+  stbi_set_flip_vertically_on_load(true);
   data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
   if (!data) {
     throw std::runtime_error("Failed to load texture image: " + filename);
