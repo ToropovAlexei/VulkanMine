@@ -282,9 +282,8 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       throw std::runtime_error("Failed to load texture image: " + filename);
     }
 
-    // Генерация mipmap-ов для этой текстуры
     std::vector<unsigned char *> mipmaps;
-    mipmaps.push_back(data); // Level 0
+    mipmaps.push_back(data);
     int mipWidth = width;
     int mipHeight = height;
     m_mipLevels = calculateMipLevels(width, height);
@@ -293,7 +292,6 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       mipHeight = std::max(1, mipHeight / 2);
       unsigned char *mipData =
           new unsigned char[mipWidth * mipHeight * channels];
-      // Используйте stb_image_resize для масштабирования
       if (!stbir_resize_uint8_linear(
               data, width, height, 0, mipData, mipWidth, mipHeight, 0,
               static_cast<stbir_pixel_layout>(channels))) {
@@ -301,24 +299,17 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
                                  std::to_string(mip));
       }
       mipmaps.push_back(mipData);
-
-      // Освобождение предыдущего уровня, если необходимо
     }
     mipDataLayers.push_back(mipmaps);
   }
 
-  // Общее количество mipmap-ов
-  uint32_t mipLevels = calculateMipLevels(width, height);
-  uint32_t arrayLayers = m_filenames.size();
-
-  // Создание 2D Array Texture
   vk::ImageCreateInfo imageInfo{};
   imageInfo.setImageType(vk::ImageType::e2D)
       .setFormat(vk::Format::eR8G8B8A8Srgb)
       .setExtent(vk::Extent3D{static_cast<uint32_t>(width),
                               static_cast<uint32_t>(height), 1})
-      .setMipLevels(mipLevels)
-      .setArrayLayers(arrayLayers)
+      .setMipLevels(m_mipLevels)
+      .setArrayLayers(m_filenames.size())
       .setSamples(vk::SampleCountFlagBits::e1)
       .setTiling(vk::ImageTiling::eOptimal)
       .setUsage(vk::ImageUsageFlagBits::eTransferDst |
@@ -335,13 +326,11 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
     throw std::runtime_error("failed to create texture image!");
   }
 
-  // Переход изображения в TransferDstOptimal
   transitionImageLayout(m_textureImage, vk::ImageLayout::eUndefined,
                         vk::ImageLayout::eTransferDstOptimal);
 
-  // Копирование данных в изображение для каждого mipmap-ов и слоя
   for (size_t layer = 0; layer < mipDataLayers.size(); layer++) {
-    for (uint32_t mip = 0; mip < mipLevels; mip++) {
+    for (uint32_t mip = 0; mip < m_mipLevels; mip++) {
       uint32_t mipWidth = std::max(1u, static_cast<uint32_t>(width >> mip));
       uint32_t mipHeight = std::max(1u, static_cast<uint32_t>(height >> mip));
 
@@ -359,10 +348,8 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       region.setBufferOffset(0)
           .setBufferRowLength(0)
           .setBufferImageHeight(0)
-          .setImageSubresource({vk::ImageAspectFlagBits::eColor,
-                                mip, // mipmap-уровень
-                                static_cast<uint32_t>(layer), // слой
-                                1})
+          .setImageSubresource({vk::ImageAspectFlagBits::eColor, mip,
+                                static_cast<uint32_t>(layer), 1})
           .setImageOffset({0, 0, 0})
           .setImageExtent({mipWidth, mipHeight, 1});
 
@@ -374,11 +361,9 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
     }
   }
 
-  // Переход изображения в ShaderReadOnlyOptimal
   transitionImageLayout(m_textureImage, vk::ImageLayout::eTransferDstOptimal,
                         vk::ImageLayout::eShaderReadOnlyOptimal);
 
-  // Освобождение памяти mipmap-ов
   for (auto &mipmaps : mipDataLayers) {
     for (auto mipData : mipmaps) {
       delete[] mipData;
