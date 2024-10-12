@@ -6,7 +6,7 @@
 
 struct ChunkVertex {
   glm::vec3 pos;
-  glm::vec2 uv;
+  glm::vec3 uvd;
 
   static std::vector<vk::VertexInputBindingDescription>
   getBindingDescriptions() {
@@ -22,7 +22,7 @@ struct ChunkVertex {
   getAttributeDescriptions() {
     return {
         {0, 0, vk::Format::eR32G32B32Sfloat, offsetof(ChunkVertex, pos)},
-        {1, 0, vk::Format::eR32G32Sfloat, offsetof(ChunkVertex, uv)},
+        {1, 0, vk::Format::eR32G32B32Sfloat, offsetof(ChunkVertex, uvd)},
     };
   }
 };

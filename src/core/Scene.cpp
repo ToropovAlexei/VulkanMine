@@ -6,13 +6,26 @@
 #include "imgui_internal.h"
 #include <cstddef>
 #include <memory>
+#include <string>
+#include <vector>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_structs.hpp>
 
 Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
-      m_renderer{renderer}, m_texture{device, "res/textures/dirt.png"} {
+      m_renderer{renderer},
+      m_texture{device,
+                std::vector<std::string>({{"res/textures/dirt.png"},
+                                          {"res/textures/grass_side.png"},
+                                          {"res/textures/grass_top.png"},
+                                          {"res/textures/cobblestone.png"},
+                                          {"res/textures/debugBa.png"},
+                                          {"res/textures/debugBo.png"},
+                                          {"res/textures/debugF.png"},
+                                          {"res/textures/debugL.png"},
+                                          {"res/textures/debugR.png"},
+                                          {"res/textures/debugT.png"}})} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)

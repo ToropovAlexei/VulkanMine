@@ -26,12 +26,13 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
         // Voxel &voxel =
         //     m_voxels[x + z * CHUNK_SIZE + y * CHUNK_SIZE * CHUNK_SIZE];
-        addTopFace(x, y, z, vertices, indices);
-        addBottomFace(x, y, z, vertices, indices);
-        addFrontFace(x, y, z, vertices, indices);
-        addBackFace(x, y, z, vertices, indices);
-        addLeftFace(x, y, z, vertices, indices);
-        addRightFace(x, y, z, vertices, indices);
+        const float texIdx = 0.3f;
+        addTopFace(x, y, z, 9.0f / 9.0f, vertices, indices);
+        addBottomFace(x, y, z, 5.0f / 9.0f, vertices, indices);
+        addFrontFace(x, y, z, 6.0f / 9.0f, vertices, indices);
+        addBackFace(x, y, z, 4.0f / 9.0f, vertices, indices);
+        addLeftFace(x, y, z, 7.0f / 9.0f, vertices, indices);
+        addRightFace(x, y, z, 8.0f / 9.0f, vertices, indices);
       }
     }
   }
@@ -39,7 +40,7 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
   m_mesh = std::make_unique<Mesh<ChunkVertex>>(device, vertices, indices);
 }
 
-void Chunk::addFrontFace(int x, int y, int z,
+void Chunk::addFrontFace(int x, int y, int z, float textureIdx,
                          std::vector<ChunkVertex> &vertices,
                          std::vector<uint32_t> &indices) {
   ZoneScoped;
@@ -52,10 +53,10 @@ void Chunk::addFrontFace(int x, int y, int z,
   glm::vec3 v3 = glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f); // Верхний левый
 
   // Добавляем вершины
-  vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v1, glm::vec2(1.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v2, glm::vec2(1.0f, 1.0f)});
-  vertices.emplace_back(ChunkVertex{v3, glm::vec2(0.0f, 1.0f)});
+  vertices.emplace_back(ChunkVertex{v0, glm::vec3(0.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v1, glm::vec3(1.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v2, glm::vec3(1.0f, 1.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v3, glm::vec3(0.0f, 1.0f, textureIdx)});
 
   // Добавляем индексы для двух треугольников
   indices.push_back(startIndex);
@@ -67,7 +68,8 @@ void Chunk::addFrontFace(int x, int y, int z,
   indices.push_back(startIndex + 3);
 }
 
-void Chunk::addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+void Chunk::addBackFace(int x, int y, int z, float textureIdx,
+                        std::vector<ChunkVertex> &vertices,
                         std::vector<uint32_t> &indices) {
   ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
@@ -79,10 +81,10 @@ void Chunk::addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   glm::vec3 v3 = glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f); // Верхний левый
 
   // Добавляем вершины
-  vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v1, glm::vec2(1.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v2, glm::vec2(1.0f, 1.0f)});
-  vertices.emplace_back(ChunkVertex{v3, glm::vec2(0.0f, 1.0f)});
+  vertices.emplace_back(ChunkVertex{v0, glm::vec3(0.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v1, glm::vec3(1.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v2, glm::vec3(1.0f, 1.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v3, glm::vec3(0.0f, 1.0f, textureIdx)});
 
   // Добавляем индексы для двух треугольников
   indices.push_back(startIndex);
@@ -94,7 +96,8 @@ void Chunk::addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   indices.push_back(startIndex + 3);
 }
 
-void Chunk::addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+void Chunk::addLeftFace(int x, int y, int z, float textureIdx,
+                        std::vector<ChunkVertex> &vertices,
                         std::vector<uint32_t> &indices) {
   ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
@@ -106,10 +109,10 @@ void Chunk::addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   glm::vec3 v3 = glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f); // Верхний левый
 
   // Добавляем вершины
-  vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v1, glm::vec2(1.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v2, glm::vec2(1.0f, 1.0f)});
-  vertices.emplace_back(ChunkVertex{v3, glm::vec2(0.0f, 1.0f)});
+  vertices.emplace_back(ChunkVertex{v0, glm::vec3(0.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v1, glm::vec3(1.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v2, glm::vec3(1.0f, 1.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v3, glm::vec3(0.0f, 1.0f, textureIdx)});
 
   // Добавляем индексы для двух треугольников
   indices.push_back(startIndex);
@@ -121,7 +124,7 @@ void Chunk::addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   indices.push_back(startIndex + 3);
 }
 
-void Chunk::addRightFace(int x, int y, int z,
+void Chunk::addRightFace(int x, int y, int z, float textureIdx,
                          std::vector<ChunkVertex> &vertices,
                          std::vector<uint32_t> &indices) {
   ZoneScoped;
@@ -134,10 +137,10 @@ void Chunk::addRightFace(int x, int y, int z,
   glm::vec3 v3 = glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f); // Верхний левый
 
   // Добавляем вершины
-  vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v1, glm::vec2(1.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v2, glm::vec2(1.0f, 1.0f)});
-  vertices.emplace_back(ChunkVertex{v3, glm::vec2(0.0f, 1.0f)});
+  vertices.emplace_back(ChunkVertex{v0, glm::vec3(0.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v1, glm::vec3(1.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v2, glm::vec3(1.0f, 1.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v3, glm::vec3(0.0f, 1.0f, textureIdx)});
 
   // Добавляем индексы для двух треугольников
   indices.push_back(startIndex);
@@ -149,7 +152,8 @@ void Chunk::addRightFace(int x, int y, int z,
   indices.push_back(startIndex + 3);
 }
 
-void Chunk::addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+void Chunk::addTopFace(int x, int y, int z, float textureIdx,
+                       std::vector<ChunkVertex> &vertices,
                        std::vector<uint32_t> &indices) {
   ZoneScoped;
   uint32_t startIndex = static_cast<uint32_t>(vertices.size());
@@ -161,10 +165,10 @@ void Chunk::addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   glm::vec3 v3 = glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f); // Верхний левый
 
   // Добавляем вершины
-  vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v1, glm::vec2(1.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v2, glm::vec2(1.0f, 1.0f)});
-  vertices.emplace_back(ChunkVertex{v3, glm::vec2(0.0f, 1.0f)});
+  vertices.emplace_back(ChunkVertex{v0, glm::vec3(0.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v1, glm::vec3(1.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v2, glm::vec3(1.0f, 1.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v3, glm::vec3(0.0f, 1.0f, textureIdx)});
 
   // Добавляем индексы для двух треугольников
   indices.push_back(startIndex);
@@ -176,7 +180,7 @@ void Chunk::addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
   indices.push_back(startIndex + 3);
 }
 
-void Chunk::addBottomFace(int x, int y, int z,
+void Chunk::addBottomFace(int x, int y, int z, float textureIdx,
                           std::vector<ChunkVertex> &vertices,
                           std::vector<uint32_t> &indices) {
   ZoneScoped;
@@ -189,10 +193,10 @@ void Chunk::addBottomFace(int x, int y, int z,
   glm::vec3 v3 = glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f); // Верхний левый
 
   // Добавляем вершины
-  vertices.emplace_back(ChunkVertex{v0, glm::vec2(0.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v1, glm::vec2(1.0f, 0.0f)});
-  vertices.emplace_back(ChunkVertex{v2, glm::vec2(1.0f, 1.0f)});
-  vertices.emplace_back(ChunkVertex{v3, glm::vec2(0.0f, 1.0f)});
+  vertices.emplace_back(ChunkVertex{v0, glm::vec3(0.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v1, glm::vec3(1.0f, 0.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v2, glm::vec3(1.0f, 1.0f, textureIdx)});
+  vertices.emplace_back(ChunkVertex{v3, glm::vec3(0.0f, 1.0f, textureIdx)});
 
   // Добавляем индексы для двух треугольников
   indices.push_back(startIndex);

@@ -24,17 +24,23 @@ public:
   static constexpr int CHUNK_VOLUME = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
 private:
-  void addFrontFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+  void addFrontFace(int x, int y, int z, float textureIdx,
+                    std::vector<ChunkVertex> &vertices,
                     std::vector<uint32_t> &indices);
-  void addBackFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+  void addBackFace(int x, int y, int z, float textureIdx,
+                   std::vector<ChunkVertex> &vertices,
                    std::vector<uint32_t> &indices);
-  void addLeftFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+  void addLeftFace(int x, int y, int z, float textureIdx,
+                   std::vector<ChunkVertex> &vertices,
                    std::vector<uint32_t> &indices);
-  void addRightFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+  void addRightFace(int x, int y, int z, float textureIdx,
+                    std::vector<ChunkVertex> &vertices,
                     std::vector<uint32_t> &indices);
-  void addTopFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+  void addTopFace(int x, int y, int z, float textureIdx,
+                  std::vector<ChunkVertex> &vertices,
                   std::vector<uint32_t> &indices);
-  void addBottomFace(int x, int y, int z, std::vector<ChunkVertex> &vertices,
+  void addBottomFace(int x, int y, int z, float textureIdx,
+                     std::vector<ChunkVertex> &vertices,
                      std::vector<uint32_t> &indices);
   static int toWorldPos(int x);
 
