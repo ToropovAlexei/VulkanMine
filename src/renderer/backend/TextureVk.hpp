@@ -23,10 +23,7 @@ public:
   }
 
 private:
-  static void loadTextureData(const std::string &filename, int &width,
-                              int &height, int &channels, unsigned char *&data);
   void createTextureImage2D();
-  void createTextureImage3D();
   void createTextureSampler();
   void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout,
                              vk::ImageLayout newLayout);

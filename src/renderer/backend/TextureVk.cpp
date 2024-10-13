@@ -1,8 +1,7 @@
 #include "TextureVk.hpp"
+#include "../../assets/Image.hpp"
 #include "BufferVk.hpp"
-#include <iostream>
-#include <stb_image.h>
-#include <stb_image_resize2.h>
+#include <cmath>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
 
@@ -35,16 +34,14 @@ TextureVk::~TextureVk() {
 }
 
 void TextureVk::createTextureImage2D() {
-  int width, height, channels;
-  unsigned char *data = nullptr;
-  loadTextureData(m_filenames[0], width, height, channels, data);
+  Image img{m_filenames[0]};
 
   // Создание текстурного изображения
   vk::ImageCreateInfo imageInfo{};
   imageInfo.setImageType(vk::ImageType::e2D)
       .setFormat(vk::Format::eR8G8B8A8Srgb)
-      .setExtent(vk::Extent3D{static_cast<uint32_t>(width),
-                              static_cast<uint32_t>(height), 1})
+      .setExtent(vk::Extent3D{static_cast<uint32_t>(img.width()),
+                              static_cast<uint32_t>(img.height()), 1})
       .setMipLevels(1)
       .setArrayLayers(1)
       .setSamples(vk::SampleCountFlagBits::e1)
@@ -68,87 +65,18 @@ void TextureVk::createTextureImage2D() {
                         vk::ImageLayout::eTransferDstOptimal);
 
   // Создание временного буфера для загрузки текстуры
-  vk::DeviceSize bufferSize =
-      static_cast<vk::DeviceSize>(width * height * channels);
+  vk::DeviceSize bufferSize = static_cast<vk::DeviceSize>(img.size());
   BufferVk stagingBuffer(m_device, bufferSize, 1,
                          vk::BufferUsageFlagBits::eTransferSrc,
                          VMA_MEMORY_USAGE_CPU_ONLY);
 
   stagingBuffer.map();
-  stagingBuffer.writeToBuffer(data);
+  stagingBuffer.writeToBuffer(img.data());
   stagingBuffer.unmap(); // OPTIONAL as unmapped when destroying
 
-  copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(width),
-                    static_cast<uint32_t>(height));
-
-  transitionImageLayout(m_textureImage, vk::ImageLayout::eTransferDstOptimal,
-                        vk::ImageLayout::eShaderReadOnlyOptimal);
-
-  stbi_image_free(data);
-}
-
-void TextureVk::createTextureImage3D() {
-  std::vector<unsigned char *> dataLayers;
-  int width, height, channels;
-
-  // Загрузка каждой 2D текстуры
-  for (const auto &filename : m_filenames) {
-    unsigned char *data = nullptr;
-    loadTextureData(filename, width, height, channels, data);
-    if (!data) {
-      throw std::runtime_error("Failed to load texture image: " + filename);
-    }
-    dataLayers.push_back(data);
-  }
-
-  // Создание текстурного изображения
-  vk::ImageCreateInfo imageInfo{};
-  imageInfo.setImageType(vk::ImageType::e3D)
-      .setFormat(vk::Format::eR8G8B8A8Srgb)
-      .setExtent(vk::Extent3D{static_cast<uint32_t>(width),
-                              static_cast<uint32_t>(height),
-                              static_cast<uint32_t>(dataLayers.size())})
-      .setMipLevels(1)
-      .setArrayLayers(1)
-      .setSamples(vk::SampleCountFlagBits::e1)
-      .setTiling(vk::ImageTiling::eOptimal)
-      .setUsage(vk::ImageUsageFlagBits::eTransferDst |
-                vk::ImageUsageFlagBits::eSampled);
-
-  VmaAllocationCreateInfo allocCreateInfo{};
-  allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-  if (vmaCreateImage(m_device->getAllocator(),
-                     reinterpret_cast<const VkImageCreateInfo *>(&imageInfo),
-                     &allocCreateInfo,
-                     reinterpret_cast<VkImage *>(&m_textureImage),
-                     &m_textureImageAllocation, nullptr) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create texture image!");
-  }
-
-  // Копирование данных в изображение
-  transitionImageLayout(m_textureImage, vk::ImageLayout::eUndefined,
-                        vk::ImageLayout::eTransferDstOptimal);
-
-  // Создание временного буфера для загрузки текстуры
-  vk::DeviceSize bufferSize =
-      static_cast<vk::DeviceSize>(width * height * channels) *
-      static_cast<vk::DeviceSize>(dataLayers.size());
-  BufferVk stagingBuffer(m_device, bufferSize, 1,
-                         vk::BufferUsageFlagBits::eTransferSrc,
-                         VMA_MEMORY_USAGE_CPU_ONLY);
-
-  stagingBuffer.map();
-  vk::DeviceSize size = static_cast<vk::DeviceSize>(width * height * 4);
-  for (size_t i = 0; i < dataLayers.size(); i++) {
-    stagingBuffer.writeToBuffer(dataLayers[i], size, i * size);
-    stbi_image_free(dataLayers[i]); // Освобождение памяти после копирования
-  }
-  stagingBuffer.unmap(); // OPTIONAL as unmapped when destroying
-
-  copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(width),
-                    static_cast<uint32_t>(height),
-                    static_cast<uint32_t>(dataLayers.size()));
+  copyBufferToImage(stagingBuffer, m_textureImage,
+                    static_cast<uint32_t>(img.width()),
+                    static_cast<uint32_t>(img.height()));
 
   transitionImageLayout(m_textureImage, vk::ImageLayout::eTransferDstOptimal,
                         vk::ImageLayout::eShaderReadOnlyOptimal);
@@ -173,16 +101,6 @@ void TextureVk::createTextureSampler() {
       .setMipLodBias(0.0f);
 
   m_textureSampler = m_device->getDevice().createSampler(samplerInfo);
-}
-
-void TextureVk::loadTextureData(const std::string &filename, int &width,
-                                int &height, int &channels,
-                                unsigned char *&data) {
-  stbi_set_flip_vertically_on_load(true);
-  data = stbi_load(filename.c_str(), &width, &height, &channels, 0);
-  if (!data) {
-    throw std::runtime_error("Failed to load texture image: " + filename);
-  }
 }
 
 void TextureVk::transitionImageLayout(vk::Image image,
@@ -271,45 +189,31 @@ uint32_t TextureVk::calculateMipLevels(uint32_t width, uint32_t height) {
 }
 
 void TextureVk::createTextureImage2DArrayWithMipmaps() {
-  std::vector<std::vector<unsigned char *>> mipDataLayers;
-  int width, height, channels;
+  std::vector<std::vector<Image>> mipDataLayers;
 
-  // Загрузка каждой 2D текстуры и генерация mipmap-ов
   for (const auto &filename : m_filenames) {
-    unsigned char *data = nullptr;
-    loadTextureData(filename, width, height, channels, data);
-    if (!data) {
-      throw std::runtime_error("Failed to load texture image: " + filename);
-    }
+    Image img{filename};
 
-    std::vector<unsigned char *> mipmaps;
-    mipmaps.push_back(data);
-    int mipWidth = width;
-    int mipHeight = height;
-    m_mipLevels = calculateMipLevels(width, height);
+    std::vector<Image> mipmaps;
+    mipmaps.push_back(img);
+    m_mipLevels = calculateMipLevels(static_cast<uint32_t>(img.width()),
+                                     static_cast<uint32_t>(img.height()));
     for (uint32_t mip = 1; mip < m_mipLevels; mip++) {
-      mipWidth = std::max(1, mipWidth / 2);
-      mipHeight = std::max(1, mipHeight / 2);
-      unsigned char *mipData =
-          new unsigned char[mipWidth * mipHeight * channels];
-      if (!stbir_resize_uint8_linear(
-              data, width, height, 0, mipData, mipWidth, mipHeight, 0,
-              static_cast<stbir_pixel_layout>(channels))) {
-        throw std::runtime_error("Failed to generate mipmap level " +
-                                 std::to_string(mip));
-      }
-      mipmaps.push_back(mipData);
+      mipmaps.push_back({img, mip});
     }
     mipDataLayers.push_back(mipmaps);
   }
 
+  uint32_t width = static_cast<uint32_t>(mipDataLayers[0][0].width());
+  uint32_t height = static_cast<uint32_t>(mipDataLayers[0][0].height());
+  int channels = mipDataLayers[0][0].channels();
+
   vk::ImageCreateInfo imageInfo{};
   imageInfo.setImageType(vk::ImageType::e2D)
       .setFormat(vk::Format::eR8G8B8A8Srgb)
-      .setExtent(vk::Extent3D{static_cast<uint32_t>(width),
-                              static_cast<uint32_t>(height), 1})
+      .setExtent(vk::Extent3D{width, height, 1})
       .setMipLevels(m_mipLevels)
-      .setArrayLayers(m_filenames.size())
+      .setArrayLayers(static_cast<uint32_t>(m_filenames.size()))
       .setSamples(vk::SampleCountFlagBits::e1)
       .setTiling(vk::ImageTiling::eOptimal)
       .setUsage(vk::ImageUsageFlagBits::eTransferDst |
@@ -334,14 +238,15 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       uint32_t mipWidth = std::max(1u, static_cast<uint32_t>(width >> mip));
       uint32_t mipHeight = std::max(1u, static_cast<uint32_t>(height >> mip));
 
-      vk::DeviceSize bufferSize =
-          static_cast<vk::DeviceSize>(mipWidth * mipHeight * channels);
+      vk::DeviceSize bufferSize = static_cast<vk::DeviceSize>(
+          mipWidth * mipHeight * static_cast<uint32_t>(channels));
       BufferVk stagingBuffer(m_device, bufferSize, 1,
                              vk::BufferUsageFlagBits::eTransferSrc,
                              VMA_MEMORY_USAGE_CPU_ONLY);
 
       stagingBuffer.map();
-      stagingBuffer.writeToBuffer(mipDataLayers[layer][mip], bufferSize, 0);
+      stagingBuffer.writeToBuffer(mipDataLayers[layer][mip].data(), bufferSize,
+                                  0);
       stagingBuffer.unmap();
 
       vk::BufferImageCopy region{};
@@ -363,10 +268,4 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
 
   transitionImageLayout(m_textureImage, vk::ImageLayout::eTransferDstOptimal,
                         vk::ImageLayout::eShaderReadOnlyOptimal);
-
-  for (auto &mipmaps : mipDataLayers) {
-    for (auto mipData : mipmaps) {
-      delete[] mipData;
-    }
-  }
 }
