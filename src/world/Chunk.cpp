@@ -6,8 +6,10 @@
 #include <memory>
 #include <vector>
 
-Chunk::Chunk(int x, int z)
-    : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)} {
+Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x,
+             int z)
+    : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)},
+      m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas} {
   ZoneScoped;
   for (int i = 0; i < CHUNK_VOLUME; i++) {
     m_voxels.push_back(Voxel(BlockId::Grass));
@@ -24,15 +26,32 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
   for (int y = 0; y < CHUNK_HEIGHT; y++) {
     for (int x = 0; x < CHUNK_SIZE; x++) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
-        // Voxel &voxel =
-        //     m_voxels[x + z * CHUNK_SIZE + y * CHUNK_SIZE * CHUNK_SIZE];
-        const float texIdx = 0.3f;
-        addTopFace(x, y, z, 9.0f, vertices, indices);
-        addBottomFace(x, y, z, 5.0f, vertices, indices);
-        addFrontFace(x, y, z, 6.0f, vertices, indices);
-        addBackFace(x, y, z, 4.0f, vertices, indices);
-        addLeftFace(x, y, z, 7.0f, vertices, indices);
-        addRightFace(x, y, z, 8.0f, vertices, indices);
+        auto &block = m_blocksManager.GetBlockById(BlockId::Grass);
+
+        addTopFace(x, y, z,
+                   m_textureAtlas.getTextureIdx(
+                       block.getFaceTexture(Block::Faces::Top)),
+                   vertices, indices);
+        addBottomFace(x, y, z,
+                      m_textureAtlas.getTextureIdx(
+                          block.getFaceTexture(Block::Faces::Bottom)),
+                      vertices, indices);
+        addFrontFace(x, y, z,
+                     m_textureAtlas.getTextureIdx(
+                         block.getFaceTexture(Block::Faces::Front)),
+                     vertices, indices);
+        addBackFace(x, y, z,
+                    m_textureAtlas.getTextureIdx(
+                        block.getFaceTexture(Block::Faces::Back)),
+                    vertices, indices);
+        addLeftFace(x, y, z,
+                    m_textureAtlas.getTextureIdx(
+                        block.getFaceTexture(Block::Faces::Left)),
+                    vertices, indices);
+        addRightFace(x, y, z,
+                     m_textureAtlas.getTextureIdx(
+                         block.getFaceTexture(Block::Faces::Right)),
+                     vertices, indices);
       }
     }
   }

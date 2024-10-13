@@ -14,18 +14,8 @@
 Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
-      m_renderer{renderer},
-      m_texture{device,
-                std::vector<std::string>({{"res/textures/dirt.png"},
-                                          {"res/textures/grass_side.png"},
-                                          {"res/textures/grass_top.png"},
-                                          {"res/textures/cobblestone.png"},
-                                          {"res/textures/debugBa.png"},
-                                          {"res/textures/debugBo.png"},
-                                          {"res/textures/debugF.png"},
-                                          {"res/textures/debugL.png"},
-                                          {"res/textures/debugR.png"},
-                                          {"res/textures/debugT.png"}})} {
+      m_renderer{renderer}, m_textureAtlas{device, "res/textures"},
+      m_blocksManager{"res/blocks"} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
@@ -40,7 +30,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
 
   for (int x = -0; x < 4; x++) {
     for (int z = -0; z < 4; z++) {
-      m_chunks.emplace_back(std::make_shared<Chunk>(x, z));
+      m_chunks.emplace_back(
+          std::make_shared<Chunk>(m_blocksManager, m_textureAtlas, x, z));
     }
   }
 
@@ -70,7 +61,7 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
 
   for (size_t i = 0; i < m_globalDescriptorSets.size(); i++) {
     auto bufferInfo = m_globalBuffers[i]->descriptorInfo();
-    auto imgInfo = m_texture.getDescriptorInfo();
+    auto imgInfo = m_textureAtlas.getTexture().getDescriptorInfo();
     DescriptorWriterVk(*globalSetLayout, *globalPool)
         .writeBuffer(0, &bufferInfo)
         .writeImage(1, &imgInfo)

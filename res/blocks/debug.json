@@ -1,0 +1,6 @@
+{
+  "id": 17,
+  "name": "debug",
+  "is_opaque": false,
+  "textures": ["debugF", "debugBa", "debugT", "debugBo", "debugL", "debugR"]
+}

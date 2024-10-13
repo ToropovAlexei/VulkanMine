@@ -2,13 +2,15 @@
 
 #include "../renderSystems/ChunkVertex.hpp"
 #include "../renderer/Mesh.hpp"
+#include "BlocksManager.hpp"
+#include "TextureAtlas.hpp"
 #include "Voxel.hpp"
 #include <memory>
 #include <vector>
 
 class Chunk {
 public:
-  Chunk(int x, int z);
+  Chunk(BlocksManager &blocksManager, TextureAtlas& textureAtlas, int x, int z);
 
   inline int x() const noexcept { return m_x; }
   inline int z() const noexcept { return m_z; }
@@ -49,6 +51,8 @@ private:
   int m_z;
   int m_worldX;
   int m_worldZ;
+  BlocksManager &m_blocksManager;
+  TextureAtlas &m_textureAtlas;
 
   std::vector<Voxel> m_voxels;
   std::unique_ptr<Mesh<ChunkVertex>> m_mesh;

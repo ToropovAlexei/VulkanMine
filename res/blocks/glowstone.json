@@ -1,0 +1,6 @@
+{
+  "id": 13,
+  "name": "glowstone",
+  "textures": ["glowstone"],
+  "emission": [15, 15, 15]
+}

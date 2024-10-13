@@ -1,0 +1,5 @@
+{
+  "id": 2,
+  "name": "grass",
+  "textures": ["grass_top", "grass_side", "dirt"]
+}
