@@ -18,6 +18,7 @@ public:
   inline std::string &getFaceTexture(Faces face) noexcept {
     return m_textures[static_cast<size_t>(face)];
   };
+  inline bool isOpaque() const noexcept { return m_isOpaque; }
 
 private:
   void buildTextures(std::vector<std::string> textures);

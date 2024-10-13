@@ -9,7 +9,7 @@ class BlocksManager {
 public:
   BlocksManager(std::string blocksPath);
 
-  inline Block &GetBlockById(BlockId id) noexcept {
+  inline Block &getBlockById(BlockId id) noexcept {
     return m_blocks[static_cast<size_t>(id)];
   };
 

@@ -11,8 +11,8 @@ Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x,
     : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)},
       m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas} {
   ZoneScoped;
-  for (int i = 0; i < CHUNK_VOLUME; i++) {
-    m_voxels.push_back(Voxel(BlockId::Grass));
+  for (size_t i = 0; i < CHUNK_VOLUME; i++) {
+    m_voxels[i] = Voxel(BlockId::Grass);
   }
 }
 
@@ -26,32 +26,44 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
   for (int y = 0; y < CHUNK_HEIGHT; y++) {
     for (int x = 0; x < CHUNK_SIZE; x++) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
-        auto &block = m_blocksManager.GetBlockById(BlockId::Grass);
+        auto &block = m_blocksManager.getBlockById(BlockId::Grass);
 
-        addTopFace(x, y, z,
-                   m_textureAtlas.getTextureIdx(
-                       block.getFaceTexture(Block::Faces::Top)),
-                   vertices, indices);
-        addBottomFace(x, y, z,
+        if (canAddFace(x, y + 1, z)) {
+          addTopFace(x, y, z,
+                     m_textureAtlas.getTextureIdx(
+                         block.getFaceTexture(Block::Faces::Top)),
+                     vertices, indices);
+        }
+        if (canAddFace(x, y - 1, z)) {
+          addBottomFace(x, y, z,
+                        m_textureAtlas.getTextureIdx(
+                            block.getFaceTexture(Block::Faces::Bottom)),
+                        vertices, indices);
+        }
+        if (canAddFace(x, y, z + 1)) {
+          addFrontFace(x, y, z,
+                       m_textureAtlas.getTextureIdx(
+                           block.getFaceTexture(Block::Faces::Front)),
+                       vertices, indices);
+        }
+        if (canAddFace(x, y, z - 1)) {
+          addBackFace(x, y, z,
                       m_textureAtlas.getTextureIdx(
-                          block.getFaceTexture(Block::Faces::Bottom)),
+                          block.getFaceTexture(Block::Faces::Back)),
                       vertices, indices);
-        addFrontFace(x, y, z,
-                     m_textureAtlas.getTextureIdx(
-                         block.getFaceTexture(Block::Faces::Front)),
-                     vertices, indices);
-        addBackFace(x, y, z,
-                    m_textureAtlas.getTextureIdx(
-                        block.getFaceTexture(Block::Faces::Back)),
-                    vertices, indices);
-        addLeftFace(x, y, z,
-                    m_textureAtlas.getTextureIdx(
-                        block.getFaceTexture(Block::Faces::Left)),
-                    vertices, indices);
-        addRightFace(x, y, z,
-                     m_textureAtlas.getTextureIdx(
-                         block.getFaceTexture(Block::Faces::Right)),
-                     vertices, indices);
+        }
+        if (canAddFace(x - 1, y, z)) {
+          addLeftFace(x, y, z,
+                      m_textureAtlas.getTextureIdx(
+                          block.getFaceTexture(Block::Faces::Left)),
+                      vertices, indices);
+        }
+        if (canAddFace(x + 1, y, z)) {
+          addRightFace(x, y, z,
+                       m_textureAtlas.getTextureIdx(
+                           block.getFaceTexture(Block::Faces::Right)),
+                       vertices, indices);
+        }
       }
     }
   }
@@ -228,3 +240,14 @@ void Chunk::addBottomFace(int x, int y, int z, float textureIdx,
 }
 
 int Chunk::toWorldPos(int x) { return x * Chunk::CHUNK_SIZE; }
+
+bool Chunk::canAddFace(int x, int y, int z) const {
+  if (x < 0 || x >= CHUNK_SIZE || y < 0 || y >= CHUNK_HEIGHT || z < 0 ||
+      z >= CHUNK_SIZE) {
+    return true;
+  }
+  auto block =
+      m_blocksManager.getBlockById(m_voxels[getIdxFromCoords(x, y, z)].blockId);
+
+  return !block.isOpaque();
+}

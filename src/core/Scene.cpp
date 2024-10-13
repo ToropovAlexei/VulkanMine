@@ -28,8 +28,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
   m_camera = std::make_unique<Camera>();
   m_camera->setPosition({0.0f, 257.0f, 0.0f});
 
-  for (int x = -0; x < 4; x++) {
-    for (int z = -0; z < 4; z++) {
+  for (int x = -4; x < 4; x++) {
+    for (int z = -4; z < 4; z++) {
       m_chunks.emplace_back(
           std::make_shared<Chunk>(m_blocksManager, m_textureAtlas, x, z));
     }
