@@ -1,6 +1,6 @@
 #include <cstddef>
 #define VMA_IMPLEMENTATION
-#include "../../core/Logger.hpp"
+#include "../../core/LogMacros.hpp"
 #include "RenderDeviceVk.hpp"
 #include <map>
 #include <set>
@@ -26,14 +26,14 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
               const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
               [[maybe_unused]] void *pUserData) {
   if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-    Logger::error(pCallbackData->pMessage);
+    LOG_ERROR(pCallbackData->pMessage);
   } else if (messageSeverity &
              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    Logger::warning(pCallbackData->pMessage);
+    LOG_WARNING(pCallbackData->pMessage);
   } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-    Logger::info(pCallbackData->pMessage);
+    LOG_INFO(pCallbackData->pMessage);
   } else {
-    Logger::info(pCallbackData->pMessage);
+    LOG_INFO(pCallbackData->pMessage);
   }
 
   return VK_FALSE;
@@ -83,7 +83,7 @@ void RenderDeviceVk::initVulkan() {
   auto remainingRequiredExtensions = requiredExtensions;
   if (!checkInstanceExtensionSupport(remainingRequiredExtensions)) {
     for (auto &extension : remainingRequiredExtensions) {
-      Logger::error("Missing required extension: " + std::string(extension));
+      LOG_ERROR("Missing required extension: " + std::string(extension));
     }
 
     throw std::runtime_error("Required extensions are missing!");

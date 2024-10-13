@@ -1,6 +1,6 @@
 #include "SwapChainVk.hpp"
 
-#include "../../core/Logger.hpp"
+#include "../../core/LogMacros.hpp"
 #include "Tracy/tracy/Tracy.hpp"
 #include <array>
 #include <cstddef>
@@ -382,12 +382,12 @@ vk::PresentModeKHR SwapChainVk::chooseSwapPresentMode(
   ZoneScoped;
   for (const auto &availablePresentMode : availablePresentModes) {
     if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
-      Logger::info("Present mode: Mailbox");
+      LOG_INFO("Present mode: Mailbox");
       return availablePresentMode;
     }
   }
 
-  Logger::info("Present mode: V-Sync");
+  LOG_INFO("Present mode: V-Sync");
   return vk::PresentModeKHR::eFifo;
 }
 
