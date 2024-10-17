@@ -15,7 +15,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
       m_renderer{renderer}, m_textureAtlas{device, "res/textures"},
-      m_blocksManager{"res/blocks"} {
+      m_blocksManager{"res/blocks"},
+      m_chunksManager{m_blocksManager, m_textureAtlas, 0, 0} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
@@ -26,18 +27,7 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
                    .build();
 
   m_camera = std::make_unique<Camera>();
-  m_camera->setPosition({0.0f, 257.0f, 0.0f});
-
-  for (int x = -4; x < 4; x++) {
-    for (int z = -4; z < 4; z++) {
-      m_chunks.emplace_back(
-          std::make_shared<Chunk>(m_blocksManager, m_textureAtlas, x, z));
-    }
-  }
-
-  for (auto &chunk : m_chunks) {
-    chunk->generateMesh(m_device);
-  }
+  m_camera->setPosition({0.0f, 128.0f, 0.0f});
 
   m_globalBuffers.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
 
@@ -108,6 +98,11 @@ void Scene::update(float dt) {
   }
 
   m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);
+  for (auto &chunk : m_chunksManager.getChunks()) {
+    if (chunk->getMesh() == nullptr) {
+      chunk->generateMesh(m_device);
+    }
+  }
 }
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
@@ -116,9 +111,10 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
       m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
 
   auto frameIndex = m_renderer->getFrameIndex();
+
   FrameData frameData = {
       .commandBuffer = commandBuffer,
-      .chunks = m_chunks,
+      .chunks = m_chunksManager.getChunksToRender(),
       .globalDescriptorSet = m_globalDescriptorSets[frameIndex],
   };
   m_globalBuffers[frameIndex]->writeToBuffer(&m_ubo);

@@ -18,6 +18,10 @@ public:
   inline int worldX() const noexcept { return m_worldX; }
   inline int worldZ() const noexcept { return m_worldZ; }
 
+  void setBlock(int x, int y, int z, BlockId id) {
+    m_voxels[getIdxFromCoords(x, y, z)] = Voxel(id);
+  };
+
   std::unique_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
   void generateMesh(RenderDeviceVk *device);
 

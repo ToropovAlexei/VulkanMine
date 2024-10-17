@@ -2,6 +2,7 @@
 #include "BlockId.hpp"
 #include "Tracy/tracy/Tracy.hpp"
 #include "Voxel.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -11,9 +12,6 @@ Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x,
     : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)},
       m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas} {
   ZoneScoped;
-  for (size_t i = 0; i < CHUNK_VOLUME; i++) {
-    m_voxels[i] = Voxel(BlockId::Grass);
-  }
 }
 
 void Chunk::generateMesh(RenderDeviceVk *device) {
@@ -26,7 +24,11 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
   for (int y = 0; y < CHUNK_HEIGHT; y++) {
     for (int x = 0; x < CHUNK_SIZE; x++) {
       for (int z = 0; z < CHUNK_SIZE; z++) {
-        auto &block = m_blocksManager.getBlockById(BlockId::Grass);
+        auto &block = m_blocksManager.getBlockById(
+            m_voxels[getIdxFromCoords(x, y, z)].blockId);
+        if (block.id() == BlockId::Air) {
+          continue;
+        }
 
         if (canAddFace(x, y + 1, z)) {
           addTopFace(x, y, z,
@@ -66,6 +68,10 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
         }
       }
     }
+  }
+
+  if (vertices.empty()) {
+    return;
   }
 
   m_mesh = std::make_unique<Mesh<ChunkVertex>>(device, vertices, indices);
