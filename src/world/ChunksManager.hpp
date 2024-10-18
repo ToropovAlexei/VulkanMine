@@ -5,6 +5,7 @@
 #include "TextureAtlas.hpp"
 #include "WorldGenerator.hpp"
 #include <memory>
+#include <mutex>
 #include <vector>
 
 class ChunksManager {
@@ -13,11 +14,18 @@ public:
                 int playerX, int playerZ);
 
   void setPlayerPos(int x, int z);
-  std::vector<std::shared_ptr<Chunk>> &getChunks() { return m_chunks; }
-  std::vector<std::shared_ptr<Chunk>> getChunksToRender() const {
+  std::vector<std::shared_ptr<Chunk>> &getChunks() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     return m_chunks;
   }
-  void insertChunk(std::shared_ptr<Chunk> chunk) { m_chunks.push_back(chunk); }
+  std::vector<std::shared_ptr<Chunk>> getChunksToRender() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_chunks;
+  }
+  void insertChunk(std::shared_ptr<Chunk> chunk) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_chunks.emplace_back(chunk);
+  }
 
 private:
   inline int toChunkPos(int x) const noexcept {
@@ -33,6 +41,7 @@ private:
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
   WorldGenerator m_worldGenerator;
+  std::mutex m_mutex;
 
   std::vector<std::shared_ptr<Chunk>> m_chunks;
 };

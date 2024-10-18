@@ -70,6 +70,13 @@ FetchContent_Declare (
   GIT_PROGRESS TRUE
 )
 
+# FetchContent_Declare (
+#   Taskflow
+#   GIT_REPOSITORY https://github.com/taskflow/taskflow.git
+#   GIT_TAG master
+#   GIT_SHALLOW TRUE
+# )
+
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIRS})
 # TODO REMOVE LIBS/VulkanMemoryAllocator
@@ -84,9 +91,10 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${IMGUI_SOURCES})
 
 add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE_VULKAN)
 
+find_package(TBB REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED PATHS /usr/include/vk_mem_alloc.h)
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator nlohmann_json::nlohmann_json FastNoise2) # TracyClient
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator nlohmann_json::nlohmann_json FastNoise2 TBB::tbb) # TracyClient
 target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} ${IMGUI_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION STB_IMAGE_RESIZE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 target_link_libraries (${PROJECT_NAME} PUBLIC Tracy::TracyClient)

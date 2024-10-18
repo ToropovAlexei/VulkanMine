@@ -12,6 +12,8 @@
 class Chunk {
 public:
   Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x, int z);
+  Chunk(const Chunk &) = delete;
+  Chunk(Chunk &&) = delete;
 
   inline int x() const noexcept { return m_x; }
   inline int z() const noexcept { return m_z; }
@@ -23,6 +25,7 @@ public:
   };
 
   std::unique_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
+  void generateVerticesAndIndices();
   void generateMesh(RenderDeviceVk *device);
 
 public:
@@ -32,24 +35,12 @@ public:
   static constexpr int CHUNK_VOLUME = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
 
 private:
-  void addFrontFace(int x, int y, int z, float textureIdx,
-                    std::vector<ChunkVertex> &vertices,
-                    std::vector<uint32_t> &indices);
-  void addBackFace(int x, int y, int z, float textureIdx,
-                   std::vector<ChunkVertex> &vertices,
-                   std::vector<uint32_t> &indices);
-  void addLeftFace(int x, int y, int z, float textureIdx,
-                   std::vector<ChunkVertex> &vertices,
-                   std::vector<uint32_t> &indices);
-  void addRightFace(int x, int y, int z, float textureIdx,
-                    std::vector<ChunkVertex> &vertices,
-                    std::vector<uint32_t> &indices);
-  void addTopFace(int x, int y, int z, float textureIdx,
-                  std::vector<ChunkVertex> &vertices,
-                  std::vector<uint32_t> &indices);
-  void addBottomFace(int x, int y, int z, float textureIdx,
-                     std::vector<ChunkVertex> &vertices,
-                     std::vector<uint32_t> &indices);
+  void addFrontFace(int x, int y, int z, float textureIdx);
+  void addBackFace(int x, int y, int z, float textureIdx);
+  void addLeftFace(int x, int y, int z, float textureIdx);
+  void addRightFace(int x, int y, int z, float textureIdx);
+  void addTopFace(int x, int y, int z, float textureIdx);
+  void addBottomFace(int x, int y, int z, float textureIdx);
   static int toWorldPos(int x);
   inline size_t getIdxFromCoords(int x, int y, int z) const noexcept {
     return static_cast<size_t>(x + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
@@ -65,5 +56,8 @@ private:
   TextureAtlas &m_textureAtlas;
 
   std::array<Voxel, CHUNK_VOLUME> m_voxels;
+
+  std::vector<ChunkVertex> m_vertices;
+  std::vector<uint32_t> m_indices;
   std::unique_ptr<Mesh<ChunkVertex>> m_mesh;
 };

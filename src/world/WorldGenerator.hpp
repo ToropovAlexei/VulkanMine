@@ -9,7 +9,7 @@ class WorldGenerator {
 public:
   WorldGenerator(BlocksManager &blockManager, TextureAtlas &textureAtlas);
 
-  std::unique_ptr<Chunk> generateChunk(int cx, int cz);
+  std::shared_ptr<Chunk> generateChunk(int cx, int cz);
 
 private:
   FastNoise::SmartNode<FastNoise::OpenSimplex2> heightGenNoise;
