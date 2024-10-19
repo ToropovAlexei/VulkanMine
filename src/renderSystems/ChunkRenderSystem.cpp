@@ -1,6 +1,6 @@
 #include "ChunkRenderSystem.hpp"
 #include "ChunkVertex.hpp"
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 

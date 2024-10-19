@@ -1,7 +1,7 @@
 #include "SwapChainVk.hpp"
 
 #include "../../core/LogMacros.hpp"
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 #include <array>
 #include <cstddef>
 #include <cstdlib>

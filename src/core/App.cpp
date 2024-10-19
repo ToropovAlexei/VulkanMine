@@ -1,6 +1,6 @@
 #include "App.hpp"
-#include "Tracy/tracy/Tracy.hpp"
-#include "Tracy/tracy/TracyVulkan.hpp"
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyVulkan.hpp>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"

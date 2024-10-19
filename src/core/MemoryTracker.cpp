@@ -1,5 +1,5 @@
 #ifdef TRACY_ENABLE
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 #include <cstdlib>
 
 void *operator new(std::size_t count) {

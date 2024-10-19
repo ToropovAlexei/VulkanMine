@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 #include "SwapChainVk.hpp"
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 #include <vulkan/vulkan.hpp>
 
 Renderer::Renderer(Window *window, RenderDeviceVk *device)

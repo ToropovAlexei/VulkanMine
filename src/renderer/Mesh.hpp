@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 #include "backend/BufferVk.hpp"
 #include "backend/RenderDeviceVk.hpp"
 #include <memory>

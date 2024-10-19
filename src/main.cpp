@@ -1,7 +1,7 @@
 #include "core/App.hpp"
 #include <cstdlib>
 #include <iostream>
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 
 int main() {
   ZoneScoped;

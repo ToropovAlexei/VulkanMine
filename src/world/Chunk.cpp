@@ -1,6 +1,6 @@
 #include "Chunk.hpp"
 #include "BlockId.hpp"
-#include "Tracy/tracy/Tracy.hpp"
+#include <tracy/Tracy.hpp>
 #include "Voxel.hpp"
 #include <cstddef>
 #include <cstdint>
