@@ -190,10 +190,7 @@ bool Chunk::canAddFace(int x, int y, int z) const {
       z >= CHUNK_SIZE) {
     return true;
   }
-  auto idx = getIdxFromCoords(x, y, z);
-  auto voxel = m_voxels[idx];
-  auto blockId = voxel.blockId;
-  auto &block = m_blocksManager.getBlockById(blockId);
+  auto &block = m_blocksManager.getBlockById(m_voxels[getIdxFromCoords(x, y, z)].blockId);
 
   return !block.isOpaque();
 }
@@ -201,9 +198,9 @@ bool Chunk::canAddFace(int x, int y, int z) const {
 void Chunk::generateVerticesAndIndices() {
   ZoneScoped;
   std::vector<ChunkVertex> m_vertices;
-  m_vertices.reserve(1.6e6);
+  m_vertices.reserve(50000);
   std::vector<uint32_t> m_indices;
-  m_indices.reserve(2.4e6);
+  m_indices.reserve(60000);
 
   for (int y = 0; y < CHUNK_HEIGHT; y++) {
     for (int x = 0; x < CHUNK_SIZE; x++) {

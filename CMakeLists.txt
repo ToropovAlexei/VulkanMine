@@ -5,7 +5,7 @@ include(FindVulkan)
 
 project(VulkanMine LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(GLFW_BUILD_WAYLAND ON)
 set(GLFW_BUILD_X11 OFF)
@@ -106,22 +106,22 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} ${IMGUI_DIR
 target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION STB_IMAGE_RESIZE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 target_link_libraries (${PROJECT_NAME} PUBLIC Tracy::TracyClient)
 
-target_compile_options(${PROJECT_NAME} PRIVATE
-  -Wall               # Все базовые предупреждения
-  -Wextra             # Дополнительные предупреждения
-  -Wpedantic          # Соответствие стандартам C++
-  -Wshadow            # Предупреждение при затенении переменных
-  -Wnon-virtual-dtor  # Виртуальные деструкторы
-  -Wcast-align        # Несоответствие выравнивания при приведении типов
-  -Woverloaded-virtual # Перекрытие виртуальных функций
-  -Wconversion        # Предупреждение при опасных преобразованиях типов
-  -Wsign-conversion   # Предупреждение при изменении знака
-  -Wnull-dereference  # Отключение предупреждения о разыменовании nullptr
-  -Wdouble-promotion  # Автоматическое преобразование float в double
-  -Wformat=2          # Проверка форматирования строк
-  -Wredundant-decls   # Повторяющиеся объявления
-  -Wunreachable-code  # Невыполнимый код
-)
+#target_compile_options(${PROJECT_NAME} PRIVATE
+#  -Wall               # Все базовые предупреждения
+#  -Wextra             # Дополнительные предупреждения
+#  -Wpedantic          # Соответствие стандартам C++
+#  -Wshadow            # Предупреждение при затенении переменных
+#  -Wnon-virtual-dtor  # Виртуальные деструкторы
+#  -Wcast-align        # Несоответствие выравнивания при приведении типов
+#  -Woverloaded-virtual # Перекрытие виртуальных функций
+#  -Wconversion        # Предупреждение при опасных преобразованиях типов
+#  -Wsign-conversion   # Предупреждение при изменении знака
+#  -Wnull-dereference  # Отключение предупреждения о разыменовании nullptr
+#  -Wdouble-promotion  # Автоматическое преобразование float в double
+#  -Wformat=2          # Проверка форматирования строк
+#  -Wredundant-decls   # Повторяющиеся объявления
+#  -Wunreachable-code  # Невыполнимый код
+#)
 
 target_compile_options(glfw PRIVATE -w)
 

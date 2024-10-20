@@ -133,9 +133,6 @@ void Scene::renderUI() {
   ImGui::Begin("Engine info");
   ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate,
               io.Framerate);
-  ImGui::Text("%d vertices, %d indices (%d triangles)",
-              io.MetricsRenderVertices, io.MetricsRenderIndices,
-              io.MetricsRenderIndices / 3);
   ImGui::End();
 
   ImGui::Begin("Player");
