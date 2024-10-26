@@ -10,14 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(GLFW_BUILD_WAYLAND ON)
 set(GLFW_BUILD_X11 OFF)
 option(TRACY_ENABLE "" OFF)
-option(TRACY_ON_DEMAND "" OFF)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(DEFAULT_TRACY_ENABLE OFF)
-    set(DEFAULT_TRACY_ON_DEMAND OFF)
-else()
-    set(DEFAULT_TRACY_ENABLE ON)
-    set(DEFAULT_TRACY_ON_DEMAND ON)
+if(NOT TRACY_ENABLE)
+  add_definitions(-U TRACY_ENABLE)
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -65,7 +60,7 @@ FetchContent_Declare(
 FetchContent_Declare (
   tracy
   GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-  GIT_TAG v0.11.0
+  GIT_TAG master
   GIT_SHALLOW TRUE
   GIT_PROGRESS TRUE
 )

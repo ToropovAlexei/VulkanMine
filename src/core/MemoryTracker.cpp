@@ -1,6 +1,6 @@
 #ifdef TRACY_ENABLE
-#include <tracy/Tracy.hpp>
 #include <cstdlib>
+#include <tracy/Tracy.hpp>
 
 void *operator new(std::size_t count) {
   void *ptr = malloc(count);
