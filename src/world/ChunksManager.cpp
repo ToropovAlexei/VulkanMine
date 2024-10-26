@@ -1,8 +1,7 @@
 #include "ChunksManager.hpp"
 #include <algorithm>
-#include <execution>
+#include <cstddef>
 #include <future>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -122,6 +121,71 @@ void ChunksManager::moveChunks() {
 }
 
 void ChunksManager::setPlayerPos(int x, int z) {
+  ZoneScoped;
   m_playerX = toChunkPos(x);
   m_playerZ = toChunkPos(z);
+}
+
+std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender() {
+  ZoneScoped;
+  std::shared_lock<std::shared_mutex> lock(m_mutex);
+  std::vector<std::shared_ptr<Chunk>> chunksToRender;
+
+  const size_t centerIdx = getCenterIdx();
+
+  auto addChunkIfValid = [&](size_t index) {
+    if (m_chunks[index]) {
+      chunksToRender.push_back(m_chunks[index]);
+    }
+  };
+  addChunkIfValid(centerIdx);
+
+  size_t radius = 1;
+  while (radius <= m_loadRadius) {
+    size_t offset = radius * m_chunksVectorSideSize;
+    size_t topLeft = centerIdx - radius - offset;
+    size_t topRight = centerIdx + radius - offset;
+    size_t bottomLeft = centerIdx - radius + offset;
+    size_t bottomRight = centerIdx + radius + offset;
+
+    for (size_t i = topLeft; i <= topRight; i++) {
+      addChunkIfValid(i);
+    }
+    for (size_t i = bottomLeft; i <= bottomRight; i++) {
+      addChunkIfValid(i);
+    }
+    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft;
+         i += m_chunksVectorSideSize) {
+      addChunkIfValid(i);
+    }
+    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight;
+         i += m_chunksVectorSideSize) {
+      addChunkIfValid(i);
+    }
+    radius++;
+  }
+
+  return chunksToRender;
+}
+
+void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
+  ZoneScoped;
+  std::shared_lock<std::shared_mutex> lock(m_mutex);
+  auto idx = getChunkIdx(chunk->x(), chunk->z());
+  if (idx >= m_chunks.size()) {
+    return;
+  }
+  // Может быть тут баг, т.к. используется shared lock
+  m_chunks[idx] = chunk;
+}
+
+void ChunksManager::forEachChunk(
+    std::function<void(std::shared_ptr<Chunk>)> func) {
+  ZoneScoped;
+  std::shared_lock<std::shared_mutex> lock(m_mutex);
+  for (auto &chunk : m_chunks) {
+    if (chunk) {
+      func(chunk);
+    }
+  }
 }
