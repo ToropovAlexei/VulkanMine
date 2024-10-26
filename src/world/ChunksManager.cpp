@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <future>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -126,7 +127,57 @@ void ChunksManager::setPlayerPos(int x, int z) {
   m_playerZ = toChunkPos(z);
 }
 
-std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender() {
+bool isChunkVisible(const Frustum &frustum, int x, int z) {
+  const glm::vec4 *planes = frustum.getPlanes();
+
+  // Определяем углы чанка
+  glm::vec3 min = glm::vec3(x * Chunk::CHUNK_SIZE, 0, z * Chunk::CHUNK_SIZE);
+  glm::vec3 max = min + glm::vec3(Chunk::CHUNK_SIZE, Chunk::CHUNK_HEIGHT,
+                                  Chunk::CHUNK_SIZE);
+
+  for (int i = 0; i < 6; ++i) {
+    // Проверяем плоскость
+    if (planes[i].x * min.x + planes[i].y * min.y + planes[i].z * min.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * max.x + planes[i].y * min.y + planes[i].z * min.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * min.x + planes[i].y * max.y + planes[i].z * min.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * max.x + planes[i].y * max.y + planes[i].z * min.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * min.x + planes[i].y * min.y + planes[i].z * max.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * max.x + planes[i].y * min.y + planes[i].z * max.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * min.x + planes[i].y * max.y + planes[i].z * max.z +
+            planes[i].w >
+        0)
+      continue;
+    if (planes[i].x * max.x + planes[i].y * max.y + planes[i].z * max.z +
+            planes[i].w >
+        0)
+      continue;
+
+    // Если чанк полностью за плоскостью, он невидим
+    return false;
+  }
+  return true; // Чанк видим
+}
+
+std::vector<std::shared_ptr<Chunk>>
+ChunksManager::getChunksToRender(Frustum &frustum) {
   ZoneScoped;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
   std::vector<std::shared_ptr<Chunk>> chunksToRender;
@@ -134,7 +185,8 @@ std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender() {
   const size_t centerIdx = getCenterIdx();
 
   auto addChunkIfValid = [&](size_t index) {
-    if (m_chunks[index]) {
+    if (m_chunks[index] &&
+        isChunkVisible(frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
       chunksToRender.push_back(m_chunks[index]);
     }
   };
@@ -164,7 +216,9 @@ std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender() {
     }
     radius++;
   }
-
+  
+  std::cout << "Chunks to render: " << chunksToRender.size() << " of "
+            << m_chunks.size() << std::endl;
   return chunksToRender;
 }
 

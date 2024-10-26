@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../core/Frustum.hpp"
 #include "BlocksManager.hpp"
 #include "Chunk.hpp"
 #include "TextureAtlas.hpp"
@@ -16,7 +17,7 @@ public:
   ~ChunksManager();
 
   void setPlayerPos(int x, int z);
-  std::vector<std::shared_ptr<Chunk>> getChunksToRender();
+  std::vector<std::shared_ptr<Chunk>> getChunksToRender(Frustum& frustum);
   void insertChunk(std::shared_ptr<Chunk> chunk);
   void forEachChunk(std::function<void(std::shared_ptr<Chunk>)> func);
 

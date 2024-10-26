@@ -1,3 +1,4 @@
+#include "Frustum.hpp"
 #include "glm/fwd.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,6 +13,7 @@ public:
         m_fov(fov), m_aspectRatio(aspectRatio), m_nearPlane(nearPlane),
         m_farPlane(farPlane) {
     updateCameraVectors();
+    updateFrustum();
   }
 
   glm::mat4 getViewMatrix() const {
@@ -23,19 +25,25 @@ public:
     projection[1][1] *= -1; // Инвертируем ось Y
     return projection;
   }
+  Frustum &getFrustum() { return m_frustum; }
   void setProjection(float newFov, float newAspectRatio, float newNearPlane,
                      float newFarPlane) {
     m_fov = newFov;
     m_aspectRatio = newAspectRatio;
     m_nearPlane = newNearPlane;
     m_farPlane = newFarPlane;
+    updateFrustum();
   }
-  void setPosition(const glm::vec3 &newPosition) { m_position = newPosition; }
+  void setPosition(const glm::vec3 &newPosition) {
+    m_position = newPosition;
+    updateFrustum();
+  }
   glm::vec3 getPosition() const { return m_position; }
   void setOrientation(float newYaw, float newPitch) {
     m_yaw = newYaw;
     m_pitch = newPitch;
     updateCameraVectors();
+    updateFrustum();
   }
   float getYaw() const { return m_yaw; }
   float getPitch() const { return m_pitch; }
@@ -43,7 +51,10 @@ public:
   glm::vec3 getRight() const { return m_right; }
   glm::vec3 getUp() const { return m_up; }
 
-  void move(const glm::vec3 &direction) { m_position += direction; }
+  void move(const glm::vec3 &direction) {
+    m_position += direction;
+    updateFrustum();
+  }
 
   void rotate(float yawOffset, float pitchOffset, bool constrainPitch = true) {
     m_yaw += yawOffset;
@@ -57,6 +68,7 @@ public:
     }
 
     updateCameraVectors();
+    updateFrustum();
   }
 
 private:
@@ -74,6 +86,8 @@ private:
   float m_nearPlane;
   float m_farPlane;
 
+  Frustum m_frustum;
+
   void updateCameraVectors() {
     glm::vec3 newFront;
     newFront.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
@@ -83,5 +97,9 @@ private:
 
     m_right = glm::normalize(glm::cross(m_front, m_worldUp));
     m_up = glm::normalize(glm::cross(m_right, m_front));
+  }
+
+  void updateFrustum() {
+    m_frustum.extractPlanes(getProjectionMatrix() * getViewMatrix());
   }
 };
