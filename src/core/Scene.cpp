@@ -94,7 +94,7 @@ void Scene::update(float dt) {
 
   if (glm::dot(movementDirection, movementDirection) >
       std::numeric_limits<float>::epsilon()) {
-    m_camera->move(dt * 25.0f * glm::normalize(movementDirection));
+    m_camera->move(dt * 1500.0f * glm::normalize(movementDirection));
   }
 
   m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);
@@ -118,8 +118,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
       .commandBuffer = commandBuffer,
       .chunks = m_chunksManager.getChunksToRender(m_camera->getFrustum()),
       .globalDescriptorSet = m_globalDescriptorSets[frameIndex],
-      .frameIndex = frameIndex
-  };
+      .frameIndex = frameIndex};
   m_globalBuffers[frameIndex]->writeToBuffer(&m_ubo);
   m_globalBuffers[frameIndex]->flush();
   // frameData.gameObjects[0].model =

@@ -1,5 +1,6 @@
 #include "ChunksManager.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <future>
 #include <memory>
@@ -29,8 +30,9 @@ ChunksManager::~ChunksManager() {
 void ChunksManager::asyncProcessChunks() {
   ZoneScoped;
   while (m_isRunning) {
-    loadChunks();
     moveChunks();
+    loadChunks();
+
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 }
@@ -52,8 +54,8 @@ void ChunksManager::loadChunks() {
   while (radius <= m_loadRadius &&
          chunksToGenerate.size() < m_maxAsyncChunksLoading) {
     int xStart = m_playerX - radius;
-    int xEnd = m_playerZ + radius;
-    int zStart = m_playerX - radius;
+    int xEnd = m_playerX + radius;
+    int zStart = m_playerZ - radius;
     int zEnd = m_playerZ + radius;
 
     for (int x = xStart; x <= xEnd; x++) {
@@ -108,6 +110,12 @@ void ChunksManager::moveChunks() {
 
   for (auto &chunk : m_chunks) {
     if (!chunk) {
+      continue;
+    }
+    auto x = chunk->x();
+    auto z = chunk->z();
+    if (x < m_playerX - m_loadRadius || x > m_playerX + m_loadRadius ||
+        z < m_playerZ - m_loadRadius || z > m_playerZ + m_loadRadius) {
       continue;
     }
     auto idx = getChunkIdx(chunk->x(), chunk->z());
@@ -221,6 +229,12 @@ ChunksManager::getChunksToRender(Frustum &frustum) {
 
 void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   ZoneScoped;
+  auto x = chunk->x();
+  auto z = chunk->z();
+  if (x < m_playerX - m_loadRadius || x > m_playerX + m_loadRadius ||
+      z < m_playerZ - m_loadRadius || z > m_playerZ + m_loadRadius) {
+    return;
+  }
   std::shared_lock<std::shared_mutex> lock(m_mutex);
   auto idx = getChunkIdx(chunk->x(), chunk->z());
   if (idx >= m_chunks.size()) {

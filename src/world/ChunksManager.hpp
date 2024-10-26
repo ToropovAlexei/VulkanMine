@@ -56,7 +56,7 @@ private:
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
   int m_maxAsyncChunksLoading = 12;
-  int m_loadRadius = 3;
+  int m_loadRadius = 32;
   int m_chunksVectorSideSize = m_loadRadius * 2 + 1;
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
