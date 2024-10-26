@@ -1,8 +1,8 @@
+#include "Scene.hpp"
 #include "../renderer/backend/SwapChainVk.hpp"
 #include "glm/fwd.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "Scene.hpp"
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -70,7 +70,7 @@ Scene::~Scene() {
 
 void Scene::update(float dt) {
   ZoneScoped;
-  m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 1000.0f);
+  m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 2000.0f);
   glm::vec3 movementDirection(0.0f);
   if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
     movementDirection += m_camera->getFront();
@@ -98,11 +98,13 @@ void Scene::update(float dt) {
   }
 
   m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);
-  for (auto &chunk : m_chunksManager.getChunks()) {
-    if (chunk->getMesh() == nullptr) {
+  m_chunksManager.setPlayerPos(m_camera->getPosition().x,
+                               m_camera->getPosition().z);
+  m_chunksManager.forEachChunk([this](std::shared_ptr<Chunk> chunk) {
+    if (chunk && chunk->getMesh() == nullptr) {
       chunk->generateMesh(m_device);
     }
-  }
+  });
 }
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
