@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <future>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -216,9 +215,7 @@ ChunksManager::getChunksToRender(Frustum &frustum) {
     }
     radius++;
   }
-  
-  std::cout << "Chunks to render: " << chunksToRender.size() << " of "
-            << m_chunks.size() << std::endl;
+
   return chunksToRender;
 }
 

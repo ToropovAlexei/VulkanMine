@@ -39,6 +39,7 @@ void ChunkRenderSystem::render(FrameData &frameData) {
       chunk->getMesh()->draw(frameData.commandBuffer);
     }
   }
+  m_prevChunksToRender[frameData.frameIndex] = frameData.chunks;
 }
 
 void ChunkRenderSystem::createPipelineLayout(

@@ -118,6 +118,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
       .commandBuffer = commandBuffer,
       .chunks = m_chunksManager.getChunksToRender(m_camera->getFrustum()),
       .globalDescriptorSet = m_globalDescriptorSets[frameIndex],
+      .frameIndex = frameIndex
   };
   m_globalBuffers[frameIndex]->writeToBuffer(&m_ubo);
   m_globalBuffers[frameIndex]->flush();

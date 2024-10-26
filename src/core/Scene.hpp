@@ -39,4 +39,5 @@ private:
   TextureAtlas m_textureAtlas;
   BlocksManager m_blocksManager;
   ChunksManager m_chunksManager;
+  FrameData m_prevFrameData;
 };

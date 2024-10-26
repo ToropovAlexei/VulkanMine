@@ -17,7 +17,7 @@ public:
   ~ChunksManager();
 
   void setPlayerPos(int x, int z);
-  std::vector<std::shared_ptr<Chunk>> getChunksToRender(Frustum& frustum);
+  std::vector<std::shared_ptr<Chunk>> getChunksToRender(Frustum &frustum);
   void insertChunk(std::shared_ptr<Chunk> chunk);
   void forEachChunk(std::function<void(std::shared_ptr<Chunk>)> func);
 
@@ -56,7 +56,7 @@ private:
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
   int m_maxAsyncChunksLoading = 12;
-  int m_loadRadius = 32;
+  int m_loadRadius = 3;
   int m_chunksVectorSideSize = m_loadRadius * 2 + 1;
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
