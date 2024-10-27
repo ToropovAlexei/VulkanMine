@@ -94,7 +94,7 @@ void Scene::update(float dt) {
 
   if (glm::dot(movementDirection, movementDirection) >
       std::numeric_limits<float>::epsilon()) {
-    m_camera->move(dt * 1500.0f * glm::normalize(movementDirection));
+    m_camera->move(dt * 2500.0f * glm::normalize(movementDirection));
   }
 
   m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);

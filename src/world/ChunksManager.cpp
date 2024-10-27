@@ -39,7 +39,6 @@ void ChunksManager::asyncProcessChunks() {
 
 void ChunksManager::loadChunks() {
   ZoneScoped;
-  std::shared_lock<std::shared_mutex> lock(m_mutex);
   std::vector<std::future<void>> futures;
 
   std::vector<std::tuple<int, int>> chunksToGenerate;
@@ -235,12 +234,11 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
       z < m_playerZ - m_loadRadius || z > m_playerZ + m_loadRadius) {
     return;
   }
-  std::shared_lock<std::shared_mutex> lock(m_mutex);
   auto idx = getChunkIdx(chunk->x(), chunk->z());
   if (idx >= m_chunks.size()) {
     return;
   }
-  // Может быть тут баг, т.к. используется shared lock
+  std::unique_lock<std::shared_mutex> lock(m_mutex);
   m_chunks[idx] = chunk;
 }
 

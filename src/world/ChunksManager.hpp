@@ -51,8 +51,8 @@ private:
 
 private:
   bool m_isRunning = true;
-  int m_playerX = 0;
-  int m_playerZ = 0;
+  std::atomic<int> m_playerX = 0;
+  std::atomic<int> m_playerZ = 0;
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
   int m_maxAsyncChunksLoading = 12;
