@@ -4,7 +4,7 @@
 
 class Voxel {
 public:
-  Voxel() = default;
+  Voxel() : blockId{BlockId::Air} {};
   Voxel(BlockId blockId) : blockId{blockId} {}
 
   BlockId blockId;

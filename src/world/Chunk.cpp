@@ -1,6 +1,5 @@
 #include "Chunk.hpp"
 #include "BlockId.hpp"
-#include "Voxel.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -12,9 +11,7 @@ Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x,
     : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)},
       m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas} {
   ZoneScoped;
-  for (size_t i = 0; i < CHUNK_VOLUME; i++) {
-    m_voxels[i] = Voxel(BlockId::Air);
-  }
+  m_voxels.reserve(CHUNK_SQ_SIZE * 64);
 }
 
 void Chunk::generateMesh(RenderDeviceVk *device) {
@@ -190,8 +187,11 @@ bool Chunk::canAddFace(int x, int y, int z) const {
       z >= CHUNK_SIZE) {
     return true;
   }
-  auto &block =
-      m_blocksManager.getBlockById(m_voxels[getIdxFromCoords(x, y, z)].blockId);
+  size_t idx = getIdxFromCoords(x, y, z);
+  if (idx >= m_voxels.size()) {
+    return true;
+  }
+  auto &block = m_blocksManager.getBlockById(m_voxels[idx].blockId);
 
   return !block.isOpaque();
 }
@@ -203,8 +203,9 @@ void Chunk::generateVerticesAndIndices() {
   std::vector<uint32_t> m_indices;
   m_indices.reserve(60000);
 
+  const int maxY = static_cast<int>(m_voxels.size()) / CHUNK_SQ_SIZE;
   size_t voxelIdx = 0;
-  for (int y = 0; y < CHUNK_HEIGHT; y++) {
+  for (int y = 0; y < maxY; y++) {
     for (int z = 0; z < CHUNK_SIZE; z++) {
       for (int x = 0; x < CHUNK_SIZE; x++) {
         auto &block =
@@ -233,5 +234,36 @@ void Chunk::generateVerticesAndIndices() {
         }
       }
     }
+  }
+}
+
+void Chunk::setBlock(int x, int y, int z, BlockId id) {
+  const size_t idx = getIdxFromCoords(x, y, z);
+  if (idx >= m_voxels.size()) {
+    const int prevY = (static_cast<int>(m_voxels.size()) / CHUNK_SQ_SIZE) - 1;
+    if (prevY < y) {
+      const size_t newSize =
+          m_voxels.size() + static_cast<size_t>((y - prevY) * CHUNK_SQ_SIZE);
+      m_voxels.resize(newSize);
+    }
+  }
+  m_voxels[idx] = Voxel(id);
+  if (id == BlockId::Air) {
+    shrinkAirBlocks();
+  }
+};
+
+void Chunk::shrinkAirBlocks() {
+  const size_t prevY =
+      (static_cast<size_t>(m_voxels.size()) / CHUNK_SQ_SIZE) - 1;
+  bool isAirOnly = true;
+  for (size_t i = prevY * CHUNK_SQ_SIZE; i < m_voxels.size(); i++) {
+    if (m_voxels[i].blockId != BlockId::Air) {
+      isAirOnly = false;
+    }
+  }
+  if (isAirOnly) {
+    const size_t newSize = m_voxels.size() - static_cast<size_t>(CHUNK_SQ_SIZE);
+    m_voxels.resize(newSize);
   }
 }

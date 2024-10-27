@@ -5,7 +5,6 @@
 #include "BlocksManager.hpp"
 #include "TextureAtlas.hpp"
 #include "Voxel.hpp"
-#include <array>
 #include <memory>
 #include <vector>
 
@@ -20,9 +19,7 @@ public:
   inline int worldX() const noexcept { return m_worldX; }
   inline int worldZ() const noexcept { return m_worldZ; }
 
-  void setBlock(int x, int y, int z, BlockId id) {
-    m_voxels[getIdxFromCoords(x, y, z)] = Voxel(id);
-  };
+  void setBlock(int x, int y, int z, BlockId id);
 
   std::unique_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
   void generateVerticesAndIndices();
@@ -46,6 +43,7 @@ private:
     return static_cast<size_t>(x + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
   };
   bool canAddFace(int x, int y, int z) const;
+  void shrinkAirBlocks();
 
 private:
   int m_x;
@@ -55,7 +53,7 @@ private:
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
 
-  std::array<Voxel, CHUNK_VOLUME> m_voxels;
+  std::vector<Voxel> m_voxels;
 
   std::vector<ChunkVertex> m_vertices;
   std::vector<uint32_t> m_indices;
