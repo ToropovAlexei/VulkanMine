@@ -188,10 +188,12 @@ ChunksManager::getChunksToRender(Frustum &frustum) {
   ZoneScoped;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
   std::vector<std::shared_ptr<Chunk>> chunksToRender;
+  chunksToRender.reserve(m_chunks.size() / 2);
 
   const size_t centerIdx = getCenterIdx();
 
   auto addChunkIfValid = [&](size_t index) {
+    ZoneScopedN("addChunkIfValid");
     if (m_chunks[index] &&
         isChunkVisible(frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
       chunksToRender.push_back(m_chunks[index]);
