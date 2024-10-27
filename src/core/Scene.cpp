@@ -15,8 +15,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
       m_renderer{renderer}, m_textureAtlas{device, "res/textures"},
-      m_blocksManager{"res/blocks"},
-      m_chunksManager{m_blocksManager, m_textureAtlas, 0, 0} {
+      m_blocksManager{"res/blocks"}, m_playerController{{0, 128, 0}},
+      m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
@@ -94,12 +94,11 @@ void Scene::update(float dt) {
 
   if (glm::dot(movementDirection, movementDirection) >
       std::numeric_limits<float>::epsilon()) {
-    m_camera->move(dt * 2500.0f * glm::normalize(movementDirection));
+    m_playerController.move(dt * 2500.0f * glm::normalize(movementDirection));
   }
 
+  m_camera->setPosition(m_playerController.getPosInChunk());
   m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);
-  m_chunksManager.setPlayerPos(m_camera->getPosition().x,
-                               m_camera->getPosition().z);
   m_chunksManager.forEachChunk([this](std::shared_ptr<Chunk> chunk) {
     if (chunk && chunk->getMesh() == nullptr) {
       chunk->generateMesh(m_device);
@@ -117,8 +116,11 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
   FrameData frameData = {
       .commandBuffer = commandBuffer,
       .chunks = m_chunksManager.getChunksToRender(m_camera->getFrustum()),
+      .playerX = m_playerController.getChunkX(),
+      .playerZ = m_playerController.getChunkZ(),
       .globalDescriptorSet = m_globalDescriptorSets[frameIndex],
-      .frameIndex = frameIndex};
+      .frameIndex = frameIndex,
+  };
   m_globalBuffers[frameIndex]->writeToBuffer(&m_ubo);
   m_globalBuffers[frameIndex]->flush();
   // frameData.gameObjects[0].model =
@@ -138,10 +140,12 @@ void Scene::renderUI() {
   ImGui::End();
 
   ImGui::Begin("Player");
-  ImGui::Text("Position: (x: %.1f, y: %.1f, z: %.1f)",
-              m_camera->getPosition().x, m_camera->getPosition().y,
-              m_camera->getPosition().z);
-  ImGui::Text("Rotation: (x: %.1f, y: %.1f, z: %.1f)", m_camera->getFront().x,
+  ImGui::Text("Position: x: %.1f, y: %.1f, z: %.1f",
+              m_playerController.getWorldX(), m_playerController.getWorldY(),
+              m_playerController.getWorldZ());
+  ImGui::Text("Rotation: x: %.1f, y: %.1f, z: %.1f", m_camera->getFront().x,
               m_camera->getFront().y, m_camera->getFront().z);
+  ImGui::Text("Chunk: %d, %d", m_playerController.getChunkX(),
+              m_playerController.getChunkZ());
   ImGui::End();
 }

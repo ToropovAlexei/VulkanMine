@@ -19,6 +19,8 @@ struct PushConstantData {
 struct FrameData {
   vk::CommandBuffer commandBuffer;
   std::vector<std::shared_ptr<Chunk>> chunks;
+  int playerX;
+  int playerZ;
   vk::DescriptorSet globalDescriptorSet;
   size_t frameIndex;
 };

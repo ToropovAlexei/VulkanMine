@@ -7,6 +7,7 @@
 #include "../renderer/backend/Renderer.hpp"
 #include "../world/BlocksManager.hpp"
 #include "../world/ChunksManager.hpp"
+#include "../world/PlayerController.hpp"
 #include "../world/TextureAtlas.hpp"
 #include "Camera.hpp"
 #include <memory>
@@ -32,6 +33,7 @@ private:
   std::unique_ptr<DescriptorPoolVk> globalPool{};
   std::unique_ptr<ChunkRenderSystem> m_chunkRenderSystem;
   std::unique_ptr<Camera> m_camera;
+  PlayerController m_playerController;
   Renderer *m_renderer;
   std::vector<vk::DescriptorSet> m_globalDescriptorSets;
   std::vector<std::unique_ptr<BufferVk>> m_globalBuffers;

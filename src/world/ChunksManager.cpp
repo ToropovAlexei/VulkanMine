@@ -11,12 +11,12 @@
 #include <vector>
 
 ChunksManager::ChunksManager(BlocksManager &blocksManager,
-                             TextureAtlas &textureAtlas, int playerX,
-                             int playerZ)
+                             TextureAtlas &textureAtlas,
+                             PlayerController &playerController)
     : m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas},
-      m_worldGenerator{blocksManager, textureAtlas} {
+      m_worldGenerator{blocksManager, textureAtlas},
+      m_playerController{playerController} {
   ZoneScoped;
-  setPlayerPos(playerX, playerZ);
   m_chunks.resize(
       static_cast<size_t>(m_chunksVectorSideSize * m_chunksVectorSideSize));
   m_thread = std::thread([this]() { asyncProcessChunks(); });
@@ -44,18 +44,20 @@ void ChunksManager::loadChunks() {
   std::vector<std::tuple<int, int>> chunksToGenerate;
 
   const size_t centerIdx = getCenterIdx();
+  const int playerX = m_playerController.getChunkX();
+  const int playerZ = m_playerController.getChunkZ();
 
   if (m_chunks[centerIdx] == nullptr) {
-    chunksToGenerate.push_back({m_playerX, m_playerZ});
+    chunksToGenerate.push_back({playerX, playerZ});
   }
 
   int radius = 1;
   while (radius <= m_loadRadius &&
          chunksToGenerate.size() < m_maxAsyncChunksLoading) {
-    int xStart = m_playerX - radius;
-    int xEnd = m_playerX + radius;
-    int zStart = m_playerZ - radius;
-    int zEnd = m_playerZ + radius;
+    int xStart = playerX - radius;
+    int xEnd = playerX + radius;
+    int zStart = playerZ - radius;
+    int zEnd = playerZ + radius;
 
     for (int x = xStart; x <= xEnd; x++) {
       if (chunksToGenerate.size() >= m_maxAsyncChunksLoading) {
@@ -99,12 +101,14 @@ void ChunksManager::loadChunks() {
 void ChunksManager::moveChunks() {
   ZoneScoped;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
-  if (m_chunkLastMovedX == m_playerX && m_chunkLastMovedZ == m_playerZ) {
+  const int playerX = m_playerController.getChunkX();
+  const int playerZ = m_playerController.getChunkZ();
+  if (m_chunkLastMovedX == playerX && m_chunkLastMovedZ == playerZ) {
     return;
   };
 
-  m_chunkLastMovedX = m_playerX;
-  m_chunkLastMovedZ = m_playerZ;
+  m_chunkLastMovedX = playerX;
+  m_chunkLastMovedZ = playerZ;
   std::vector<std::shared_ptr<Chunk>> newChunks(m_chunks.size());
 
   for (auto &chunk : m_chunks) {
@@ -113,8 +117,8 @@ void ChunksManager::moveChunks() {
     }
     auto x = chunk->x();
     auto z = chunk->z();
-    if (x < m_playerX - m_loadRadius || x > m_playerX + m_loadRadius ||
-        z < m_playerZ - m_loadRadius || z > m_playerZ + m_loadRadius) {
+    if (x < playerX - m_loadRadius || x > playerX + m_loadRadius ||
+        z < playerZ - m_loadRadius || z > playerZ + m_loadRadius) {
       continue;
     }
     auto idx = getChunkIdx(chunk->x(), chunk->z());
@@ -127,17 +131,14 @@ void ChunksManager::moveChunks() {
   std::swap(m_chunks, newChunks);
 }
 
-void ChunksManager::setPlayerPos(int x, int z) {
-  ZoneScoped;
-  m_playerX = toChunkPos(x);
-  m_playerZ = toChunkPos(z);
-}
-
-bool isChunkVisible(const Frustum &frustum, int x, int z) {
+bool ChunksManager::isChunkVisible(const Frustum &frustum, int x, int z) {
   const glm::vec4 *planes = frustum.getPlanes();
+  const int playerX = m_playerController.getChunkX();
+  const int playerZ = m_playerController.getChunkZ();
 
   // Определяем углы чанка
-  glm::vec3 min = glm::vec3(x * Chunk::CHUNK_SIZE, 0, z * Chunk::CHUNK_SIZE);
+  glm::vec3 min = glm::vec3((x - playerX) * Chunk::CHUNK_SIZE, 0,
+                            (z - playerZ) * Chunk::CHUNK_SIZE);
   glm::vec3 max = min + glm::vec3(Chunk::CHUNK_SIZE, Chunk::CHUNK_HEIGHT,
                                   Chunk::CHUNK_SIZE);
 
@@ -230,8 +231,10 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   ZoneScoped;
   auto x = chunk->x();
   auto z = chunk->z();
-  if (x < m_playerX - m_loadRadius || x > m_playerX + m_loadRadius ||
-      z < m_playerZ - m_loadRadius || z > m_playerZ + m_loadRadius) {
+  const int playerX = m_playerController.getChunkX();
+  const int playerZ = m_playerController.getChunkZ();
+  if (x < playerX - m_loadRadius || x > playerX + m_loadRadius ||
+      z < playerZ - m_loadRadius || z > playerZ + m_loadRadius) {
     return;
   }
   auto idx = getChunkIdx(chunk->x(), chunk->z());
