@@ -12,7 +12,7 @@ set(GLFW_BUILD_X11 OFF)
 option(PROFILING "" OFF)
 
 if(NOT PROFILING)
-  # add_definitions(-U TRACY_ENABLE)
+  add_definitions(-U TRACY_ENABLE)
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g")

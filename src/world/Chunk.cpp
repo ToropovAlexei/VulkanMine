@@ -203,11 +203,12 @@ void Chunk::generateVerticesAndIndices() {
   std::vector<uint32_t> m_indices;
   m_indices.reserve(60000);
 
+  size_t voxelIdx = 0;
   for (int y = 0; y < CHUNK_HEIGHT; y++) {
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-      for (int z = 0; z < CHUNK_SIZE; z++) {
-        auto &block = m_blocksManager.getBlockById(
-            m_voxels[getIdxFromCoords(x, y, z)].blockId);
+    for (int z = 0; z < CHUNK_SIZE; z++) {
+      for (int x = 0; x < CHUNK_SIZE; x++) {
+        auto &block =
+            m_blocksManager.getBlockById(m_voxels[voxelIdx++].blockId);
         if (block.id() == BlockId::Air) {
           continue;
         }
