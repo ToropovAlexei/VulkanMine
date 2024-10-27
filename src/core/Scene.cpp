@@ -101,7 +101,7 @@ void Scene::update(float dt) {
     m_camera->setPosition(m_playerController.getPosInChunk());
   }
   auto yaw = m_mouse->getDeltaX() * 0.05f;
-  auto pitch = m_mouse->getDeltaY() * 0.05f;
+  auto pitch = -m_mouse->getDeltaY() * 0.05f;
   if (yaw != 0.0f || pitch != 0.0f) {
     m_camera->rotate(yaw, pitch);
   }
