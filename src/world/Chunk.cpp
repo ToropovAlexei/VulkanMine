@@ -1,10 +1,10 @@
 #include "Chunk.hpp"
 #include "BlockId.hpp"
-#include <tracy/Tracy.hpp>
 #include "Voxel.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <tracy/Tracy.hpp>
 #include <vector>
 
 Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x,
@@ -190,7 +190,8 @@ bool Chunk::canAddFace(int x, int y, int z) const {
       z >= CHUNK_SIZE) {
     return true;
   }
-  auto &block = m_blocksManager.getBlockById(m_voxels[getIdxFromCoords(x, y, z)].blockId);
+  auto &block =
+      m_blocksManager.getBlockById(m_voxels[getIdxFromCoords(x, y, z)].blockId);
 
   return !block.isOpaque();
 }
@@ -212,34 +213,22 @@ void Chunk::generateVerticesAndIndices() {
         }
 
         if (canAddFace(x, y + 1, z)) {
-          addTopFace(x, y, z,
-                     m_textureAtlas.getTextureIdx(
-                         block.getFaceTexture(Block::Faces::Top)));
+          addTopFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Top));
         }
         if (canAddFace(x, y - 1, z)) {
-          addBottomFace(x, y, z,
-                        m_textureAtlas.getTextureIdx(
-                            block.getFaceTexture(Block::Faces::Bottom)));
+          addBottomFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Bottom));
         }
         if (canAddFace(x, y, z + 1)) {
-          addFrontFace(x, y, z,
-                       m_textureAtlas.getTextureIdx(
-                           block.getFaceTexture(Block::Faces::Front)));
+          addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
         }
         if (canAddFace(x, y, z - 1)) {
-          addBackFace(x, y, z,
-                      m_textureAtlas.getTextureIdx(
-                          block.getFaceTexture(Block::Faces::Back)));
+          addBackFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Back));
         }
         if (canAddFace(x - 1, y, z)) {
-          addLeftFace(x, y, z,
-                      m_textureAtlas.getTextureIdx(
-                          block.getFaceTexture(Block::Faces::Left)));
+          addLeftFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Left));
         }
         if (canAddFace(x + 1, y, z)) {
-          addRightFace(x, y, z,
-                       m_textureAtlas.getTextureIdx(
-                           block.getFaceTexture(Block::Faces::Right)));
+          addRightFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Right));
         }
       }
     }

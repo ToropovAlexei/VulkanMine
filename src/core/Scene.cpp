@@ -15,7 +15,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
              Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
       m_renderer{renderer}, m_textureAtlas{device, "res/textures"},
-      m_blocksManager{"res/blocks"}, m_playerController{{0, 128, 0}},
+      m_blocksManager{"res/blocks", m_textureAtlas},
+      m_playerController{{0, 128, 0}},
       m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
