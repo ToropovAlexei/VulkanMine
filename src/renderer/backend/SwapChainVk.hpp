@@ -24,15 +24,16 @@ public:
     return m_swapChainImageViews[index];
   }
   size_t imageCount() { return m_swapChainImages.size(); }
-  vk::Format getSwapChainImageFormat() { return m_swapChainImageFormat; }
-  vk::Extent2D getSwapChainExtent() { return m_swapChainExtent; }
-  uint32_t width() { return m_swapChainExtent.width; }
-  uint32_t height() { return m_swapChainExtent.height; }
-
-  float extentAspectRatio() {
-    return static_cast<float>(m_swapChainExtent.width) /
-           static_cast<float>(m_swapChainExtent.height);
+  inline vk::Format getSwapChainImageFormat() noexcept {
+    return m_swapChainImageFormat;
   }
+  inline vk::Extent2D getSwapChainExtent() noexcept {
+    return m_swapChainExtent;
+  }
+  inline uint32_t width() noexcept { return m_swapChainExtent.width; }
+  inline uint32_t height() noexcept { return m_swapChainExtent.height; }
+
+  inline float extentAspectRatio() noexcept { return m_aspectRatio; }
   vk::Format findDepthFormat();
 
   vk::Result acquireNextImage(uint32_t *imageIndex);
@@ -62,6 +63,7 @@ private:
   vk::Format m_swapChainImageFormat;
   vk::Format m_swapChainDepthFormat;
   vk::Extent2D m_swapChainExtent;
+  float m_aspectRatio = 0.0f;
 
   std::vector<vk::Framebuffer> m_swapChainFramebuffers;
   vk::RenderPass m_renderPass;

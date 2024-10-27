@@ -70,7 +70,9 @@ Scene::~Scene() {
 
 void Scene::update(float dt) {
   ZoneScoped;
-  m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 2000.0f);
+  if (m_camera->getAspectRatio() != m_renderer->getAspectRatio()) {
+    m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 2000.0f);
+  }
   glm::vec3 movementDirection(0.0f);
   if (m_keyboard->isKeyPressed(GLFW_KEY_W)) {
     movementDirection += m_camera->getFront();

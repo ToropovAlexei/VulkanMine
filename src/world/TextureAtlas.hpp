@@ -2,6 +2,7 @@
 
 #include "../renderer/backend/TextureVk.hpp"
 #include <string>
+#include <tracy/Tracy.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -10,6 +11,7 @@ public:
   TextureAtlas(RenderDeviceVk *renderDevice, std::string texturesPath);
 
   inline float getTextureIdx(const std::string &textureName) const noexcept {
+    ZoneScoped;
     return m_texturesIndices.find(textureName)->second;
   }
 

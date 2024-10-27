@@ -1,13 +1,13 @@
 #include "SwapChainVk.hpp"
 
 #include "../../core/LogMacros.hpp"
-#include <tracy/Tracy.hpp>
 #include <array>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <stdexcept>
+#include <tracy/Tracy.hpp>
 
 SwapChainVk::SwapChainVk(RenderDeviceVk *device, vk::Extent2D extent)
     : m_device{device}, m_windowExtent{extent} {
@@ -200,6 +200,8 @@ void SwapChainVk::createSwapChain() {
 
   m_swapChainImageFormat = surfaceFormat.format;
   m_swapChainExtent = extent;
+  m_aspectRatio = static_cast<float>(m_swapChainExtent.width) /
+                  static_cast<float>(m_swapChainExtent.height);
 }
 
 void SwapChainVk::createImageViews() {

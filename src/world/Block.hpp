@@ -13,7 +13,7 @@ public:
   Block() = default;
   Block(BlockId id, std::string name, std::vector<std::string> textures,
         bool isOpaque);
-  BlockId id() const { return m_id; }
+  inline BlockId id() const noexcept { return m_id; }
 
   inline std::string &getFaceTexture(Faces face) noexcept {
     return m_textures[static_cast<size_t>(face)];

@@ -50,6 +50,7 @@ public:
   inline glm::vec3 &getFront() noexcept { return m_front; }
   inline glm::vec3 &getRight() noexcept { return m_right; }
   inline glm::vec3 &getUp() noexcept { return m_up; }
+  inline float getAspectRatio() const noexcept { return m_aspectRatio; }
 
   inline void move(const glm::vec3 &direction) noexcept {
     m_position += direction;
