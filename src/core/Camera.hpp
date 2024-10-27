@@ -16,47 +16,48 @@ public:
     updateFrustum();
   }
 
-  glm::mat4 getViewMatrix() const {
+  inline glm::mat4 getViewMatrix() const noexcept {
     return glm::lookAt(m_position, m_position + m_front, m_up);
   }
-  glm::mat4 getProjectionMatrix() const {
+  inline glm::mat4 getProjectionMatrix() const noexcept {
     auto projection = glm::perspective(glm::radians(m_fov), m_aspectRatio,
                                        m_nearPlane, m_farPlane);
     projection[1][1] *= -1; // Инвертируем ось Y
     return projection;
   }
-  Frustum &getFrustum() { return m_frustum; }
-  void setProjection(float newFov, float newAspectRatio, float newNearPlane,
-                     float newFarPlane) {
+  inline Frustum &getFrustum() noexcept { return m_frustum; }
+  inline void setProjection(float newFov, float newAspectRatio,
+                            float newNearPlane, float newFarPlane) noexcept {
     m_fov = newFov;
     m_aspectRatio = newAspectRatio;
     m_nearPlane = newNearPlane;
     m_farPlane = newFarPlane;
     updateFrustum();
   }
-  void setPosition(const glm::vec3 &newPosition) {
+  inline void setPosition(const glm::vec3 &newPosition) noexcept {
     m_position = newPosition;
     updateFrustum();
   }
-  glm::vec3 getPosition() const { return m_position; }
-  void setOrientation(float newYaw, float newPitch) {
+  inline glm::vec3 &getPosition() noexcept { return m_position; }
+  inline void setOrientation(float newYaw, float newPitch) noexcept {
     m_yaw = newYaw;
     m_pitch = newPitch;
     updateCameraVectors();
     updateFrustum();
   }
-  float getYaw() const { return m_yaw; }
-  float getPitch() const { return m_pitch; }
-  glm::vec3 getFront() const { return m_front; }
-  glm::vec3 getRight() const { return m_right; }
-  glm::vec3 getUp() const { return m_up; }
+  inline float getYaw() const noexcept { return m_yaw; }
+  inline float getPitch() const noexcept { return m_pitch; }
+  inline glm::vec3 &getFront() noexcept { return m_front; }
+  inline glm::vec3 &getRight() noexcept { return m_right; }
+  inline glm::vec3 &getUp() noexcept { return m_up; }
 
-  void move(const glm::vec3 &direction) {
+  inline void move(const glm::vec3 &direction) noexcept {
     m_position += direction;
     updateFrustum();
   }
 
-  void rotate(float yawOffset, float pitchOffset, bool constrainPitch = true) {
+  inline void rotate(float yawOffset, float pitchOffset,
+                     bool constrainPitch = true) noexcept {
     m_yaw += yawOffset;
     m_pitch += pitchOffset;
 
@@ -88,7 +89,7 @@ private:
 
   Frustum m_frustum;
 
-  void updateCameraVectors() {
+  inline void updateCameraVectors() noexcept {
     glm::vec3 newFront;
     newFront.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
     newFront.y = sin(glm::radians(m_pitch));
@@ -99,7 +100,7 @@ private:
     m_up = glm::normalize(glm::cross(m_right, m_front));
   }
 
-  void updateFrustum() {
+  inline void updateFrustum() noexcept {
     m_frustum.extractPlanes(getProjectionMatrix() * getViewMatrix());
   }
 };

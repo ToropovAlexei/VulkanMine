@@ -97,9 +97,16 @@ void Scene::update(float dt) {
     m_playerController.move(dt * 2500.0f * glm::normalize(movementDirection));
   }
 
-  m_camera->setPosition(m_playerController.getPosInChunk());
-  m_camera->rotate(m_mouse->getDeltaX() * 0.05f, -m_mouse->getDeltaY() * 0.05f);
+  if (m_playerController.getPosInChunk() != m_camera->getPosition()) {
+    m_camera->setPosition(m_playerController.getPosInChunk());
+  }
+  auto yaw = m_mouse->getDeltaX() * 0.05f;
+  auto pitch = m_mouse->getDeltaY() * 0.05f;
+  if (yaw != 0.0f || pitch != 0.0f) {
+    m_camera->rotate(yaw, pitch);
+  }
   m_chunksManager.forEachChunk([this](std::shared_ptr<Chunk> chunk) {
+    ZoneScopedN("Generate Mesh");
     if (chunk && chunk->getMesh() == nullptr) {
       chunk->generateMesh(m_device);
     }
