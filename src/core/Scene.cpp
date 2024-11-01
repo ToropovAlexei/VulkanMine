@@ -97,7 +97,7 @@ void Scene::update(float dt) {
 
   if (glm::dot(movementDirection, movementDirection) >
       std::numeric_limits<float>::epsilon()) {
-    m_playerController.move(dt * 2500.0f * glm::normalize(movementDirection));
+    m_playerController.move(dt * 200.0f * glm::normalize(movementDirection));
   }
 
   if (m_playerController.getPosInChunk() != m_camera->getPosition()) {
