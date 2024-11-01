@@ -196,7 +196,10 @@ bool Chunk::canAddFace(int x, int y, int z) const {
   return !block.isOpaque();
 }
 
-void Chunk::generateVerticesAndIndices() {
+void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
+                                       std::shared_ptr<Chunk> back,
+                                       std::shared_ptr<Chunk> left,
+                                       std::shared_ptr<Chunk> right) {
   ZoneScoped;
   std::vector<ChunkVertex> m_vertices;
   m_vertices.reserve(50000);
@@ -214,12 +217,13 @@ void Chunk::generateVerticesAndIndices() {
           continue;
         }
 
-        if (canAddFace(x, y + 1, z)) {
+        if (canAddFace(x, y + 1, z) || y == HIGHEST_BLOCK_IDX) {
           addTopFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Top));
         }
-        if (canAddFace(x, y - 1, z)) {
+        if (canAddFace(x, y - 1, z) || y == 0) {
           addBottomFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Bottom));
         }
+        
         if (canAddFace(x, y, z + 1)) {
           addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
         }

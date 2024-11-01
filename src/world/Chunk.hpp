@@ -22,7 +22,10 @@ public:
   void setBlock(int x, int y, int z, BlockId id);
 
   std::unique_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
-  void generateVerticesAndIndices();
+  void generateVerticesAndIndices(std::shared_ptr<Chunk> front,
+                                  std::shared_ptr<Chunk> back,
+                                  std::shared_ptr<Chunk> left,
+                                  std::shared_ptr<Chunk> right);
   void generateMesh(RenderDeviceVk *device);
 
 public:
@@ -30,6 +33,8 @@ public:
   static constexpr int CHUNK_SQ_SIZE = CHUNK_SIZE * CHUNK_SIZE;
   static constexpr int CHUNK_HEIGHT = 256;
   static constexpr int CHUNK_VOLUME = CHUNK_SIZE * CHUNK_SIZE * CHUNK_HEIGHT;
+  static constexpr int LAST_BLOCK_IDX = CHUNK_SIZE - 1;
+  static constexpr int HIGHEST_BLOCK_IDX = CHUNK_HEIGHT - 1;
 
 private:
   void addFrontFace(int x, int y, int z, float textureIdx);

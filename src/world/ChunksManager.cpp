@@ -86,9 +86,16 @@ void ChunksManager::loadChunks() {
 
   for (const auto &chunkPos : chunksToGenerate) {
     futures.emplace_back(std::async(std::launch::async, [this, &chunkPos]() {
-      auto chunk = m_worldGenerator.generateChunk(std::get<0>(chunkPos),
-                                                  std::get<1>(chunkPos));
-      chunk->generateVerticesAndIndices();
+      const auto x = std::get<0>(chunkPos);
+      const auto z = std::get<1>(chunkPos);
+      auto chunk = m_worldGenerator.generateChunk(x, z);
+      const size_t idx = getChunkIdx(x, z);
+      auto leftChunk = getChunkAt(idx - 1);
+      auto rightChunk = getChunkAt(idx + 1);
+      auto frontChunk = getChunkAt(idx - m_chunksVectorSideSize);
+      auto backChunk = getChunkAt(idx + m_chunksVectorSideSize);
+      chunk->generateVerticesAndIndices(frontChunk, backChunk, leftChunk,
+                                        rightChunk);
       this->insertChunk(chunk);
     }));
   }

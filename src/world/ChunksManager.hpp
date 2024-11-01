@@ -43,6 +43,7 @@ private:
     if (idx >= m_chunks.size()) {
       return nullptr;
     }
+    std::shared_lock<std::shared_mutex> lock(m_mutex);
     return m_chunks[idx];
   }
 
