@@ -223,18 +223,43 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
         if (canAddFace(x, y - 1, z) || y == 0) {
           addBottomFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Bottom));
         }
-        
-        if (canAddFace(x, y, z + 1)) {
-          addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
+
+        if (z == 0) {
+          if (!back || back->canAddFace(x, y, LAST_BLOCK_IDX)) {
+            addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
+          }
+        } else {
+          if (canAddFace(x, y, z + 1)) {
+            addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
+          }
         }
-        if (canAddFace(x, y, z - 1)) {
-          addBackFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Back));
+        if (z == LAST_BLOCK_IDX) {
+          if (!front || front->canAddFace(x, y, 0)) {
+            addBackFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Back));
+          }
+        } else {
+          if (canAddFace(x, y, z - 1)) {
+            addBackFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Back));
+          }
         }
-        if (canAddFace(x - 1, y, z)) {
-          addLeftFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Left));
+
+        if (x == 0) {
+          if (!left || left->canAddFace(LAST_BLOCK_IDX, y, z)) {
+            addLeftFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Left));
+          }
+        } else {
+          if (canAddFace(x - 1, y, z)) {
+            addLeftFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Left));
+          }
         }
-        if (canAddFace(x + 1, y, z)) {
-          addRightFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Right));
+        if (x == LAST_BLOCK_IDX) {
+          if (!right || right->canAddFace(0, y, z)) {
+            addRightFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Right));
+          }
+        } else {
+          if (canAddFace(x + 1, y, z)) {
+            addRightFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Right));
+          }
         }
       }
     }
