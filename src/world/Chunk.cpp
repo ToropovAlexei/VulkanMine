@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <tracy/Tracy.hpp>
 #include <vector>
 
@@ -15,13 +16,16 @@ Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x,
 }
 
 void Chunk::generateMesh(RenderDeviceVk *device) {
-  if (m_vertices.empty()) {
-    return;
-  }
+  if (m_mutex.try_lock()) {
+    if (m_vertices.empty()) {
+      m_mutex.unlock();
+      return;
+    }
 
-  m_mesh = std::make_unique<Mesh<ChunkVertex>>(device, m_vertices, m_indices);
-  m_vertices.clear();
-  m_indices.clear();
+    m_mesh = std::make_shared<Mesh<ChunkVertex>>(device, m_vertices, m_indices);
+    m_isMeshOutdated = false;
+    m_mutex.unlock();
+  }
 }
 
 void Chunk::addFrontFace(int x, int y, int z, float textureIdx) {
@@ -201,9 +205,8 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
                                        std::shared_ptr<Chunk> left,
                                        std::shared_ptr<Chunk> right) {
   ZoneScoped;
-  std::vector<ChunkVertex> m_vertices;
+  std::lock_guard<std::mutex> lock(m_mutex);
   m_vertices.reserve(50000);
-  std::vector<uint32_t> m_indices;
   m_indices.reserve(60000);
 
   const int maxY = static_cast<int>(m_voxels.size()) / CHUNK_SQ_SIZE;
@@ -264,6 +267,7 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
       }
     }
   }
+  m_isMeshOutdated = true;
 }
 
 void Chunk::setBlock(int x, int y, int z, BlockId id) {
@@ -295,4 +299,9 @@ void Chunk::shrinkAirBlocks() {
     const size_t newSize = m_voxels.size() - static_cast<size_t>(CHUNK_SQ_SIZE);
     m_voxels.resize(newSize);
   }
+}
+
+void Chunk::clearVerticesAndIndices() {
+  m_vertices.clear();
+  m_indices.clear();
 }

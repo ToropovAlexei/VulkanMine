@@ -6,6 +6,7 @@
 #include "TextureAtlas.hpp"
 #include "Voxel.hpp"
 #include <memory>
+#include <mutex>
 #include <vector>
 
 class Chunk {
@@ -21,12 +22,19 @@ public:
 
   void setBlock(int x, int y, int z, BlockId id);
 
-  std::unique_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
+  inline bool isModified() const noexcept { return m_isModified; };
+  inline void setIsModified(bool isModified) noexcept {
+    m_isModified = isModified;
+  };
+  inline bool isMeshOutdated() const noexcept { return m_isMeshOutdated; };
+
+  std::shared_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
   void generateVerticesAndIndices(std::shared_ptr<Chunk> front,
                                   std::shared_ptr<Chunk> back,
                                   std::shared_ptr<Chunk> left,
                                   std::shared_ptr<Chunk> right);
   void generateMesh(RenderDeviceVk *device);
+  void clearVerticesAndIndices();
 
 public:
   static constexpr int CHUNK_SIZE = 16;
@@ -55,6 +63,8 @@ private:
   int m_z;
   int m_worldX;
   int m_worldZ;
+  bool m_isModified;
+  bool m_isMeshOutdated;
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
 
@@ -62,5 +72,6 @@ private:
 
   std::vector<ChunkVertex> m_vertices;
   std::vector<uint32_t> m_indices;
-  std::unique_ptr<Mesh<ChunkVertex>> m_mesh;
+  std::shared_ptr<Mesh<ChunkVertex>> m_mesh;
+  std::mutex m_mutex;
 };

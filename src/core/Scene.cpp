@@ -110,7 +110,7 @@ void Scene::update(float dt) {
   }
   m_chunksManager.forEachChunk([this](std::shared_ptr<Chunk> chunk) {
     ZoneScopedN("Generate Mesh");
-    if (chunk && chunk->getMesh() == nullptr) {
+    if (chunk && chunk->getMesh() == nullptr || chunk->isMeshOutdated()) {
       chunk->generateMesh(m_device);
     }
   });
