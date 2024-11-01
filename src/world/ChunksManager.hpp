@@ -50,6 +50,7 @@ private:
   void asyncProcessChunks();
   void loadChunks();
   void moveChunks();
+  void updateModifiedChunks();
 
   bool isChunkVisible(const Frustum &frustum, int x, int z);
 
@@ -58,6 +59,7 @@ private:
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
   int m_maxAsyncChunksLoading = 12;
+  int m_maxAsyncChunksToUpdate = 12;
   int m_loadRadius = 32;
   int m_chunksVectorSideSize = m_loadRadius * 2 + 1;
   BlocksManager &m_blocksManager;

@@ -32,6 +32,7 @@ void ChunksManager::asyncProcessChunks() {
   while (m_isRunning) {
     moveChunks();
     loadChunks();
+    updateModifiedChunks();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
@@ -252,6 +253,15 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   }
   std::unique_lock<std::shared_mutex> lock(m_mutex);
   m_chunks[idx] = chunk;
+  std::array<size_t, 4> nextChunks = {idx - 1, idx + 1,
+                                      idx + m_chunksVectorSideSize,
+                                      idx - m_chunksVectorSideSize};
+  const size_t chunksCount = m_chunks.size();
+  for (size_t nextChunkIdx : nextChunks) {
+    if (nextChunkIdx < chunksCount && m_chunks[nextChunkIdx]) {
+      m_chunks[nextChunkIdx]->setIsModified(true);
+    }
+  }
 }
 
 void ChunksManager::forEachChunk(
@@ -262,5 +272,79 @@ void ChunksManager::forEachChunk(
     if (chunk) {
       func(chunk);
     }
+  }
+}
+
+void ChunksManager::updateModifiedChunks() {
+  std::vector<std::shared_ptr<Chunk>> chunksToUpdate;
+  std::shared_lock<std::shared_mutex> lock(m_mutex);
+  const size_t centerIdx = getCenterIdx();
+
+  auto addChunkIfModified = [this, &chunksToUpdate](size_t index) {
+    ZoneScopedN("addChunkIfValid");
+    if (m_chunks[index] && m_chunks[index]->isModified()) {
+      chunksToUpdate.push_back(m_chunks[index]);
+    }
+  };
+
+  addChunkIfModified(centerIdx);
+
+  size_t radius = 1;
+  while (radius <= m_loadRadius &&
+         chunksToUpdate.size() < m_maxAsyncChunksToUpdate) {
+    size_t offset = radius * m_chunksVectorSideSize;
+    size_t topLeft = centerIdx - radius - offset;
+    size_t topRight = centerIdx + radius - offset;
+    size_t bottomLeft = centerIdx - radius + offset;
+    size_t bottomRight = centerIdx + radius + offset;
+
+    for (size_t i = topLeft; i <= topRight; i++) {
+      if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
+        break;
+      }
+      addChunkIfModified(i);
+    }
+    for (size_t i = bottomLeft; i <= bottomRight; i++) {
+      if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
+        break;
+      }
+      addChunkIfModified(i);
+    }
+    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft;
+         i += m_chunksVectorSideSize) {
+      if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
+        break;
+      }
+      addChunkIfModified(i);
+    }
+    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight;
+         i += m_chunksVectorSideSize) {
+      if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
+        break;
+      }
+      addChunkIfModified(i);
+    }
+    radius++;
+  }
+
+  std::vector<std::future<void>> futures;
+
+  for (const auto &chunk : chunksToUpdate) {
+    futures.emplace_back(std::async(std::launch::async, [this, &chunk]() {
+      const auto x = chunk->x();
+      const auto z = chunk->z();
+      auto chunk = m_worldGenerator.generateChunk(x, z);
+      const size_t idx = getChunkIdx(x, z);
+      auto leftChunk = getChunkAt(idx - 1);
+      auto rightChunk = getChunkAt(idx + 1);
+      auto frontChunk = getChunkAt(idx - m_chunksVectorSideSize);
+      auto backChunk = getChunkAt(idx + m_chunksVectorSideSize);
+      chunk->generateVerticesAndIndices(frontChunk, backChunk, leftChunk,
+                                        rightChunk);
+    }));
+  }
+
+  for (auto &fut : futures) {
+    fut.get();
   }
 }
