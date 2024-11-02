@@ -37,6 +37,12 @@ private:
     return m_loadRadius + m_loadRadius * m_chunksVectorSideSize;
   }
   inline std::shared_ptr<Chunk> getChunkAt(int x, int z) noexcept {
+    if (x > m_playerController.getChunkX() + m_loadRadius ||
+        x < m_playerController.getChunkX() - m_loadRadius ||
+        z > m_playerController.getChunkZ() + m_loadRadius ||
+        z < m_playerController.getChunkZ() - m_loadRadius) {
+      return nullptr;
+    }
     return getChunkAt(getChunkIdx(x, z));
   }
   inline std::shared_ptr<Chunk> getChunkAt(size_t idx) noexcept {
@@ -45,6 +51,15 @@ private:
     }
     std::shared_lock<std::shared_mutex> lock(m_mutex);
     return m_chunks[idx];
+  }
+  inline std::array<std::shared_ptr<Chunk>, 4>
+  getChunksAroundChunk(int x, int z) noexcept {
+    auto leftChunk = getChunkAt(x - 1, z);
+    auto rightChunk = getChunkAt(x + 1, z);
+    auto frontChunk = getChunkAt(x, z - 1);
+    auto backChunk = getChunkAt(x, z + 1);
+
+    return {leftChunk, rightChunk, frontChunk, backChunk};
   }
 
   void asyncProcessChunks();

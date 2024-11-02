@@ -90,13 +90,6 @@ void ChunksManager::loadChunks() {
       const auto x = std::get<0>(chunkPos);
       const auto z = std::get<1>(chunkPos);
       auto chunk = m_worldGenerator.generateChunk(x, z);
-      const size_t idx = getChunkIdx(x, z);
-      auto leftChunk = getChunkAt(idx - 1);
-      auto rightChunk = getChunkAt(idx + 1);
-      auto frontChunk = getChunkAt(idx - m_chunksVectorSideSize);
-      auto backChunk = getChunkAt(idx + m_chunksVectorSideSize);
-      chunk->generateVerticesAndIndices(frontChunk, backChunk, leftChunk,
-                                        rightChunk);
       this->insertChunk(chunk);
     }));
   }
@@ -115,6 +108,8 @@ void ChunksManager::moveChunks() {
     return;
   };
 
+  const int dX = playerX - m_chunkLastMovedX;
+  const int dZ = playerZ - m_chunkLastMovedZ;
   m_chunkLastMovedX = playerX;
   m_chunkLastMovedZ = playerZ;
   std::vector<std::shared_ptr<Chunk>> newChunks(m_chunks.size());
@@ -129,7 +124,11 @@ void ChunksManager::moveChunks() {
         z < playerZ - m_loadRadius || z > playerZ + m_loadRadius) {
       continue;
     }
-    auto idx = getChunkIdx(chunk->x(), chunk->z());
+    if (x == playerX - m_loadRadius || x == playerX + m_loadRadius ||
+        z == playerZ - m_loadRadius || z == playerZ + m_loadRadius) {
+      chunk->setIsModified(true);
+    }
+    auto idx = getChunkIdx(x, z);
     if (idx < m_chunks.size()) {
       newChunks[idx] = chunk;
     }
@@ -253,13 +252,11 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   }
   std::unique_lock<std::shared_mutex> lock(m_mutex);
   m_chunks[idx] = chunk;
-  std::array<size_t, 4> nextChunks = {idx - 1, idx + 1,
-                                      idx + m_chunksVectorSideSize,
-                                      idx - m_chunksVectorSideSize};
-  const size_t chunksCount = m_chunks.size();
-  for (size_t nextChunkIdx : nextChunks) {
-    if (nextChunkIdx < chunksCount && m_chunks[nextChunkIdx]) {
-      m_chunks[nextChunkIdx]->setIsModified(true);
+  lock.unlock();
+  auto neighbors = getChunksAroundChunk(x, z);
+  for (auto nextChunk : neighbors) {
+    if (nextChunk) {
+      nextChunk->setIsModified(true);
     }
   }
 }
@@ -329,18 +326,13 @@ void ChunksManager::updateModifiedChunks() {
 
   std::vector<std::future<void>> futures;
 
-  for (const auto &chunk : chunksToUpdate) {
-    futures.emplace_back(std::async(std::launch::async, [this, &chunk]() {
+  for (const auto chunk : chunksToUpdate) {
+    futures.emplace_back(std::async(std::launch::async, [this, chunk]() {
       const auto x = chunk->x();
       const auto z = chunk->z();
-      auto chunk = m_worldGenerator.generateChunk(x, z);
-      const size_t idx = getChunkIdx(x, z);
-      auto leftChunk = getChunkAt(idx - 1);
-      auto rightChunk = getChunkAt(idx + 1);
-      auto frontChunk = getChunkAt(idx - m_chunksVectorSideSize);
-      auto backChunk = getChunkAt(idx + m_chunksVectorSideSize);
-      chunk->generateVerticesAndIndices(frontChunk, backChunk, leftChunk,
-                                        rightChunk);
+      auto chunks = getChunksAroundChunk(x, z);
+      chunk->generateVerticesAndIndices(chunks[2], chunks[3], chunks[0],
+                                        chunks[1]);
     }));
   }
 

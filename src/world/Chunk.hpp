@@ -63,8 +63,8 @@ private:
   int m_z;
   int m_worldX;
   int m_worldZ;
-  bool m_isModified;
-  bool m_isMeshOutdated;
+  bool m_isModified = true;
+  bool m_isMeshOutdated = true;
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
 
