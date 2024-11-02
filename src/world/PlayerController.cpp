@@ -13,6 +13,13 @@ void PlayerController::move(glm::vec3 direction) {
   m_playerPos += direction;
   int dX = m_playerPos.x / Chunk::CHUNK_SIZE;
   int dZ = m_playerPos.z / Chunk::CHUNK_SIZE;
+  // TODO проверить это
+  if (m_playerPos.x < 0) {
+    dX--;
+  }
+  if (m_playerPos.z < 0) {
+    dZ--;
+  }
   m_playerX += dX;
   m_playerZ += dZ;
 
