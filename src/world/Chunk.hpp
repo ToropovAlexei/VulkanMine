@@ -5,8 +5,8 @@
 #include "BlocksManager.hpp"
 #include "TextureAtlas.hpp"
 #include "Voxel.hpp"
+#include <atomic>
 #include <memory>
-#include <mutex>
 #include <vector>
 
 class Chunk {
@@ -20,19 +20,43 @@ public:
   inline int worldX() const noexcept { return m_worldX; }
   inline int worldZ() const noexcept { return m_worldZ; }
 
-  void setBlock(int x, int y, int z, BlockId id);
+  inline void setBlock(size_t idx, BlockId id) noexcept {
+    if (idx >= m_voxels.size()) {
+      const int y = (static_cast<int>(idx + 1) / CHUNK_SQ_SIZE) + 1;
+      if (m_maxY < y) {
+        const size_t newSize = m_voxels.size() + static_cast<size_t>((y - m_maxY) * CHUNK_SQ_SIZE);
+        m_voxels.resize(newSize);
+        m_maxY = y;
+      }
+    }
+    m_voxels[idx] = Voxel(id);
+    if (id == BlockId::Air) {
+      shrinkAirBlocks();
+    }
+  };
+
+  inline void setBlock(int x, int y, int z, BlockId id) noexcept {
+    const size_t idx = getIdxFromCoords(x, y, z);
+    if (idx >= m_voxels.size()) {
+      if (m_maxY < y) {
+        const size_t newSize = m_voxels.size() + static_cast<size_t>((y - m_maxY) * CHUNK_SQ_SIZE);
+        m_voxels.resize(newSize);
+        updateMaxY();
+      }
+    }
+    m_voxels[idx] = Voxel(id);
+    if (id == BlockId::Air) {
+      shrinkAirBlocks();
+    }
+  };
 
   inline bool isModified() const noexcept { return m_isModified; };
-  inline void setIsModified(bool isModified) noexcept {
-    m_isModified = isModified;
-  };
+  inline void setIsModified(bool isModified) noexcept { m_isModified = isModified; };
   inline bool isMeshOutdated() const noexcept { return m_isMeshOutdated; };
 
   std::shared_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
-  void generateVerticesAndIndices(std::shared_ptr<Chunk> front,
-                                  std::shared_ptr<Chunk> back,
-                                  std::shared_ptr<Chunk> left,
-                                  std::shared_ptr<Chunk> right);
+  void generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared_ptr<Chunk> back,
+                                  std::shared_ptr<Chunk> left, std::shared_ptr<Chunk> right);
   void generateMesh(RenderDeviceVk *device);
   void clearVerticesAndIndices();
 
@@ -55,21 +79,6 @@ private:
   inline size_t getIdxFromCoords(int x, int y, int z) const noexcept {
     return static_cast<size_t>(x + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
   };
-  template <int X>
-  inline size_t getIdxFromCoordsConstX(int y, int z) const noexcept {
-    static_assert(X >= 0 && X < CHUNK_SIZE, "X out of range");
-    return static_cast<size_t>(X + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
-  };
-  template <int Y>
-  inline size_t getIdxFromCoordsConstY(int x, int z) const noexcept {
-    static_assert(Y >= 0 && Y < CHUNK_HEIGHT, "Y out of range");
-    return static_cast<size_t>(x + z * CHUNK_SIZE + Y * CHUNK_SQ_SIZE);
-  };
-  template <int Z>
-  inline size_t getIdxFromCoordsConstZ(int x, int y) const noexcept {
-    static_assert(Z >= 0 && Z < CHUNK_HEIGHT, "Z out of range");
-    return static_cast<size_t>(x + Z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
-  };
   inline bool canAddFace(int x, int y, int z) const noexcept {
     assert(x >= 0 && x < CHUNK_SIZE);
     assert(y >= 0 && y <= CHUNK_HEIGHT);
@@ -85,6 +94,7 @@ private:
     return !block.isOpaque();
   };
   void shrinkAirBlocks();
+  inline void updateMaxY() noexcept { m_maxY = (static_cast<int>(m_voxels.size()) / CHUNK_SQ_SIZE) - 1; };
 
 private:
   int m_x;
@@ -93,6 +103,7 @@ private:
   int m_worldZ;
   bool m_isModified = true;
   bool m_isMeshOutdated = true;
+  int m_maxY = 0;
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
 
@@ -101,5 +112,5 @@ private:
   std::vector<ChunkVertex> m_vertices;
   std::vector<uint32_t> m_indices;
   std::shared_ptr<Mesh<ChunkVertex>> m_mesh;
-  std::mutex m_mutex;
+  std::atomic_bool m_isLocked;
 };

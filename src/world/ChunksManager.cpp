@@ -10,15 +10,12 @@
 #include <tuple>
 #include <vector>
 
-ChunksManager::ChunksManager(BlocksManager &blocksManager,
-                             TextureAtlas &textureAtlas,
+ChunksManager::ChunksManager(BlocksManager &blocksManager, TextureAtlas &textureAtlas,
                              PlayerController &playerController)
-    : m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas},
-      m_worldGenerator{blocksManager, textureAtlas},
+    : m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas}, m_worldGenerator{blocksManager, textureAtlas},
       m_playerController{playerController} {
   ZoneScoped;
-  m_chunks.resize(
-      static_cast<size_t>(m_chunksVectorSideSize * m_chunksVectorSideSize));
+  m_chunks.resize(static_cast<size_t>(m_chunksVectorSideSize * m_chunksVectorSideSize));
   m_thread = std::thread([this]() { asyncProcessChunks(); });
 }
 
@@ -53,8 +50,7 @@ void ChunksManager::loadChunks() {
   }
 
   int radius = 1;
-  while (radius <= m_loadRadius &&
-         chunksToGenerate.size() < m_maxAsyncChunksLoading) {
+  while (radius <= m_loadRadius && chunksToGenerate.size() < m_maxAsyncChunksLoading) {
     int xStart = playerX - radius;
     int xEnd = playerX + radius;
     int zStart = playerZ - radius;
@@ -120,12 +116,12 @@ void ChunksManager::moveChunks() {
     }
     auto x = chunk->x();
     auto z = chunk->z();
-    if (x < playerX - m_loadRadius || x > playerX + m_loadRadius ||
-        z < playerZ - m_loadRadius || z > playerZ + m_loadRadius) {
+    if (x < playerX - m_loadRadius || x > playerX + m_loadRadius || z < playerZ - m_loadRadius ||
+        z > playerZ + m_loadRadius) {
       continue;
     }
-    if (x == playerX - m_loadRadius || x == playerX + m_loadRadius ||
-        z == playerZ - m_loadRadius || z == playerZ + m_loadRadius) {
+    if (x == playerX - m_loadRadius || x == playerX + m_loadRadius || z == playerZ - m_loadRadius ||
+        z == playerZ + m_loadRadius) {
       chunk->setIsModified(true);
     }
     auto idx = getChunkIdx(x, z);
@@ -145,44 +141,26 @@ bool ChunksManager::isChunkVisible(const Frustum &frustum, int x, int z) {
   const int playerZ = m_playerController.getChunkZ();
 
   // Определяем углы чанка
-  glm::vec3 min = glm::vec3((x - playerX) * Chunk::CHUNK_SIZE, 0,
-                            (z - playerZ) * Chunk::CHUNK_SIZE);
-  glm::vec3 max = min + glm::vec3(Chunk::CHUNK_SIZE, Chunk::CHUNK_HEIGHT,
-                                  Chunk::CHUNK_SIZE);
+  glm::vec3 min = glm::vec3((x - playerX) * Chunk::CHUNK_SIZE, 0, (z - playerZ) * Chunk::CHUNK_SIZE);
+  glm::vec3 max = min + glm::vec3(Chunk::CHUNK_SIZE, Chunk::CHUNK_HEIGHT, Chunk::CHUNK_SIZE);
 
   for (int i = 0; i < 6; ++i) {
     // Проверяем плоскость
-    if (planes[i].x * min.x + planes[i].y * min.y + planes[i].z * min.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * min.x + planes[i].y * min.y + planes[i].z * min.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * max.x + planes[i].y * min.y + planes[i].z * min.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * max.x + planes[i].y * min.y + planes[i].z * min.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * min.x + planes[i].y * max.y + planes[i].z * min.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * min.x + planes[i].y * max.y + planes[i].z * min.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * max.x + planes[i].y * max.y + planes[i].z * min.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * max.x + planes[i].y * max.y + planes[i].z * min.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * min.x + planes[i].y * min.y + planes[i].z * max.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * min.x + planes[i].y * min.y + planes[i].z * max.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * max.x + planes[i].y * min.y + planes[i].z * max.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * max.x + planes[i].y * min.y + planes[i].z * max.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * min.x + planes[i].y * max.y + planes[i].z * max.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * min.x + planes[i].y * max.y + planes[i].z * max.z + planes[i].w > 0)
       continue;
-    if (planes[i].x * max.x + planes[i].y * max.y + planes[i].z * max.z +
-            planes[i].w >
-        0)
+    if (planes[i].x * max.x + planes[i].y * max.y + planes[i].z * max.z + planes[i].w > 0)
       continue;
 
     // Если чанк полностью за плоскостью, он невидим
@@ -191,8 +169,7 @@ bool ChunksManager::isChunkVisible(const Frustum &frustum, int x, int z) {
   return true; // Чанк видим
 }
 
-std::vector<std::shared_ptr<Chunk>>
-ChunksManager::getChunksToRender(Frustum &frustum) {
+std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender(Frustum &frustum) {
   ZoneScoped;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
   std::vector<std::shared_ptr<Chunk>> chunksToRender;
@@ -202,8 +179,7 @@ ChunksManager::getChunksToRender(Frustum &frustum) {
 
   auto addChunkIfValid = [&](size_t index) {
     ZoneScopedN("addChunkIfValid");
-    if (m_chunks[index] &&
-        isChunkVisible(frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
+    if (m_chunks[index] && isChunkVisible(frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
       chunksToRender.push_back(m_chunks[index]);
     }
   };
@@ -223,12 +199,10 @@ ChunksManager::getChunksToRender(Frustum &frustum) {
     for (size_t i = bottomLeft; i <= bottomRight; i++) {
       addChunkIfValid(i);
     }
-    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft;
-         i += m_chunksVectorSideSize) {
+    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft; i += m_chunksVectorSideSize) {
       addChunkIfValid(i);
     }
-    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight;
-         i += m_chunksVectorSideSize) {
+    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight; i += m_chunksVectorSideSize) {
       addChunkIfValid(i);
     }
     radius++;
@@ -243,8 +217,8 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   auto z = chunk->z();
   const int playerX = m_playerController.getChunkX();
   const int playerZ = m_playerController.getChunkZ();
-  if (x < playerX - m_loadRadius || x > playerX + m_loadRadius ||
-      z < playerZ - m_loadRadius || z > playerZ + m_loadRadius) {
+  if (x < playerX - m_loadRadius || x > playerX + m_loadRadius || z < playerZ - m_loadRadius ||
+      z > playerZ + m_loadRadius) {
     return;
   }
   auto idx = getChunkIdx(chunk->x(), chunk->z());
@@ -262,8 +236,7 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   }
 }
 
-void ChunksManager::forEachChunk(
-    std::function<void(std::shared_ptr<Chunk>)> func) {
+void ChunksManager::forEachChunk(std::function<void(std::shared_ptr<Chunk>)> func) {
   ZoneScoped;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
   for (auto &chunk : m_chunks) {
@@ -289,8 +262,7 @@ void ChunksManager::updateModifiedChunks() {
   addChunkIfModified(centerIdx);
 
   size_t radius = 1;
-  while (radius <= m_loadRadius &&
-         chunksToUpdate.size() < m_maxAsyncChunksToUpdate) {
+  while (radius <= m_loadRadius && chunksToUpdate.size() < m_maxAsyncChunksToUpdate) {
     size_t offset = radius * m_chunksVectorSideSize;
     size_t topLeft = centerIdx - radius - offset;
     size_t topRight = centerIdx + radius - offset;
@@ -309,15 +281,13 @@ void ChunksManager::updateModifiedChunks() {
       }
       addChunkIfModified(i);
     }
-    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft;
-         i += m_chunksVectorSideSize) {
+    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft; i += m_chunksVectorSideSize) {
       if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
         break;
       }
       addChunkIfModified(i);
     }
-    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight;
-         i += m_chunksVectorSideSize) {
+    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight; i += m_chunksVectorSideSize) {
       if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
         break;
       }
@@ -333,8 +303,7 @@ void ChunksManager::updateModifiedChunks() {
       const auto x = chunk->x();
       const auto z = chunk->z();
       auto chunks = getChunksAroundChunk(x, z);
-      chunk->generateVerticesAndIndices(chunks[2], chunks[3], chunks[0],
-                                        chunks[1]);
+      chunk->generateVerticesAndIndices(chunks[2], chunks[3], chunks[0], chunks[1]);
     }));
   }
 
