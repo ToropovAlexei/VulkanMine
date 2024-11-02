@@ -9,6 +9,7 @@
 #include <memory>
 #include <shared_mutex>
 #include <thread>
+#include <tracy/Tracy.hpp>
 #include <vector>
 
 class ChunksManager {
@@ -23,20 +24,24 @@ public:
 
 private:
   inline int toChunkPos(int x) const noexcept {
+    ZoneScoped;
     if (x >= 0) {
       return x / Chunk::CHUNK_SIZE;
     }
     return (x - Chunk::CHUNK_SIZE + 1) / Chunk::CHUNK_SIZE;
   };
   inline size_t getChunkIdx(int x, int z) const noexcept {
+    ZoneScoped;
     return (x - m_playerController.getChunkX() + m_loadRadius) +
            (z - m_playerController.getChunkZ() + m_loadRadius) *
                m_chunksVectorSideSize;
   }
   inline size_t getCenterIdx() const noexcept {
+    ZoneScoped;
     return m_loadRadius + m_loadRadius * m_chunksVectorSideSize;
   }
   inline std::shared_ptr<Chunk> getChunkAt(int x, int z) noexcept {
+    ZoneScoped;
     if (x > m_playerController.getChunkX() + m_loadRadius ||
         x < m_playerController.getChunkX() - m_loadRadius ||
         z > m_playerController.getChunkZ() + m_loadRadius ||
@@ -46,6 +51,7 @@ private:
     return getChunkAt(getChunkIdx(x, z));
   }
   inline std::shared_ptr<Chunk> getChunkAt(size_t idx) noexcept {
+    ZoneScoped;
     if (idx >= m_chunks.size()) {
       return nullptr;
     }
@@ -54,6 +60,7 @@ private:
   }
   inline std::array<std::shared_ptr<Chunk>, 4>
   getChunksAroundChunk(int x, int z) noexcept {
+    ZoneScoped;
     auto leftChunk = getChunkAt(x - 1, z);
     auto rightChunk = getChunkAt(x + 1, z);
     auto frontChunk = getChunkAt(x, z - 1);

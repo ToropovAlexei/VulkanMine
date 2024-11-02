@@ -139,6 +139,7 @@ void ChunksManager::moveChunks() {
 }
 
 bool ChunksManager::isChunkVisible(const Frustum &frustum, int x, int z) {
+  ZoneScoped;
   const glm::vec4 *planes = frustum.getPlanes();
   const int playerX = m_playerController.getChunkX();
   const int playerZ = m_playerController.getChunkZ();
@@ -273,6 +274,7 @@ void ChunksManager::forEachChunk(
 }
 
 void ChunksManager::updateModifiedChunks() {
+  ZoneScoped;
   std::vector<std::shared_ptr<Chunk>> chunksToUpdate;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
   const size_t centerIdx = getCenterIdx();

@@ -55,7 +55,7 @@ private:
   inline size_t getIdxFromCoords(int x, int y, int z) const noexcept {
     return static_cast<size_t>(x + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
   };
-  bool canAddFace(int x, int y, int z) const;
+  bool canAddFace(int x, int y, int z) const noexcept;
   void shrinkAirBlocks();
 
 private:

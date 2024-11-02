@@ -187,7 +187,7 @@ void Chunk::addBottomFace(int x, int y, int z, float textureIdx) {
 
 int Chunk::toWorldPos(int x) { return x * Chunk::CHUNK_SIZE; }
 
-bool Chunk::canAddFace(int x, int y, int z) const {
+bool Chunk::canAddFace(int x, int y, int z) const noexcept {
   assert(x >= 0 && x < CHUNK_SIZE);
   assert(y >= 0 && y <= CHUNK_HEIGHT);
   assert(z >= 0 && z < CHUNK_SIZE);
