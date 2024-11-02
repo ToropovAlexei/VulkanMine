@@ -55,7 +55,35 @@ private:
   inline size_t getIdxFromCoords(int x, int y, int z) const noexcept {
     return static_cast<size_t>(x + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
   };
-  bool canAddFace(int x, int y, int z) const noexcept;
+  template <int X>
+  inline size_t getIdxFromCoordsConstX(int y, int z) const noexcept {
+    static_assert(X >= 0 && X < CHUNK_SIZE, "X out of range");
+    return static_cast<size_t>(X + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
+  };
+  template <int Y>
+  inline size_t getIdxFromCoordsConstY(int x, int z) const noexcept {
+    static_assert(Y >= 0 && Y < CHUNK_HEIGHT, "Y out of range");
+    return static_cast<size_t>(x + z * CHUNK_SIZE + Y * CHUNK_SQ_SIZE);
+  };
+  template <int Z>
+  inline size_t getIdxFromCoordsConstZ(int x, int y) const noexcept {
+    static_assert(Z >= 0 && Z < CHUNK_HEIGHT, "Z out of range");
+    return static_cast<size_t>(x + Z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
+  };
+  inline bool canAddFace(int x, int y, int z) const noexcept {
+    assert(x >= 0 && x < CHUNK_SIZE);
+    assert(y >= 0 && y <= CHUNK_HEIGHT);
+    assert(z >= 0 && z < CHUNK_SIZE);
+    return canAddFace(getIdxFromCoords(x, y, z));
+  };
+  inline bool canAddFace(size_t idx) const noexcept {
+    if (idx >= m_voxels.size()) {
+      return true;
+    }
+    auto &block = m_blocksManager.getBlockById(m_voxels[idx].blockId);
+
+    return !block.isOpaque();
+  };
   void shrinkAirBlocks();
 
 private:

@@ -187,19 +187,6 @@ void Chunk::addBottomFace(int x, int y, int z, float textureIdx) {
 
 int Chunk::toWorldPos(int x) { return x * Chunk::CHUNK_SIZE; }
 
-bool Chunk::canAddFace(int x, int y, int z) const noexcept {
-  assert(x >= 0 && x < CHUNK_SIZE);
-  assert(y >= 0 && y <= CHUNK_HEIGHT);
-  assert(z >= 0 && z < CHUNK_SIZE);
-  size_t idx = getIdxFromCoords(x, y, z);
-  if (idx >= m_voxels.size()) {
-    return true;
-  }
-  auto &block = m_blocksManager.getBlockById(m_voxels[idx].blockId);
-
-  return !block.isOpaque();
-}
-
 void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
                                        std::shared_ptr<Chunk> back,
                                        std::shared_ptr<Chunk> left,
@@ -218,14 +205,15 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
       for (int x = 0; x < CHUNK_SIZE; x++) {
         auto &block =
             m_blocksManager.getBlockById(m_voxels[voxelIdx++].blockId);
+        size_t current = voxelIdx - 1;
         if (block.id() == BlockId::Air) {
           continue;
         }
 
-        if (y == HIGHEST_BLOCK_IDX || canAddFace(x, y + 1, z)) {
+        if (y == HIGHEST_BLOCK_IDX || canAddFace(current + CHUNK_SQ_SIZE)) {
           addTopFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Top));
         }
-        if (y == 0 || canAddFace(x, y - 1, z)) {
+        if (y == 0 || canAddFace(current - CHUNK_SQ_SIZE)) {
           addBottomFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Bottom));
         }
 
@@ -234,7 +222,7 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
             addBackFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
           }
         } else {
-          if (canAddFace(x, y, z - 1)) {
+          if (canAddFace(current - CHUNK_SIZE)) {
             addBackFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Front));
           }
         }
@@ -243,7 +231,7 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
             addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Back));
           }
         } else {
-          if (canAddFace(x, y, z + 1)) {
+          if (canAddFace(current + CHUNK_SIZE)) {
             addFrontFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Back));
           }
         }
@@ -253,7 +241,7 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
             addLeftFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Left));
           }
         } else {
-          if (canAddFace(x - 1, y, z)) {
+          if (canAddFace(current - 1)) {
             addLeftFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Left));
           }
         }
@@ -262,7 +250,7 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front,
             addRightFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Right));
           }
         } else {
-          if (canAddFace(x + 1, y, z)) {
+          if (canAddFace(current + 1)) {
             addRightFace(x, y, z, block.getFaceTextureIdx(Block::Faces::Right));
           }
         }
