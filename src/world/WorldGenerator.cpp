@@ -16,7 +16,7 @@ WorldGenerator::WorldGenerator(BlocksManager &blockManager, TextureAtlas &textur
 
 std::shared_ptr<Chunk> WorldGenerator::generateChunk(int cx, int cz) {
   ZoneScoped;
-  auto chunk = std::make_shared<Chunk>(m_blockManager, m_textureAtlas, cx, cz);
+  auto chunk = new Chunk(m_blockManager, m_textureAtlas, cx, cz);
   std::vector<float> heights(Chunk::CHUNK_SQ_SIZE);
   std::vector<float> temps(Chunk::CHUNK_SQ_SIZE);
   heightGenFBm->GenUniformGrid2D(heights.data(), cx * Chunk::CHUNK_SIZE, cz * Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE,
@@ -59,5 +59,5 @@ std::shared_ptr<Chunk> WorldGenerator::generateChunk(int cx, int cz) {
     }
   }
 
-  return chunk;
+  return std::shared_ptr<Chunk>(chunk);
 }

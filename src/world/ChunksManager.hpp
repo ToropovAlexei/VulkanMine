@@ -14,8 +14,7 @@
 
 class ChunksManager {
 public:
-  ChunksManager(BlocksManager &blocksManager, TextureAtlas &textureAtlas,
-                PlayerController &playerController);
+  ChunksManager(BlocksManager &blocksManager, TextureAtlas &textureAtlas, PlayerController &playerController);
   ~ChunksManager();
 
   std::vector<std::shared_ptr<Chunk>> getChunksToRender(Frustum &frustum);
@@ -33,8 +32,7 @@ private:
   inline size_t getChunkIdx(int x, int z) const noexcept {
     ZoneScoped;
     return (x - m_playerController.getChunkX() + m_loadRadius) +
-           (z - m_playerController.getChunkZ() + m_loadRadius) *
-               m_chunksVectorSideSize;
+           (z - m_playerController.getChunkZ() + m_loadRadius) * m_chunksVectorSideSize;
   }
   inline size_t getCenterIdx() const noexcept {
     ZoneScoped;
@@ -42,10 +40,8 @@ private:
   }
   inline std::shared_ptr<Chunk> getChunkAt(int x, int z) noexcept {
     ZoneScoped;
-    if (x > m_playerController.getChunkX() + m_loadRadius ||
-        x < m_playerController.getChunkX() - m_loadRadius ||
-        z > m_playerController.getChunkZ() + m_loadRadius ||
-        z < m_playerController.getChunkZ() - m_loadRadius) {
+    if (x > m_playerController.getChunkX() + m_loadRadius || x < m_playerController.getChunkX() - m_loadRadius ||
+        z > m_playerController.getChunkZ() + m_loadRadius || z < m_playerController.getChunkZ() - m_loadRadius) {
       return nullptr;
     }
     return getChunkAt(getChunkIdx(x, z));
@@ -58,8 +54,7 @@ private:
     std::shared_lock<std::shared_mutex> lock(m_mutex);
     return m_chunks[idx];
   }
-  inline std::array<std::shared_ptr<Chunk>, 4>
-  getChunksAroundChunk(int x, int z) noexcept {
+  inline std::array<std::shared_ptr<Chunk>, 4> getChunksAroundChunk(int x, int z) noexcept {
     ZoneScoped;
     auto leftChunk = getChunkAt(x - 1, z);
     auto rightChunk = getChunkAt(x + 1, z);
@@ -80,7 +75,7 @@ private:
   bool m_isRunning = true;
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
-  int m_maxAsyncChunksLoading = 12;
+  int m_maxAsyncChunksLoading = 48;
   int m_maxAsyncChunksToUpdate = 12;
   int m_loadRadius = 32;
   int m_chunksVectorSideSize = m_loadRadius * 2 + 1;
