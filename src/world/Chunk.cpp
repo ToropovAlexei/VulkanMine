@@ -165,8 +165,8 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared
   }
   // TODO очищать в другое время
   clearVerticesAndIndices();
-  m_vertices.reserve(50000);
-  m_indices.reserve(60000);
+  m_vertices.reserve(5000);
+  m_indices.reserve(6000);
 
   const int maxY = static_cast<int>(m_voxels.size()) / CHUNK_SQ_SIZE;
   size_t voxelIdx = 0;

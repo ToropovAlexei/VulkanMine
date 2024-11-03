@@ -1,29 +1,27 @@
 #pragma once
 
-#include <tracy/Tracy.hpp>
 #include "backend/BufferVk.hpp"
 #include "backend/RenderDeviceVk.hpp"
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 template <typename T> class Mesh {
 public:
-  Mesh(RenderDeviceVk *device, const std::vector<T> &vertices,
-       const std::vector<uint32_t> &indices)
+  Mesh(RenderDeviceVk *device, const std::vector<T> &vertices, const std::vector<uint32_t> &indices)
       : m_device{device} {
     ZoneScoped;
     createVertexBuffers(vertices);
     createIndexBuffer(indices);
   };
 
-  void bind(vk::CommandBuffer commandBuffer) {
+  inline void bind(vk::CommandBuffer commandBuffer) {
     ZoneScoped;
     vk::Buffer buffers[] = {m_vertexBuffer->getBuffer()};
     vk::DeviceSize offsets[] = {0};
     commandBuffer.bindVertexBuffers(0, 1, buffers, offsets);
-    commandBuffer.bindIndexBuffer(m_indexBuffer->getBuffer(), 0,
-                                  vk::IndexType::eUint32);
+    commandBuffer.bindIndexBuffer(m_indexBuffer->getBuffer(), 0, vk::IndexType::eUint32);
   };
-  void draw(vk::CommandBuffer commandBuffer) {
+  inline void draw(vk::CommandBuffer commandBuffer) {
     ZoneScoped;
     commandBuffer.drawIndexed(m_indexCount, 1, 0, 0, 0);
   };
@@ -32,47 +30,39 @@ private:
   void createVertexBuffers(const std::vector<T> &vertices) {
     ZoneScoped;
     m_vertexCount = static_cast<uint32_t>(vertices.size());
-    vk::DeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-    uint32_t vertexSize = sizeof(vertices[0]);
+    vk::DeviceSize bufferSize = sizeof(T) * m_vertexCount;
+    uint32_t vertexSize = sizeof(T);
 
-    BufferVk stagingBuffer = {m_device, vertexSize, m_vertexCount,
-                              vk::BufferUsageFlagBits::eTransferSrc,
+    BufferVk stagingBuffer = {m_device, vertexSize, m_vertexCount, vk::BufferUsageFlagBits::eTransferSrc,
                               VMA_MEMORY_USAGE_CPU_ONLY};
 
     stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)vertices.data(), bufferSize);
 
-    m_vertexBuffer =
-        std::make_unique<BufferVk>(m_device, vertexSize, m_vertexCount,
-                                   vk::BufferUsageFlagBits::eVertexBuffer |
-                                       vk::BufferUsageFlagBits::eTransferDst,
-                                   VMA_MEMORY_USAGE_GPU_ONLY);
+    m_vertexBuffer = std::make_unique<BufferVk>(
+        m_device, vertexSize, m_vertexCount,
+        vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY);
 
-    m_device->copyBuffer(stagingBuffer.getBuffer(), m_vertexBuffer->getBuffer(),
-                         bufferSize);
+    m_device->copyBuffer(stagingBuffer.getBuffer(), m_vertexBuffer->getBuffer(), bufferSize);
   };
   void createIndexBuffer(const std::vector<uint32_t> &indices) {
     ZoneScoped;
     m_indexCount = static_cast<uint32_t>(indices.size());
-    vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-    uint32_t indexSize = sizeof(indices[0]);
+    vk::DeviceSize bufferSize = sizeof(uint32_t) * indices.size();
+    uint32_t indexSize = sizeof(uint32_t);
 
-    BufferVk stagingBuffer = {m_device, indexSize, m_indexCount,
-                              vk::BufferUsageFlagBits::eTransferSrc,
+    BufferVk stagingBuffer = {m_device, indexSize, m_indexCount, vk::BufferUsageFlagBits::eTransferSrc,
                               VMA_MEMORY_USAGE_CPU_ONLY};
 
     stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)indices.data(), bufferSize);
     stagingBuffer.unmap();
 
-    m_indexBuffer =
-        std::make_unique<BufferVk>(m_device, indexSize, m_indexCount,
-                                   vk::BufferUsageFlagBits::eIndexBuffer |
-                                       vk::BufferUsageFlagBits::eTransferDst,
-                                   VMA_MEMORY_USAGE_GPU_ONLY);
+    m_indexBuffer = std::make_unique<BufferVk>(
+        m_device, indexSize, m_indexCount,
+        vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY);
 
-    m_device->copyBuffer(stagingBuffer.getBuffer(), m_indexBuffer->getBuffer(),
-                         bufferSize);
+    m_device->copyBuffer(stagingBuffer.getBuffer(), m_indexBuffer->getBuffer(), bufferSize);
   };
 
 private:
