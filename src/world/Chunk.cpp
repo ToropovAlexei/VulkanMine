@@ -165,9 +165,8 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared
   m_vertices.reserve(5000);
   m_indices.reserve(6000);
 
-  const int maxY = static_cast<int>(m_voxels.size()) / CHUNK_SQ_SIZE;
   size_t voxelIdx = 0;
-  for (int y = 0; y < maxY; y++) {
+  for (int y = 0; y < m_maxY; y++) {
     for (int z = 0; z < CHUNK_SIZE; z++) {
       for (int x = 0; x < CHUNK_SIZE; x++) {
         auto &block = m_blocksManager.getBlockById(m_voxels[voxelIdx++].blockId);
