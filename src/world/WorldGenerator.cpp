@@ -1,4 +1,5 @@
 #include "WorldGenerator.hpp"
+#include <algorithm>
 #include <memory>
 
 WorldGenerator::WorldGenerator(BlocksManager &blockManager, TextureAtlas &textureAtlas)
@@ -28,6 +29,13 @@ std::shared_ptr<Chunk> WorldGenerator::generateChunk(int cx, int cz) {
   const int minHeight = 45;
   const int waterLevel = 62;
 
+  const int maxHeightInChunk =
+      static_cast<int>((*std::max_element(heights.begin(), heights.end()) + 1.0f) * (maxHeight - minHeight) / 2.0f) +
+      minHeight;
+
+  chunk->m_maxY = std::max(maxHeightInChunk, waterLevel);
+  chunk->m_voxels.resize(chunk->m_maxY * Chunk::CHUNK_SQ_SIZE);
+
   size_t idx = 0;
   for (int z = 0; z < Chunk::CHUNK_SIZE; ++z) {
     for (int x = 0; x < Chunk::CHUNK_SIZE; ++x) {
@@ -36,24 +44,24 @@ std::shared_ptr<Chunk> WorldGenerator::generateChunk(int cx, int cz) {
       // Chunk::WIDTH + x) / Chunk::WIDTH, static_cast<float>(cz * Chunk::WIDTH
       // + z) / Chunk::WIDTH);
 
-      int height = static_cast<int>((heights[activeIdx] + 1.0f) * (maxHeight - minHeight) / 2.0f) + minHeight;
+      const int height = static_cast<int>((heights[activeIdx] + 1.0f) * (maxHeight - minHeight) / 2.0f) + minHeight;
       size_t blockIdx = x + z * Chunk::CHUNK_SIZE;
       for (int y = 0; y < std::max(height, waterLevel); ++y) {
         size_t currentBlockIdx = blockIdx;
         blockIdx += Chunk::CHUNK_SQ_SIZE;
         if (y > height) {
-          chunk->setBlock(currentBlockIdx, BlockId::Water);
+          chunk->m_voxels[currentBlockIdx].blockId = BlockId::Water;
           continue;
         }
-        chunk->setBlock(currentBlockIdx, temps[activeIdx] > 0.5 ? BlockId::CoalOre : BlockId::Grass);
+        chunk->m_voxels[currentBlockIdx].blockId = temps[activeIdx] > 0.5 ? BlockId::CoalOre : BlockId::Grass;
         if (y == 0) {
-          chunk->setBlock(currentBlockIdx, BlockId::Bedrock);
+          chunk->m_voxels[currentBlockIdx].blockId = BlockId::Bedrock;
         } else if (y == height - 1) {
-          chunk->setBlock(currentBlockIdx, BlockId::Grass);
+          chunk->m_voxels[currentBlockIdx].blockId = BlockId::Grass;
         } else if (y > height - 4) {
-          chunk->setBlock(currentBlockIdx, BlockId::Dirt);
+          chunk->m_voxels[currentBlockIdx].blockId = BlockId::Dirt;
         } else {
-          chunk->setBlock(currentBlockIdx, BlockId::Stone);
+          chunk->m_voxels[currentBlockIdx].blockId = BlockId::Stone;
         }
       }
     }

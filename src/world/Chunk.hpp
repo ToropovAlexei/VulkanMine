@@ -10,6 +10,8 @@
 #include <vector>
 
 class Chunk {
+  friend class WorldGenerator;
+
 public:
   Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x, int z);
   Chunk(const Chunk &) = delete;
