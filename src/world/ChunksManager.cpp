@@ -5,6 +5,7 @@
 #include <future>
 #include <memory>
 #include <mutex>
+#include <ranges>
 #include <shared_mutex>
 #include <tracy/Tracy.hpp>
 #include <tuple>
@@ -86,12 +87,14 @@ void ChunksManager::loadChunks() {
     m_shouldUpdateChunksToRender.store(true);
   }
 
-  for (const auto &chunkPos : chunksToGenerate) {
-    futures.emplace_back(std::async(std::launch::async, [this, &chunkPos]() {
-      const auto x = std::get<0>(chunkPos);
-      const auto z = std::get<1>(chunkPos);
-      auto chunk = m_worldGenerator.generateChunk(x, z);
-      this->insertChunk(chunk);
+  for (auto chunksPositions : chunksToGenerate | std::ranges::views::chunk(64)) {
+    futures.emplace_back(std::async(std::launch::async, [this, chunksPositions]() {
+      for (auto chunkPos : chunksPositions) {
+        const auto x = std::get<0>(chunkPos);
+        const auto z = std::get<1>(chunkPos);
+        auto chunk = m_worldGenerator.generateChunk(x, z);
+        this->insertChunk(chunk);
+      }
     }));
   }
 
