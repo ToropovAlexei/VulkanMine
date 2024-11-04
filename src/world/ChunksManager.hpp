@@ -41,10 +41,6 @@ private:
     return (x - m_playerController.getChunkX() + m_loadRadius) +
            (z - m_playerController.getChunkZ() + m_loadRadius) * m_chunksVectorSideSize;
   }
-  inline size_t getCenterIdx() const noexcept {
-    ZoneScoped;
-    return m_loadRadius + m_loadRadius * m_chunksVectorSideSize;
-  }
   inline std::shared_ptr<Chunk> getChunkAt(int x, int z) noexcept {
     ZoneScoped;
     if (x > m_playerController.getChunkX() + m_loadRadius || x < m_playerController.getChunkX() - m_loadRadius ||
@@ -88,6 +84,7 @@ private:
   int m_maxAsyncChunksToUpdate = 12;
   int m_loadRadius = 32;
   int m_chunksVectorSideSize = m_loadRadius * 2 + 1;
+  size_t m_centerIdx = m_loadRadius + m_loadRadius * m_chunksVectorSideSize;
   BlocksManager &m_blocksManager;
   TextureAtlas &m_textureAtlas;
   PlayerController &m_playerController;

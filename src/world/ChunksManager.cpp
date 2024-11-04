@@ -43,11 +43,10 @@ void ChunksManager::loadChunks() {
 
   std::vector<std::tuple<int, int>> chunksToGenerate;
 
-  const size_t centerIdx = getCenterIdx();
   const int playerX = m_playerController.getChunkX();
   const int playerZ = m_playerController.getChunkZ();
 
-  if (m_chunks[centerIdx] == nullptr) {
+  if (m_chunks[m_centerIdx] == nullptr) {
     chunksToGenerate.push_back({playerX, playerZ});
   }
 
@@ -220,7 +219,6 @@ void ChunksManager::updateModifiedChunks() {
   ZoneScoped;
   std::vector<std::shared_ptr<Chunk>> chunksToUpdate;
   std::shared_lock<std::shared_mutex> lock(m_mutex);
-  const size_t centerIdx = getCenterIdx();
 
   auto addChunkIfModified = [this, &chunksToUpdate](size_t index) {
     ZoneScopedN("addChunkIfValid");
@@ -229,15 +227,15 @@ void ChunksManager::updateModifiedChunks() {
     }
   };
 
-  addChunkIfModified(centerIdx);
+  addChunkIfModified(m_centerIdx);
 
   size_t radius = 1;
   while (radius <= m_loadRadius && chunksToUpdate.size() < m_maxAsyncChunksToUpdate) {
     size_t offset = radius * m_chunksVectorSideSize;
-    size_t topLeft = centerIdx - radius - offset;
-    size_t topRight = centerIdx + radius - offset;
-    size_t bottomLeft = centerIdx - radius + offset;
-    size_t bottomRight = centerIdx + radius + offset;
+    size_t topLeft = m_centerIdx - radius - offset;
+    size_t topRight = m_centerIdx + radius - offset;
+    size_t bottomLeft = m_centerIdx - radius + offset;
+    size_t bottomRight = m_centerIdx + radius + offset;
 
     for (size_t i = topLeft; i <= topRight; i++) {
       if (chunksToUpdate.size() >= m_maxAsyncChunksToUpdate) {
@@ -296,23 +294,21 @@ void ChunksManager::updateChunksToRender() {
   std::vector<std::shared_ptr<Chunk>> chunksToRender;
   chunksToRender.reserve(m_chunks.size() / 2);
 
-  const size_t centerIdx = getCenterIdx();
-
   auto addChunkIfValid = [&](size_t index) {
     ZoneScopedN("addChunkIfValid");
     if (m_chunks[index] && isChunkVisible(m_frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
       chunksToRender.push_back(m_chunks[index]);
     }
   };
-  addChunkIfValid(centerIdx);
+  addChunkIfValid(m_centerIdx);
 
   size_t radius = 1;
   while (radius <= m_loadRadius) {
     size_t offset = radius * m_chunksVectorSideSize;
-    size_t topLeft = centerIdx - radius - offset;
-    size_t topRight = centerIdx + radius - offset;
-    size_t bottomLeft = centerIdx - radius + offset;
-    size_t bottomRight = centerIdx + radius + offset;
+    size_t topLeft = m_centerIdx - radius - offset;
+    size_t topRight = m_centerIdx + radius - offset;
+    size_t bottomLeft = m_centerIdx - radius + offset;
+    size_t bottomRight = m_centerIdx + radius + offset;
 
     for (size_t i = topLeft; i <= topRight; i++) {
       addChunkIfValid(i);
