@@ -56,7 +56,7 @@ public:
   inline void setIsModified(bool isModified) noexcept { m_isModified = isModified; };
   inline bool isMeshOutdated() const noexcept { return m_isMeshOutdated; };
 
-  std::shared_ptr<Mesh<ChunkVertex>> &getMesh() { return m_mesh; }
+  inline std::shared_ptr<Mesh<ChunkVertex>> &getMesh() noexcept { return m_mesh; }
   void generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared_ptr<Chunk> back,
                                   std::shared_ptr<Chunk> left, std::shared_ptr<Chunk> right);
   void generateMesh(RenderDeviceVk *device);
