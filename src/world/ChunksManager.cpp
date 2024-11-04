@@ -87,7 +87,7 @@ void ChunksManager::loadChunks() {
     m_shouldUpdateChunksToRender.store(true);
   }
 
-  for (auto chunksPositions : chunksToGenerate | std::ranges::views::chunk(64)) {
+  for (auto chunksPositions : chunksToGenerate | std::ranges::views::chunk(MAX_CHUNKS_TO_LOAD_PER_THREAD)) {
     futures.emplace_back(std::async(std::launch::async, [this, chunksPositions]() {
       for (auto chunkPos : chunksPositions) {
         const auto x = std::get<0>(chunkPos);
@@ -273,12 +273,14 @@ void ChunksManager::updateModifiedChunks() {
 
   std::vector<std::future<void>> futures;
 
-  for (const auto chunk : chunksToUpdate) {
-    futures.emplace_back(std::async(std::launch::async, [this, chunk]() {
-      const auto x = chunk->x();
-      const auto z = chunk->z();
-      auto chunks = getChunksAroundChunk(x, z);
-      chunk->generateVerticesAndIndices(chunks[2], chunks[3], chunks[0], chunks[1]);
+  for (const auto chunks : chunksToUpdate | std::ranges::views::chunk(MAX_CHUNKS_TO_UPDATE_PER_THREAD)) {
+    futures.emplace_back(std::async(std::launch::async, [this, chunks]() {
+      for (auto chunk : chunks) {
+        const auto x = chunk->x();
+        const auto z = chunk->z();
+        auto chunks = getChunksAroundChunk(x, z);
+        chunk->generateVerticesAndIndices(chunks[2], chunks[3], chunks[0], chunks[1]);
+      }
     }));
   }
 
