@@ -6,6 +6,7 @@
 #include "TextureAtlas.hpp"
 #include "Voxel.hpp"
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -80,6 +81,10 @@ private:
   static int toWorldPos(int x);
   inline size_t getIdxFromCoords(int x, int y, int z) const noexcept {
     return static_cast<size_t>(x + z * CHUNK_SIZE + y * CHUNK_SQ_SIZE);
+  };
+  inline uint32_t compressCoords(int x, int y, int z) const noexcept { return x | (y << 8) | (z << 16); };
+  inline uint32_t compressVertex(int x, int y, int z, int u, int v) const noexcept {
+    return compressCoords(x, y, z) | (u << 24) | (v << 25);
   };
   inline bool canAddFace(int x, int y, int z) const noexcept {
     assert(x >= 0 && x < CHUNK_SIZE);

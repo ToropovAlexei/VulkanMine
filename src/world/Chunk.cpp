@@ -31,10 +31,10 @@ void Chunk::addFrontFace(int x, int y, int z, float textureIdx) {
 
   // Вершины передней грани (на +Z)
   // Добавляем вершины
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f), glm::vec3(0.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 0.0f, z + 1.0f), glm::vec3(1.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f), glm::vec3(1.0f, 1.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f), glm::vec3(0.0f, 1.0f, textureIdx));
+  m_vertices.emplace_back(compressVertex(x, y, z + 1, 0, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y, z + 1, 1, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y + 1, z + 1, 1, 1), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y + 1, z + 1, 0, 1), textureIdx);
 
   // Добавляем индексы для двух треугольников
   m_indices.push_back(startIndex);
@@ -52,10 +52,10 @@ void Chunk::addBackFace(int x, int y, int z, float textureIdx) {
 
   // Вершины задней грани (на -Z)
   // Добавляем вершины
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 0.0f, z + 0.0f), glm::vec3(0.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 0.0f, z + 0.0f), glm::vec3(1.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f), glm::vec3(1.0f, 1.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f), glm::vec3(0.0f, 1.0f, textureIdx));
+  m_vertices.emplace_back(compressVertex(x + 1, y, z, 0, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y, z, 1, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y + 1, z, 1, 1), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y + 1, z, 0, 1), textureIdx);
 
   // Добавляем индексы для двух треугольников
   m_indices.push_back(startIndex);
@@ -73,10 +73,10 @@ void Chunk::addLeftFace(int x, int y, int z, float textureIdx) {
 
   // Вершины левой грани (на -X)
   // Добавляем вершины
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 0.0f, z + 0.0f), glm::vec3(0.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f), glm::vec3(1.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f), glm::vec3(1.0f, 1.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f), glm::vec3(0.0f, 1.0f, textureIdx));
+  m_vertices.emplace_back(compressVertex(x, y, z, 0, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y, z + 1, 1, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y + 1, z + 1, 1, 1), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y + 1, z, 0, 1), textureIdx);
 
   // Добавляем индексы для двух треугольников
   m_indices.push_back(startIndex);
@@ -94,10 +94,10 @@ void Chunk::addRightFace(int x, int y, int z, float textureIdx) {
 
   // Вершины правой грани (на +X)
   // Добавляем вершины
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 0.0f, z + 1.0f), glm::vec3(0.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 0.0f, z + 0.0f), glm::vec3(1.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f), glm::vec3(1.0f, 1.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f), glm::vec3(0.0f, 1.0f, textureIdx));
+  m_vertices.emplace_back(compressVertex(x + 1, y, z + 1, 0, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y, z, 1, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y + 1, z, 1, 1), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y + 1, z + 1, 0, 1), textureIdx);
 
   // Добавляем индексы для двух треугольников
   m_indices.push_back(startIndex);
@@ -115,10 +115,10 @@ void Chunk::addTopFace(int x, int y, int z, float textureIdx) {
 
   // Вершины верхней грани (на +Y)
   // Добавляем вершины
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 1.0f, z + 1.0f), glm::vec3(0.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 1.0f, z + 1.0f), glm::vec3(1.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 1.0f, z + 0.0f), glm::vec3(1.0f, 1.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 1.0f, z + 0.0f), glm::vec3(0.0f, 1.0f, textureIdx));
+  m_vertices.emplace_back(compressVertex(x, y + 1, z + 1, 0, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y + 1, z + 1, 1, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y + 1, z, 1, 1), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y + 1, z, 0, 1), textureIdx);
 
   // Добавляем индексы для двух треугольников
   m_indices.push_back(startIndex);
@@ -136,10 +136,10 @@ void Chunk::addBottomFace(int x, int y, int z, float textureIdx) {
 
   // Вершины нижней грани (на -Y)
   // Добавляем вершины
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 0.0f, z + 0.0f), glm::vec3(0.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 0.0f, z + 0.0f), glm::vec3(1.0f, 0.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 1.0f, y + 0.0f, z + 1.0f), glm::vec3(1.0f, 1.0f, textureIdx));
-  m_vertices.emplace_back(glm::vec3(x + 0.0f, y + 0.0f, z + 1.0f), glm::vec3(0.0f, 1.0f, textureIdx));
+  m_vertices.emplace_back(compressVertex(x, y, z, 0, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y, z, 1, 0), textureIdx);
+  m_vertices.emplace_back(compressVertex(x + 1, y, z + 1, 1, 1), textureIdx);
+  m_vertices.emplace_back(compressVertex(x, y, z + 1, 0, 1), textureIdx);
 
   // Добавляем индексы для двух треугольников
   m_indices.push_back(startIndex);

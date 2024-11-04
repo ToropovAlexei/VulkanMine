@@ -1,15 +1,15 @@
 #pragma once
 
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 
 struct ChunkVertex {
-  glm::vec3 pos;
-  glm::vec3 uvd;
+  uint32_t posAndTexUV;
+  float texIdx;
 
-  static std::vector<vk::VertexInputBindingDescription>
-  getBindingDescriptions() {
+  static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions() {
     std::vector<vk::VertexInputBindingDescription> bindingDescriptions(1);
     bindingDescriptions[0].binding = 0;
     bindingDescriptions[0].stride = sizeof(ChunkVertex);
@@ -18,11 +18,10 @@ struct ChunkVertex {
     return bindingDescriptions;
   }
 
-  static std::vector<vk::VertexInputAttributeDescription>
-  getAttributeDescriptions() {
+  static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions() {
     return {
-        {0, 0, vk::Format::eR32G32B32Sfloat, offsetof(ChunkVertex, pos)},
-        {1, 0, vk::Format::eR32G32B32Sfloat, offsetof(ChunkVertex, uvd)},
+        {0, 0, vk::Format::eR32Uint, offsetof(ChunkVertex, posAndTexUV)},
+        {1, 0, vk::Format::eR32Sfloat, offsetof(ChunkVertex, texIdx)},
     };
   }
 };
