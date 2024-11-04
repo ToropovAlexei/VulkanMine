@@ -22,10 +22,7 @@ struct QueueFamilyIndices {
   std::optional<uint32_t> presentFamily;
   bool presentFamilySupportsTimeStamps;
 
-  bool IsComplete() {
-    return graphicsFamily.has_value() && transferFamily.has_value() &&
-           presentFamily.has_value();
-  }
+  bool IsComplete() { return graphicsFamily.has_value() && transferFamily.has_value() && presentFamily.has_value(); }
 };
 
 class RenderDeviceVk : NonCopyable {
@@ -34,34 +31,28 @@ public:
   ~RenderDeviceVk();
 
   QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice device);
-  QueueFamilyIndices findQueueFamilies() {
-    return findQueueFamilies(m_physicalDevice);
-  }
+  inline QueueFamilyIndices findQueueFamilies() { return findQueueFamilies(m_physicalDevice); }
   SwapChainSupportDetails getSwapChainSupport();
 
-  vk::Device &getDevice() noexcept { return m_device; };
-  vk::PhysicalDevice &getPhysicalDevice() noexcept { return m_physicalDevice; };
-  vk::SurfaceKHR &getSurface() noexcept { return m_surface; };
-  vk::Queue &getGraphicsQueue() noexcept { return m_graphicsQueue; };
-  vk::Queue &getTransferQueue() noexcept { return m_transferQueue; };
-  vk::Queue &getPresentQueue() noexcept { return m_presentQueue; };
-  VmaAllocator &getAllocator() noexcept { return m_allocator; };
-  vk::CommandPool &getCommandPool() noexcept { return m_commandPool; };
-  vk::Instance &getInstance() noexcept { return m_instance; };
+  inline vk::Device &getDevice() noexcept { return m_device; };
+  inline vk::PhysicalDevice &getPhysicalDevice() noexcept { return m_physicalDevice; };
+  inline vk::SurfaceKHR &getSurface() noexcept { return m_surface; };
+  inline vk::Queue &getGraphicsQueue() noexcept { return m_graphicsQueue; };
+  inline vk::Queue &getTransferQueue() noexcept { return m_transferQueue; };
+  inline vk::Queue &getPresentQueue() noexcept { return m_presentQueue; };
+  inline VmaAllocator &getAllocator() noexcept { return m_allocator; };
+  inline vk::CommandPool &getCommandPool() noexcept { return m_commandPool; };
+  inline vk::Instance &getInstance() noexcept { return m_instance; };
 
-  void createImageWithInfo(const vk::ImageCreateInfo &imageInfo,
-                           VmaMemoryUsage memoryUsage, vk::Image &image,
+  void createImageWithInfo(const vk::ImageCreateInfo &imageInfo, VmaMemoryUsage memoryUsage, vk::Image &image,
                            VmaAllocation &imageAllocation);
-  vk::Format findSupportedFormat(const std::vector<vk::Format> &candidates,
-                                 vk::ImageTiling tiling,
+  vk::Format findSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling,
                                  vk::FormatFeatureFlags features);
   vk::CommandBuffer beginSingleTimeCommands();
   void endSingleTimeCommands(vk::CommandBuffer commandBuffer);
-  void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
-                    VmaMemoryUsage memoryUsage, vk::Buffer &buffer,
+  void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage, vk::Buffer &buffer,
                     VmaAllocation &allocation, VmaAllocationInfo &allocInfo);
-  void copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer,
-                  vk::DeviceSize size);
+  void copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
 
 private:
   void initVulkan();
@@ -73,10 +64,8 @@ private:
   void createCommandPool();
 
   void checkValidationLayerSupport();
-  bool
-  checkInstanceExtensionSupport(std::vector<const char *> &requiredExtensions);
-  void populateDebugMessengerCreateInfo(
-      vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
+  bool checkInstanceExtensionSupport(std::vector<const char *> &requiredExtensions);
+  void populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
   std::vector<const char *> getRequiredExtensions();
   int rateDeviceSuitability(const vk::PhysicalDevice &device);
   bool checkDeviceExtensionSupport(const vk::PhysicalDevice &device);

@@ -2,9 +2,7 @@
 #include <fstream>
 #include <stdexcept>
 
-ShaderModuleVk::ShaderModuleVk(RenderDeviceVk *device,
-                               const std::string &filePath,
-                               vk::ShaderStageFlagBits stage)
+ShaderModuleVk::ShaderModuleVk(RenderDeviceVk *device, const std::string &filePath, vk::ShaderStageFlagBits stage)
     : m_device(device), m_stage(stage) {
   auto code = readFile(filePath);
 

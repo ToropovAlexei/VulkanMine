@@ -9,18 +9,14 @@ class Renderer {
 public:
   Renderer(Window *window, RenderDeviceVk *device);
 
-  float getAspectRatio() const { return m_swapChain->extentAspectRatio(); }
-  VkRenderPass getSwapChainRenderPass() const {
-    return m_swapChain->getRenderPass();
-  }
-  size_t getFrameIndex() const {
-    assert(m_isFrameStarted &&
-           "Cannog get frame index when frame not in progress");
+  inline float getAspectRatio() const { return m_swapChain->extentAspectRatio(); }
+  inline VkRenderPass getSwapChainRenderPass() const { return m_swapChain->getRenderPass(); }
+  inline size_t getFrameIndex() const {
+    assert(m_isFrameStarted && "Cannog get frame index when frame not in progress");
     return m_currentFrameIndex;
   }
-  vk::CommandBuffer getCurrentCommandBuffer() {
-    assert(m_isFrameStarted &&
-           "Cannog get command buffer when frame not in progress");
+  inline vk::CommandBuffer getCurrentCommandBuffer() {
+    assert(m_isFrameStarted && "Cannog get command buffer when frame not in progress");
     return m_commandBuffers[m_currentFrameIndex];
   }
 

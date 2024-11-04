@@ -3,8 +3,7 @@
 #include <tracy/Tracy.hpp>
 #include <vulkan/vulkan.hpp>
 
-Renderer::Renderer(Window *window, RenderDeviceVk *device)
-    : m_device{device}, m_window{window} {
+Renderer::Renderer(Window *window, RenderDeviceVk *device) : m_device{device}, m_window{window} {
   ZoneScoped;
   recreateSwapChain();
   createCommandBuffers();
@@ -46,15 +45,13 @@ void Renderer::createCommandBuffers() {
 
 void Renderer::freeCommandBuffers() {
   ZoneScoped;
-  m_device->getDevice().freeCommandBuffers(m_device->getCommandPool(),
-                                           m_commandBuffers);
+  m_device->getDevice().freeCommandBuffers(m_device->getCommandPool(), m_commandBuffers);
   m_commandBuffers.clear();
 }
 
 vk::CommandBuffer Renderer::beginFrame() {
   ZoneScoped;
-  assert(!m_isFrameStarted &&
-         "Can't call beginFrame while already in progress");
+  assert(!m_isFrameStarted && "Can't call beginFrame while already in progress");
 
   auto result = m_swapChain->acquireNextImage(&m_currentImageIndex);
 
@@ -88,11 +85,10 @@ void Renderer::endFrame() {
   auto commandBuffer = getCurrentCommandBuffer();
   commandBuffer.end();
 
-  auto result =
-      m_swapChain->submitCommandBuffers(&commandBuffer, &m_currentImageIndex);
+  auto result = m_swapChain->submitCommandBuffers(&commandBuffer, &m_currentImageIndex);
 
-  if (result == vk::Result::eErrorOutOfDateKHR ||
-      result == vk::Result::eSuboptimalKHR || m_window->wasWindowResized()) {
+  if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR ||
+      m_window->wasWindowResized()) {
     m_window->resetWindowResizedFlag();
     recreateSwapChain();
   } else if (result != vk::Result::eSuccess) {
@@ -101,8 +97,7 @@ void Renderer::endFrame() {
 
   m_isFrameStarted = false;
 
-  m_currentFrameIndex =
-      (m_currentFrameIndex + 1) % SwapChainVk::MAX_FRAMES_IN_FLIGHT;
+  m_currentFrameIndex = (m_currentFrameIndex + 1) % SwapChainVk::MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::beginSwapChainRenderPass(vk::CommandBuffer commandBuffer) {
@@ -113,8 +108,7 @@ void Renderer::beginSwapChainRenderPass(vk::CommandBuffer commandBuffer) {
          "Can't call beginSwapChainRenderPass on a different command buffer");
 
   std::array<vk::ClearValue, 2> clearValues{};
-  clearValues[0] = vk::ClearValue(
-      vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}));
+  clearValues[0] = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}));
   clearValues[1] = vk::ClearValue({.depthStencil = {1.0f, 0}});
 
   vk::RenderPassBeginInfo renderPassInfo = {
@@ -131,13 +125,12 @@ void Renderer::beginSwapChainRenderPass(vk::CommandBuffer commandBuffer) {
 
   commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-  vk::Viewport viewport{
-      .x = 0.0f,
-      .y = 0.0f,
-      .width = static_cast<float>(m_swapChain->getSwapChainExtent().width),
-      .height = static_cast<float>(m_swapChain->getSwapChainExtent().height),
-      .minDepth = 0.0f,
-      .maxDepth = 1.0f};
+  vk::Viewport viewport{.x = 0.0f,
+                        .y = 0.0f,
+                        .width = static_cast<float>(m_swapChain->getSwapChainExtent().width),
+                        .height = static_cast<float>(m_swapChain->getSwapChainExtent().height),
+                        .minDepth = 0.0f,
+                        .maxDepth = 1.0f};
   vk::Rect2D scissor{{0, 0}, m_swapChain->getSwapChainExtent()};
   commandBuffer.setViewport(0, viewport);
   commandBuffer.setScissor(0, scissor);

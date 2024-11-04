@@ -8,8 +8,7 @@
 
 class ShaderModuleVk : NonCopyable {
 public:
-  ShaderModuleVk(RenderDeviceVk *device, const std::string &filePath,
-                 vk::ShaderStageFlagBits stage);
+  ShaderModuleVk(RenderDeviceVk *device, const std::string &filePath, vk::ShaderStageFlagBits stage);
   ~ShaderModuleVk();
 
   vk::PipelineShaderStageCreateInfo getShaderStageInfo() const;

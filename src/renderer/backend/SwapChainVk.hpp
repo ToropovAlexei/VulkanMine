@@ -12,24 +12,15 @@ public:
   static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
   SwapChainVk(RenderDeviceVk *device, vk::Extent2D windowExtent);
-  SwapChainVk(RenderDeviceVk *device, vk::Extent2D windowExtent,
-              std::shared_ptr<SwapChainVk> previousSwapChain);
+  SwapChainVk(RenderDeviceVk *device, vk::Extent2D windowExtent, std::shared_ptr<SwapChainVk> previousSwapChain);
   ~SwapChainVk();
 
-  vk::Framebuffer getFrameBuffer(size_t index) {
-    return m_swapChainFramebuffers[index];
-  }
-  vk::RenderPass getRenderPass() { return m_renderPass; }
-  vk::ImageView getImageView(size_t index) {
-    return m_swapChainImageViews[index];
-  }
-  size_t imageCount() { return m_swapChainImages.size(); }
-  inline vk::Format getSwapChainImageFormat() noexcept {
-    return m_swapChainImageFormat;
-  }
-  inline vk::Extent2D getSwapChainExtent() noexcept {
-    return m_swapChainExtent;
-  }
+  inline vk::Framebuffer getFrameBuffer(size_t index) noexcept { return m_swapChainFramebuffers[index]; }
+  inline vk::RenderPass getRenderPass() noexcept { return m_renderPass; }
+  inline vk::ImageView getImageView(size_t index) noexcept { return m_swapChainImageViews[index]; }
+  inline size_t imageCount() noexcept { return m_swapChainImages.size(); }
+  inline vk::Format getSwapChainImageFormat() noexcept { return m_swapChainImageFormat; }
+  inline vk::Extent2D getSwapChainExtent() noexcept { return m_swapChainExtent; }
   inline uint32_t width() noexcept { return m_swapChainExtent.width; }
   inline uint32_t height() noexcept { return m_swapChainExtent.height; }
 
@@ -37,10 +28,9 @@ public:
   vk::Format findDepthFormat();
 
   vk::Result acquireNextImage(uint32_t *imageIndex);
-  vk::Result submitCommandBuffers(const vk::CommandBuffer *buffers,
-                                  uint32_t *imageIndex);
+  vk::Result submitCommandBuffers(const vk::CommandBuffer *buffers, uint32_t *imageIndex);
 
-  bool compareSwapFormats(const SwapChainVk &other) const {
+  inline bool compareSwapFormats(const SwapChainVk &other) const noexcept {
     return other.m_swapChainDepthFormat == m_swapChainDepthFormat &&
            other.m_swapChainImageFormat == m_swapChainImageFormat;
   }
@@ -54,10 +44,8 @@ private:
   void createFramebuffers();
   void createSyncObjects();
 
-  vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
-      const std::vector<vk::SurfaceFormatKHR> &availableFormats);
-  vk::PresentModeKHR chooseSwapPresentMode(
-      const std::vector<vk::PresentModeKHR> &availablePresentModes);
+  vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats);
+  vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes);
   vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
 
   vk::Format m_swapChainImageFormat;

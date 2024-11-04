@@ -25,10 +25,8 @@ public:
 private:
   void createTextureImage2D();
   void createTextureSampler();
-  void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout,
-                             vk::ImageLayout newLayout);
-  void copyBufferToImage(BufferVk &buffer, vk::Image image, uint32_t width,
-                         uint32_t height, uint32_t depth = 1);
+  void transitionImageLayout(vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+  void copyBufferToImage(BufferVk &buffer, vk::Image image, uint32_t width, uint32_t height, uint32_t depth = 1);
   void createImageView();
   uint32_t calculateMipLevels(uint32_t width, uint32_t height);
   void createTextureImage2DArrayWithMipmaps();
