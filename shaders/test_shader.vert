@@ -18,7 +18,7 @@ vec3 decompressPos(uint pos) {
 }
 
 vec3 decompressTexCoords(uint pos, float texIdx) {
-    return vec3(float(pos >> 24 & 0xFF), float(pos >> 25 & 0xFF), texIdx);
+    return vec3(pos >> 24 & 0x1, pos >> 25 & 0x1, texIdx);
 }
 
 void main() {
