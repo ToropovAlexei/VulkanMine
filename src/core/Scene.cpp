@@ -11,20 +11,15 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_structs.hpp>
 
-Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
-             Mouse *mouse)
-    : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse},
-      m_renderer{renderer}, m_textureAtlas{device, "res/textures"},
-      m_blocksManager{"res/blocks", m_textureAtlas},
-      m_playerController{{0, 128, 0}},
-      m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
+Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse)
+    : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse}, m_renderer{renderer},
+      m_textureAtlas{device, "res/textures"}, m_blocksManager{"res/blocks", m_textureAtlas},
+      m_playerController{{0, 128, 0}}, m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
-                   .addPoolSize(vk::DescriptorType::eUniformBuffer,
-                                SwapChainVk::MAX_FRAMES_IN_FLIGHT)
-                   .addPoolSize(vk::DescriptorType::eCombinedImageSampler,
-                                SwapChainVk::MAX_FRAMES_IN_FLIGHT)
+                   .addPoolSize(vk::DescriptorType::eUniformBuffer, SwapChainVk::MAX_FRAMES_IN_FLIGHT)
+                   .addPoolSize(vk::DescriptorType::eCombinedImageSampler, SwapChainVk::MAX_FRAMES_IN_FLIGHT)
                    .build();
 
   m_camera = std::make_unique<Camera>();
@@ -33,19 +28,17 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
   m_globalBuffers.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
 
   for (size_t i = 0; i < SwapChainVk::MAX_FRAMES_IN_FLIGHT; i++) {
-    m_globalBuffers[i] = std::make_unique<BufferVk>(
-        m_device, sizeof(GlobalUBO), 1, vk::BufferUsageFlagBits::eUniformBuffer,
-        VMA_MEMORY_USAGE_CPU_TO_GPU); // TODO Check VMA_MEMORY_USAGE_CPU_TO_GPU
+    m_globalBuffers[i] =
+        std::make_unique<BufferVk>(m_device, sizeof(GlobalUBO), 1, vk::BufferUsageFlagBits::eUniformBuffer,
+                                   VMA_MEMORY_USAGE_CPU_TO_GPU); // TODO Check VMA_MEMORY_USAGE_CPU_TO_GPU
     m_globalBuffers[i]->map();
   }
 
   auto globalSetLayout =
       DescriptorSetLayoutVk::Builder(m_device)
           .addBinding(0, vk::DescriptorType::eUniformBuffer,
-                      vk::ShaderStageFlagBits::eVertex |
-                          vk::ShaderStageFlagBits::eFragment)
-          .addBinding(1, vk::DescriptorType::eCombinedImageSampler,
-                      vk::ShaderStageFlagBits::eFragment)
+                      vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment)
+          .addBinding(1, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment)
           .build();
 
   m_globalDescriptorSets.resize(SwapChainVk::MAX_FRAMES_IN_FLIGHT);
@@ -59,9 +52,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
         .build(m_globalDescriptorSets[i]);
   }
 
-  m_chunkRenderSystem = std::make_unique<ChunkRenderSystem>(
-      m_device, m_renderer->getSwapChainRenderPass(),
-      globalSetLayout->getDescriptorSetLayout());
+  m_chunkRenderSystem = std::make_unique<ChunkRenderSystem>(m_device, m_renderer->getSwapChainRenderPass(),
+                                                            globalSetLayout->getDescriptorSetLayout());
 }
 
 Scene::~Scene() {
@@ -95,8 +87,7 @@ void Scene::update(float dt) {
     movementDirection += glm::vec3(0.0f, -1.0f, 0.0f);
   }
 
-  if (glm::dot(movementDirection, movementDirection) >
-      std::numeric_limits<float>::epsilon()) {
+  if (glm::dot(movementDirection, movementDirection) > std::numeric_limits<float>::epsilon()) {
     m_playerController.move(dt * 2500.0f * glm::normalize(movementDirection));
   }
 
@@ -118,14 +109,13 @@ void Scene::update(float dt) {
 
 void Scene::render(vk::CommandBuffer commandBuffer) {
   ZoneScoped;
-  m_ubo.projectionView =
-      m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
+  m_ubo.projectionView = m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
 
   auto frameIndex = m_renderer->getFrameIndex();
-
+  m_chunksManager.updateFrustum(m_camera->getFrustum());
   FrameData frameData = {
       .commandBuffer = commandBuffer,
-      .chunks = m_chunksManager.getChunksToRender(m_camera->getFrustum()),
+      .chunks = m_chunksManager.getChunksToRender(),
       .playerX = m_playerController.getChunkX(),
       .playerZ = m_playerController.getChunkZ(),
       .globalDescriptorSet = m_globalDescriptorSets[frameIndex],
@@ -145,17 +135,14 @@ void Scene::renderUI() {
   ImGuiContext &g = *GImGui;
   ImGuiIO &io = g.IO;
   ImGui::Begin("Engine info");
-  ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate,
-              io.Framerate);
+  ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
   ImGui::End();
 
   ImGui::Begin("Player");
-  ImGui::Text("Position: x: %.1f, y: %.1f, z: %.1f",
-              m_playerController.getWorldX(), m_playerController.getWorldY(),
+  ImGui::Text("Position: x: %.1f, y: %.1f, z: %.1f", m_playerController.getWorldX(), m_playerController.getWorldY(),
               m_playerController.getWorldZ());
-  ImGui::Text("Rotation: x: %.1f, y: %.1f, z: %.1f", m_camera->getFront().x,
-              m_camera->getFront().y, m_camera->getFront().z);
-  ImGui::Text("Chunk: %d, %d", m_playerController.getChunkX(),
-              m_playerController.getChunkZ());
+  ImGui::Text("Rotation: x: %.1f, y: %.1f, z: %.1f", m_camera->getFront().x, m_camera->getFront().y,
+              m_camera->getFront().z);
+  ImGui::Text("Chunk: %d, %d", m_playerController.getChunkX(), m_playerController.getChunkZ());
   ImGui::End();
 }

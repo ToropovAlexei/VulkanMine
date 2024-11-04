@@ -6,6 +6,7 @@
 #include "PlayerController.hpp"
 #include "TextureAtlas.hpp"
 #include "WorldGenerator.hpp"
+#include <atomic>
 #include <memory>
 #include <shared_mutex>
 #include <thread>
@@ -17,9 +18,15 @@ public:
   ChunksManager(BlocksManager &blocksManager, TextureAtlas &textureAtlas, PlayerController &playerController);
   ~ChunksManager();
 
-  std::vector<std::shared_ptr<Chunk>> getChunksToRender(Frustum &frustum);
+  std::vector<std::shared_ptr<Chunk>> getChunksToRender();
   void insertChunk(std::shared_ptr<Chunk> chunk);
   void forEachChunk(std::function<void(std::shared_ptr<Chunk>)> func);
+  inline void updateFrustum(Frustum &frustum) noexcept {
+    if (frustum != m_frustum) {
+      m_frustum = frustum;
+      m_shouldUpdateChunksToRender.store(true);
+    }
+  }
 
 private:
   inline int toChunkPos(int x) const noexcept {
@@ -70,9 +77,11 @@ private:
   void updateModifiedChunks();
 
   bool isChunkVisible(const Frustum &frustum, int x, int z);
+  void updateChunksToRender();
 
 private:
   bool m_isRunning = true;
+  std::atomic_bool m_shouldUpdateChunksToRender = false;
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
   int m_maxAsyncChunksLoading = 48;
@@ -84,8 +93,11 @@ private:
   PlayerController &m_playerController;
   WorldGenerator m_worldGenerator;
   std::shared_mutex m_mutex;
+  std::mutex m_renderMutex;
+  Frustum m_frustum;
 
   std::thread m_thread;
 
   std::vector<std::shared_ptr<Chunk>> m_chunks;
+  std::vector<std::shared_ptr<Chunk>> m_chunksToRender;
 };

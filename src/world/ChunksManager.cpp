@@ -8,6 +8,7 @@
 #include <shared_mutex>
 #include <tracy/Tracy.hpp>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 ChunksManager::ChunksManager(BlocksManager &blocksManager, TextureAtlas &textureAtlas,
@@ -30,6 +31,7 @@ void ChunksManager::asyncProcessChunks() {
     moveChunks();
     loadChunks();
     updateModifiedChunks();
+    updateChunksToRender();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
@@ -81,6 +83,10 @@ void ChunksManager::loadChunks() {
     radius++;
   }
 
+  if (chunksToGenerate.size()) {
+    m_shouldUpdateChunksToRender.store(true);
+  }
+
   for (const auto &chunkPos : chunksToGenerate) {
     futures.emplace_back(std::async(std::launch::async, [this, &chunkPos]() {
       const auto x = std::get<0>(chunkPos);
@@ -103,7 +109,7 @@ void ChunksManager::moveChunks() {
   if (m_chunkLastMovedX == playerX && m_chunkLastMovedZ == playerZ) {
     return;
   };
-
+  m_shouldUpdateChunksToRender.store(true);
   const int dX = playerX - m_chunkLastMovedX;
   const int dZ = playerZ - m_chunkLastMovedZ;
   m_chunkLastMovedX = playerX;
@@ -169,46 +175,10 @@ bool ChunksManager::isChunkVisible(const Frustum &frustum, int x, int z) {
   return true; // Чанк видим
 }
 
-std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender(Frustum &frustum) {
+std::vector<std::shared_ptr<Chunk>> ChunksManager::getChunksToRender() {
   ZoneScoped;
-  std::shared_lock<std::shared_mutex> lock(m_mutex);
-  std::vector<std::shared_ptr<Chunk>> chunksToRender;
-  chunksToRender.reserve(m_chunks.size() / 2);
-
-  const size_t centerIdx = getCenterIdx();
-
-  auto addChunkIfValid = [&](size_t index) {
-    ZoneScopedN("addChunkIfValid");
-    if (m_chunks[index] && isChunkVisible(frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
-      chunksToRender.push_back(m_chunks[index]);
-    }
-  };
-  addChunkIfValid(centerIdx);
-
-  size_t radius = 1;
-  while (radius <= m_loadRadius) {
-    size_t offset = radius * m_chunksVectorSideSize;
-    size_t topLeft = centerIdx - radius - offset;
-    size_t topRight = centerIdx + radius - offset;
-    size_t bottomLeft = centerIdx - radius + offset;
-    size_t bottomRight = centerIdx + radius + offset;
-
-    for (size_t i = topLeft; i <= topRight; i++) {
-      addChunkIfValid(i);
-    }
-    for (size_t i = bottomLeft; i <= bottomRight; i++) {
-      addChunkIfValid(i);
-    }
-    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft; i += m_chunksVectorSideSize) {
-      addChunkIfValid(i);
-    }
-    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight; i += m_chunksVectorSideSize) {
-      addChunkIfValid(i);
-    }
-    radius++;
-  }
-
-  return chunksToRender;
+  std::lock_guard<std::mutex> lock(m_renderMutex);
+  return m_chunksToRender;
 }
 
 void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
@@ -296,6 +266,10 @@ void ChunksManager::updateModifiedChunks() {
     radius++;
   }
 
+  if (chunksToUpdate.size()) {
+    m_shouldUpdateChunksToRender.store(true);
+  }
+
   std::vector<std::future<void>> futures;
 
   for (const auto chunk : chunksToUpdate) {
@@ -310,4 +284,51 @@ void ChunksManager::updateModifiedChunks() {
   for (auto &fut : futures) {
     fut.get();
   }
+}
+
+void ChunksManager::updateChunksToRender() {
+  ZoneScoped;
+  bool expected = true;
+  if (!m_shouldUpdateChunksToRender.compare_exchange_strong(expected, false)) {
+    return;
+  }
+  std::shared_lock<std::shared_mutex> lock(m_mutex);
+  std::vector<std::shared_ptr<Chunk>> chunksToRender;
+  chunksToRender.reserve(m_chunks.size() / 2);
+
+  const size_t centerIdx = getCenterIdx();
+
+  auto addChunkIfValid = [&](size_t index) {
+    ZoneScopedN("addChunkIfValid");
+    if (m_chunks[index] && isChunkVisible(m_frustum, m_chunks[index]->x(), m_chunks[index]->z())) {
+      chunksToRender.push_back(m_chunks[index]);
+    }
+  };
+  addChunkIfValid(centerIdx);
+
+  size_t radius = 1;
+  while (radius <= m_loadRadius) {
+    size_t offset = radius * m_chunksVectorSideSize;
+    size_t topLeft = centerIdx - radius - offset;
+    size_t topRight = centerIdx + radius - offset;
+    size_t bottomLeft = centerIdx - radius + offset;
+    size_t bottomRight = centerIdx + radius + offset;
+
+    for (size_t i = topLeft; i <= topRight; i++) {
+      addChunkIfValid(i);
+    }
+    for (size_t i = bottomLeft; i <= bottomRight; i++) {
+      addChunkIfValid(i);
+    }
+    for (size_t i = topLeft + m_chunksVectorSideSize; i < bottomLeft; i += m_chunksVectorSideSize) {
+      addChunkIfValid(i);
+    }
+    for (size_t i = topRight + m_chunksVectorSideSize; i < bottomRight; i += m_chunksVectorSideSize) {
+      addChunkIfValid(i);
+    }
+    radius++;
+  }
+
+  std::lock_guard<std::mutex> lock2(m_renderMutex);
+  std::swap(m_chunksToRender, chunksToRender);
 }
