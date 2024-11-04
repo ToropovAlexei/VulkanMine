@@ -80,10 +80,11 @@ private:
   std::atomic_bool m_shouldUpdateChunksToRender = false;
   int m_chunkLastMovedX = 0;
   int m_chunkLastMovedZ = 0;
-  int m_maxAsyncChunksLoading = 256;
-  int m_maxAsyncChunksToUpdate = 64;
-  static constexpr int MAX_CHUNKS_TO_LOAD_PER_THREAD = 32;
-  static constexpr int MAX_CHUNKS_TO_UPDATE_PER_THREAD = 8;
+  int m_maxThreads = std::max(1, static_cast<int>(std::thread::hardware_concurrency()) - 2);
+  static constexpr int MAX_CHUNKS_TO_UPDATE_PER_THREAD = 4;
+  static constexpr int MAX_CHUNKS_TO_LOAD_PER_THREAD = MAX_CHUNKS_TO_UPDATE_PER_THREAD * 20;
+  int m_maxAsyncChunksLoading = m_maxThreads * MAX_CHUNKS_TO_LOAD_PER_THREAD;
+  int m_maxAsyncChunksToUpdate = m_maxThreads * MAX_CHUNKS_TO_UPDATE_PER_THREAD;
   int m_loadRadius = 32;
   int m_chunksVectorSideSize = m_loadRadius * 2 + 1;
   size_t m_centerIdx = m_loadRadius + m_loadRadius * m_chunksVectorSideSize;
