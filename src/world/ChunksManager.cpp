@@ -117,6 +117,10 @@ void ChunksManager::moveChunks() {
   m_chunkLastMovedX = playerX;
   m_chunkLastMovedZ = playerZ;
   std::vector<std::shared_ptr<Chunk>> newChunks(m_chunks.size());
+  int minX = playerX - m_loadRadius;
+  int maxX = playerX + m_loadRadius;
+  int minZ = playerZ - m_loadRadius;
+  int maxZ = playerZ + m_loadRadius;
 
   for (auto &chunk : m_chunks) {
     if (!chunk) {
@@ -124,12 +128,10 @@ void ChunksManager::moveChunks() {
     }
     auto x = chunk->x();
     auto z = chunk->z();
-    if (x < playerX - m_loadRadius || x > playerX + m_loadRadius || z < playerZ - m_loadRadius ||
-        z > playerZ + m_loadRadius) {
+    if (x < minX || x > maxX || z < minZ || z > maxZ) {
       continue;
     }
-    if (x == playerX - m_loadRadius || x == playerX + m_loadRadius || z == playerZ - m_loadRadius ||
-        z == playerZ + m_loadRadius) {
+    if (x == minX || x == maxX || z == minZ || z == maxZ) {
       chunk->setIsModified(true);
     }
     auto idx = getChunkIdx(x, z);
