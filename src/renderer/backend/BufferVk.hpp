@@ -23,7 +23,6 @@ public:
   void invalidateIndex(vk::DeviceSize index);
 
   inline vk::Buffer getBuffer() const noexcept { return m_buffer; }
-  inline void *getMappedMemory() const noexcept { return m_mapped; }
   inline uint32_t getInstanceCount() const noexcept { return m_instanceCount; }
   inline vk::DeviceSize getInstanceSize() const noexcept { return m_instanceSize; }
   inline vk::DeviceSize getAlignmentSize() const noexcept { return m_instanceSize; }
@@ -35,7 +34,6 @@ private:
   static vk::DeviceSize getAlignment(vk::DeviceSize instanceSize, vk::DeviceSize minOffsetAlignment);
 
   RenderDeviceVk *m_device;
-  void *m_mapped = nullptr;
   vk::Buffer m_buffer = VK_NULL_HANDLE;
   VmaAllocation m_allocation = VK_NULL_HANDLE;
   VmaAllocationInfo m_allocationInfo{};
