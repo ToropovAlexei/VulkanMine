@@ -30,34 +30,7 @@ BufferVk::BufferVk(RenderDeviceVk *device, vk::DeviceSize instanceSize, uint32_t
   device->createBuffer(m_bufferSize, usageFlags, memoryUsage, flags, m_buffer, m_allocation, m_allocationInfo);
 }
 
-BufferVk::~BufferVk() {
-  unmap();
-  vmaDestroyBuffer(m_device->getAllocator(), static_cast<VkBuffer>(m_buffer), m_allocation);
-}
-
-/**
- * Map a memory range of this buffer. If successful, mapped points to the
- * specified buffer range.
- *
- * @param size (Optional) Size of the memory range to map. Pass VK_WHOLE_SIZE to
- * map the complete buffer range.
- * @param offset (Optional) Byte offset from beginning
- *
- * @return VkResult of the buffer mapping call
- */
-void BufferVk::map() { vmaMapMemory(m_device->getAllocator(), m_allocation, &m_mapped); }
-
-/**
- * Unmap a mapped memory range
- *
- * @note Does not return a result as vkUnmapMemory can't fail
- */
-void BufferVk::unmap() {
-  if (m_mapped) {
-    vmaUnmapMemory(m_device->getAllocator(), m_allocation);
-    m_mapped = nullptr;
-  }
-}
+BufferVk::~BufferVk() { vmaDestroyBuffer(m_device->getAllocator(), static_cast<VkBuffer>(m_buffer), m_allocation); }
 
 /**
  * Copies the specified data to the mapped buffer. Default value writes whole
@@ -70,15 +43,8 @@ void BufferVk::unmap() {
  *
  */
 void BufferVk::writeToBuffer(void *data, vk::DeviceSize size, vk::DeviceSize offset) {
-  assert(m_mapped && "Cannot copy to unmapped buffer");
-
-  if (size == VK_WHOLE_SIZE) {
-    memcpy(m_mapped, data, m_bufferSize);
-  } else {
-    char *memOffset = (char *)m_mapped;
-    memOffset += offset;
-    memcpy(memOffset, data, size);
-  }
+  vmaCopyMemoryToAllocation(m_device->getAllocator(), data, m_allocation, offset,
+                            size == VK_WHOLE_SIZE ? m_bufferSize : size);
 }
 
 /**

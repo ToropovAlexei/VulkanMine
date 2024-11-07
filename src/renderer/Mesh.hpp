@@ -43,7 +43,6 @@ private:
                               VMA_MEMORY_USAGE_AUTO,
                               VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT};
 
-    stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)vertices.data(), bufferSize);
 
     m_vertexBuffer = std::make_unique<BufferVk>(
@@ -65,9 +64,7 @@ private:
                               VMA_MEMORY_USAGE_AUTO,
                               VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT};
 
-    stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)indices.data(), bufferSize);
-    stagingBuffer.unmap();
 
     m_indexBuffer = std::make_unique<BufferVk>(
         m_device, indexSize, m_indexCount,

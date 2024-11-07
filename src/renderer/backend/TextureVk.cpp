@@ -62,9 +62,7 @@ void TextureVk::createTextureImage2D() {
   BufferVk stagingBuffer(m_device, bufferSize, 1, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_AUTO,
                          VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
 
-  stagingBuffer.map();
   stagingBuffer.writeToBuffer(img.data());
-  stagingBuffer.unmap(); // OPTIONAL as unmapped when destroying
 
   copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(img.width()),
                     static_cast<uint32_t>(img.height()));
@@ -209,9 +207,7 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       BufferVk stagingBuffer(m_device, bufferSize, 1, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_AUTO,
                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
 
-      stagingBuffer.map();
       stagingBuffer.writeToBuffer(mipDataLayers[layer][mip].data(), bufferSize, 0);
-      stagingBuffer.unmap();
 
       vk::BufferImageCopy region{};
       region.setBufferOffset(0)

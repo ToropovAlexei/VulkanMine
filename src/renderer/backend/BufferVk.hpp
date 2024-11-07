@@ -12,9 +12,6 @@ public:
   BufferVk(const BufferVk &) = delete;
   BufferVk &operator=(const BufferVk &) = delete;
 
-  void map();
-  void unmap();
-
   void writeToBuffer(void *data, vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
   vk::Result flush(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
   vk::DescriptorBufferInfo descriptorInfo(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0);
