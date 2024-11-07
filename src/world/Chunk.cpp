@@ -7,9 +7,8 @@
 #include <tracy/Tracy.hpp>
 #include <vector>
 
-Chunk::Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x, int z)
-    : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)}, m_blocksManager{blocksManager},
-      m_textureAtlas{textureAtlas} {}
+Chunk::Chunk(BlocksManager &blocksManager, int x, int z)
+    : m_x{x}, m_z{z}, m_worldX{toWorldPos(x)}, m_worldZ{toWorldPos(z)}, m_blocksManager{blocksManager} {}
 
 void Chunk::generateMesh(RenderDeviceVk *device) {
   bool expected = false;

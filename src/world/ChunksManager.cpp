@@ -14,7 +14,7 @@
 
 ChunksManager::ChunksManager(BlocksManager &blocksManager, TextureAtlas &textureAtlas,
                              PlayerController &playerController)
-    : m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas}, m_worldGenerator{blocksManager, textureAtlas},
+    : m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas}, m_worldGenerator{blocksManager},
       m_playerController{playerController} {
   ZoneScoped;
   m_chunks.resize(static_cast<size_t>(m_chunksVectorSideSize * m_chunksVectorSideSize));

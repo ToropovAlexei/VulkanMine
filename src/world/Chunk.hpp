@@ -3,7 +3,6 @@
 #include "../renderSystems/ChunkVertex.hpp"
 #include "../renderer/Mesh.hpp"
 #include "BlocksManager.hpp"
-#include "TextureAtlas.hpp"
 #include "Voxel.hpp"
 #include <atomic>
 #include <cstdint>
@@ -14,7 +13,7 @@ class Chunk {
   friend class WorldGenerator;
 
 public:
-  Chunk(BlocksManager &blocksManager, TextureAtlas &textureAtlas, int x, int z);
+  Chunk(BlocksManager &blocksManager, int x, int z);
   Chunk(const Chunk &) = delete;
   Chunk(Chunk &&) = delete;
 
@@ -112,7 +111,6 @@ private:
   bool m_isMeshOutdated = true;
   int m_maxY = 0;
   BlocksManager &m_blocksManager;
-  TextureAtlas &m_textureAtlas;
 
   std::vector<Voxel> m_voxels;
 

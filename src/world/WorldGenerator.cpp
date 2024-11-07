@@ -2,8 +2,7 @@
 #include <algorithm>
 #include <memory>
 
-WorldGenerator::WorldGenerator(BlocksManager &blockManager, TextureAtlas &textureAtlas)
-    : m_blockManager{blockManager}, m_textureAtlas{textureAtlas} {
+WorldGenerator::WorldGenerator(BlocksManager &blockManager) : m_blockManager{blockManager} {
   ZoneScoped;
   heightGenNoise = FastNoise::New<FastNoise::OpenSimplex2>();
   heightGenFBm = FastNoise::New<FastNoise::FractalFBm>();
@@ -17,7 +16,7 @@ WorldGenerator::WorldGenerator(BlocksManager &blockManager, TextureAtlas &textur
 
 std::shared_ptr<Chunk> WorldGenerator::generateChunk(int cx, int cz) {
   ZoneScoped;
-  auto chunk = new Chunk(m_blockManager, m_textureAtlas, cx, cz);
+  auto chunk = new Chunk(m_blockManager, cx, cz);
   std::vector<float> heights(Chunk::CHUNK_SQ_SIZE);
   std::vector<float> temps(Chunk::CHUNK_SQ_SIZE);
   heightGenFBm->GenUniformGrid2D(heights.data(), cx * Chunk::CHUNK_SIZE, cz * Chunk::CHUNK_SIZE, Chunk::CHUNK_SIZE,
