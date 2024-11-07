@@ -34,7 +34,7 @@ void ChunksManager::asyncProcessChunks() {
     updateModifiedChunks();
     updateChunksToRender();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 }
 
@@ -89,7 +89,7 @@ void ChunksManager::loadChunks() {
 
   for (auto chunksPositions : chunksToGenerate | std::ranges::views::chunk(MAX_CHUNKS_TO_LOAD_PER_THREAD)) {
     futures.emplace_back(std::async(std::launch::async, [this, chunksPositions]() {
-      for (auto chunkPos : chunksPositions) {
+      for (auto &chunkPos : chunksPositions) {
         const auto x = std::get<0>(chunkPos);
         const auto z = std::get<1>(chunkPos);
         auto chunk = m_worldGenerator.generateChunk(x, z);

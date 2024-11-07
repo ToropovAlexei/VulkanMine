@@ -71,7 +71,6 @@ private:
   void loadChunks();
   void moveChunks();
   void updateModifiedChunks();
-
   bool isChunkVisible(const Frustum &frustum, int x, int z);
   void updateChunksToRender();
 

@@ -18,7 +18,11 @@ void Chunk::generateMesh(RenderDeviceVk *device) {
       return;
     }
 
-    m_mesh = std::make_shared<Mesh<ChunkVertex>>(device, m_vertices, m_indices);
+    std::vector<ChunkVertex> tempVertices;
+    std::swap(m_vertices, tempVertices);
+    std::vector<uint32_t> tempIndices;
+    std::swap(m_indices, tempIndices);
+    m_mesh = std::make_shared<Mesh<ChunkVertex>>(device, tempVertices, tempIndices);
     m_isMeshOutdated = false;
     m_isLocked.store(false);
   }
@@ -159,8 +163,6 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared
   if (!m_isLocked.compare_exchange_strong(expected, true)) {
     return;
   }
-  // TODO очищать в другое время
-  clearVerticesAndIndices();
   m_vertices.reserve(5000);
   m_indices.reserve(6000);
 
@@ -238,9 +240,4 @@ void Chunk::shrinkAirBlocks() {
     m_voxels.resize(newSize);
     updateMaxY();
   }
-}
-
-void Chunk::clearVerticesAndIndices() {
-  m_vertices.clear();
-  m_indices.clear();
 }

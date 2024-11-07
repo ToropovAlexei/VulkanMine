@@ -60,7 +60,6 @@ public:
   void generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared_ptr<Chunk> back,
                                   std::shared_ptr<Chunk> left, std::shared_ptr<Chunk> right);
   void generateMesh(RenderDeviceVk *device);
-  void clearVerticesAndIndices();
 
 public:
   static constexpr int CHUNK_SIZE = 16;
