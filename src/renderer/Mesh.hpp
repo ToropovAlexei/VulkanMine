@@ -36,15 +36,19 @@ private:
     vk::DeviceSize bufferSize = sizeof(T) * m_vertexCount;
     uint32_t vertexSize = sizeof(T);
 
-    BufferVk stagingBuffer = {m_device, vertexSize, m_vertexCount, vk::BufferUsageFlagBits::eTransferSrc,
-                              VMA_MEMORY_USAGE_CPU_ONLY};
+    BufferVk stagingBuffer = {m_device,
+                              vertexSize,
+                              m_vertexCount,
+                              vk::BufferUsageFlagBits::eTransferSrc,
+                              VMA_MEMORY_USAGE_AUTO,
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT};
 
     stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)vertices.data(), bufferSize);
 
     m_vertexBuffer = std::make_unique<BufferVk>(
         m_device, vertexSize, m_vertexCount,
-        vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY);
+        vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_AUTO);
 
     m_device->copyBuffer(stagingBuffer.getBuffer(), m_vertexBuffer->getBuffer(), bufferSize);
   };
@@ -54,8 +58,12 @@ private:
     vk::DeviceSize bufferSize = sizeof(uint32_t) * m_indexCount;
     uint32_t indexSize = sizeof(uint32_t);
 
-    BufferVk stagingBuffer = {m_device, indexSize, m_indexCount, vk::BufferUsageFlagBits::eTransferSrc,
-                              VMA_MEMORY_USAGE_CPU_ONLY};
+    BufferVk stagingBuffer = {m_device,
+                              indexSize,
+                              m_indexCount,
+                              vk::BufferUsageFlagBits::eTransferSrc,
+                              VMA_MEMORY_USAGE_AUTO,
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT};
 
     stagingBuffer.map();
     stagingBuffer.writeToBuffer((void *)indices.data(), bufferSize);
@@ -63,7 +71,7 @@ private:
 
     m_indexBuffer = std::make_unique<BufferVk>(
         m_device, indexSize, m_indexCount,
-        vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_GPU_ONLY);
+        vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst, VMA_MEMORY_USAGE_AUTO);
 
     m_device->copyBuffer(stagingBuffer.getBuffer(), m_indexBuffer->getBuffer(), bufferSize);
   };

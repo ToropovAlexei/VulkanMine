@@ -442,12 +442,13 @@ void RenderDeviceVk::endSingleTimeCommands(vk::CommandBuffer commandBuffer) {
   m_device.freeCommandBuffers(m_commandPool, commandBuffer);
 }
 
-void RenderDeviceVk::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage,
+void RenderDeviceVk::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage,VmaAllocationCreateFlags flags,
                                   vk::Buffer &buffer, VmaAllocation &allocation, VmaAllocationInfo &allocInfo) {
   vk::BufferCreateInfo bufferInfo = {.size = size, .usage = usage, .sharingMode = vk::SharingMode::eExclusive};
 
   VmaAllocationCreateInfo allocCreateInfo{};
   allocCreateInfo.usage = memoryUsage;
+  allocCreateInfo.flags = flags;
 
   VkBuffer bufferRaw;
   if (vmaCreateBuffer(m_allocator, reinterpret_cast<const VkBufferCreateInfo *>(&bufferInfo), &allocCreateInfo,

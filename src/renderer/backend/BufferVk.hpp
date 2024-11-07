@@ -1,11 +1,12 @@
 #pragma once
 
 #include "RenderDeviceVk.hpp"
+#include "vk_mem_alloc.h"
 
 class BufferVk {
 public:
   BufferVk(RenderDeviceVk *device, vk::DeviceSize instanceSize, uint32_t instanceCount, vk::BufferUsageFlags usageFlags,
-           VmaMemoryUsage memoryUsage, vk::DeviceSize minOffsetAlignment = 1);
+           VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags flags = 0, vk::DeviceSize minOffsetAlignment = 1);
   ~BufferVk();
 
   BufferVk(const BufferVk &) = delete;

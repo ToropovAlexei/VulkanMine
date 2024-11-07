@@ -30,7 +30,7 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mou
   for (size_t i = 0; i < SwapChainVk::MAX_FRAMES_IN_FLIGHT; i++) {
     m_globalBuffers[i] =
         std::make_unique<BufferVk>(m_device, sizeof(GlobalUBO), 1, vk::BufferUsageFlagBits::eUniformBuffer,
-                                   VMA_MEMORY_USAGE_CPU_TO_GPU); // TODO Check VMA_MEMORY_USAGE_CPU_TO_GPU
+                                   VMA_MEMORY_USAGE_AUTO, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
     m_globalBuffers[i]->map();
   }
 

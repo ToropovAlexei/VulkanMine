@@ -298,7 +298,7 @@ void SwapChainVk::createDepthResources() {
         .initialLayout = vk::ImageLayout::eUndefined,
     };
 
-    m_device->createImageWithInfo(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_depthImages[i], m_depthImageMemorys[i]);
+    m_device->createImageWithInfo(imageInfo, VMA_MEMORY_USAGE_AUTO, m_depthImages[i], m_depthImageMemorys[i]);
 
     vk::ImageViewCreateInfo viewInfo = {.image = m_depthImages[i],
                                         .viewType = vk::ImageViewType::e2D,

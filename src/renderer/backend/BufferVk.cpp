@@ -21,12 +21,13 @@ vk::DeviceSize BufferVk::getAlignment(vk::DeviceSize instanceSize, vk::DeviceSiz
 }
 
 BufferVk::BufferVk(RenderDeviceVk *device, vk::DeviceSize instanceSize, uint32_t instanceCount,
-                   vk::BufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, vk::DeviceSize minOffsetAlignment)
+                   vk::BufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags flags,
+                   vk::DeviceSize minOffsetAlignment)
     : m_device{device}, m_instanceCount{instanceCount}, m_instanceSize{instanceSize}, m_usageFlags{usageFlags},
       m_memoryUsage{memoryUsage} {
   m_alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
   m_bufferSize = m_alignmentSize * instanceCount;
-  device->createBuffer(m_bufferSize, usageFlags, memoryUsage, m_buffer, m_allocation, m_allocationInfo);
+  device->createBuffer(m_bufferSize, usageFlags, memoryUsage, flags, m_buffer, m_allocation, m_allocationInfo);
 }
 
 BufferVk::~BufferVk() {

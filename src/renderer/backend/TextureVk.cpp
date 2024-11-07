@@ -1,6 +1,7 @@
 #include "TextureVk.hpp"
 #include "../../assets/Image.hpp"
 #include "BufferVk.hpp"
+#include "RenderDeviceVk.hpp"
 #include <cmath>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
@@ -45,7 +46,7 @@ void TextureVk::createTextureImage2D() {
       .setUsage(vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
 
   VmaAllocationCreateInfo allocCreateInfo{};
-  allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+  allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
   if (vmaCreateImage(m_device->getAllocator(), reinterpret_cast<const VkImageCreateInfo *>(&imageInfo),
                      &allocCreateInfo, reinterpret_cast<VkImage *>(&m_textureImage), &m_textureImageAllocation,
@@ -58,7 +59,8 @@ void TextureVk::createTextureImage2D() {
 
   // Создание временного буфера для загрузки текстуры
   vk::DeviceSize bufferSize = static_cast<vk::DeviceSize>(img.size());
-  BufferVk stagingBuffer(m_device, bufferSize, 1, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_ONLY);
+  BufferVk stagingBuffer(m_device, bufferSize, 1, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_AUTO,
+                         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
 
   stagingBuffer.map();
   stagingBuffer.writeToBuffer(img.data());
@@ -188,7 +190,7 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       .setUsage(vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled);
 
   VmaAllocationCreateInfo allocCreateInfo{};
-  allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+  allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
   if (vmaCreateImage(m_device->getAllocator(), reinterpret_cast<const VkImageCreateInfo *>(&imageInfo),
                      &allocCreateInfo, reinterpret_cast<VkImage *>(&m_textureImage), &m_textureImageAllocation,
@@ -204,7 +206,8 @@ void TextureVk::createTextureImage2DArrayWithMipmaps() {
       uint32_t mipHeight = std::max(1u, static_cast<uint32_t>(height >> mip));
 
       vk::DeviceSize bufferSize = static_cast<vk::DeviceSize>(mipWidth * mipHeight * static_cast<uint32_t>(channels));
-      BufferVk stagingBuffer(m_device, bufferSize, 1, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_CPU_ONLY);
+      BufferVk stagingBuffer(m_device, bufferSize, 1, vk::BufferUsageFlagBits::eTransferSrc, VMA_MEMORY_USAGE_AUTO,
+                             VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
 
       stagingBuffer.map();
       stagingBuffer.writeToBuffer(mipDataLayers[layer][mip].data(), bufferSize, 0);
