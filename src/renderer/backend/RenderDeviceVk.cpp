@@ -9,26 +9,22 @@
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-const std::vector<const char *> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"};
+const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
 const std::vector<const char *> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     //"VK_KHR_get_physical_device_properties2",
-    "VK_KHR_maintenance1", "VK_KHR_maintenance3", "VK_KHR_draw_indirect_count",
-    "VK_KHR_shader_subgroup_extended_types", "VK_EXT_descriptor_indexing",
-    "VK_EXT_sampler_filter_minmax", "VK_EXT_host_query_reset",
+    "VK_KHR_maintenance1", "VK_KHR_maintenance3", "VK_KHR_draw_indirect_count", "VK_KHR_shader_subgroup_extended_types",
+    "VK_EXT_descriptor_indexing", "VK_EXT_sampler_filter_minmax", "VK_EXT_host_query_reset",
     "VK_KHR_shader_float16_int8", "VK_KHR_shader_atomic_int64"};
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL
-debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-              [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
-              const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-              [[maybe_unused]] void *pUserData) {
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                    [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+                                                    [[maybe_unused]] void *pUserData) {
   if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
     LOG_ERROR(pCallbackData->pMessage);
-  } else if (messageSeverity &
-             VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+  } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
     LOG_WARNING(pCallbackData->pMessage);
   } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
     LOG_INFO(pCallbackData->pMessage);
@@ -89,8 +85,7 @@ void RenderDeviceVk::initVulkan() {
     throw std::runtime_error("Required extensions are missing!");
   }
 
-  createInfo.enabledExtensionCount =
-      static_cast<uint32_t>(requiredExtensions.size());
+  createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
   createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 #ifndef NDEBUG
@@ -111,14 +106,11 @@ void RenderDeviceVk::setupDebugMessenger() {
 
   dldi = vk::DispatchLoaderDynamic(m_instance, vkGetInstanceProcAddr);
 
-  m_debugMessenger =
-      m_instance.createDebugUtilsMessengerEXT(createInfo, nullptr, dldi);
+  m_debugMessenger = m_instance.createDebugUtilsMessengerEXT(createInfo, nullptr, dldi);
 #endif
 }
 
-void RenderDeviceVk::createSurface() {
-  m_window->createWindowSurface(m_instance, m_surface);
-}
+void RenderDeviceVk::createSurface() { m_window->createWindowSurface(m_instance, m_surface); }
 
 void RenderDeviceVk::pickPhysicalDevice() {
   auto devices = m_instance.enumeratePhysicalDevices();
@@ -143,25 +135,20 @@ void RenderDeviceVk::createLogicalDevice() {
   QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
 
   std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(),
-                                            indices.transferFamily.value(),
+  std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.transferFamily.value(),
                                             indices.presentFamily.value()};
 
   float queuePriority = 1.0f;
   for (uint32_t queueFamily : uniqueQueueFamilies) {
-    queueCreateInfos.push_back({.queueFamilyIndex = queueFamily,
-                                .queueCount = 1,
-                                .pQueuePriorities = &queuePriority});
+    queueCreateInfos.push_back({.queueFamilyIndex = queueFamily, .queueCount = 1, .pQueuePriorities = &queuePriority});
   }
 
-  vk::PhysicalDeviceHostQueryResetFeaturesEXT resetFeatures = {.hostQueryReset =
-                                                                   VK_TRUE};
+  vk::PhysicalDeviceHostQueryResetFeaturesEXT resetFeatures = {.hostQueryReset = VK_TRUE};
 
-  vk::PhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR
-      shaderSubgroupFeatures = {
-          .pNext = &resetFeatures,
-          .shaderSubgroupExtendedTypes = VK_TRUE,
-      };
+  vk::PhysicalDeviceShaderSubgroupExtendedTypesFeaturesKHR shaderSubgroupFeatures = {
+      .pNext = &resetFeatures,
+      .shaderSubgroupExtendedTypes = VK_TRUE,
+  };
 
   vk::PhysicalDeviceDescriptorIndexingFeaturesEXT descriptorIndexingFeatures = {
       .pNext = &shaderSubgroupFeatures,
@@ -212,8 +199,7 @@ void RenderDeviceVk::createLogicalDevice() {
     enabledExtensions.push_back(extension);
   }
 
-  createInfo.enabledExtensionCount =
-      static_cast<uint32_t>(enabledExtensions.size());
+  createInfo.enabledExtensionCount = static_cast<uint32_t>(enabledExtensions.size());
   createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
 #ifndef NDEBUG
@@ -277,24 +263,20 @@ void RenderDeviceVk::checkValidationLayerSupport() {
     }
 
     if (!layerFound) {
-      throw std::runtime_error(
-          "validation layers requested, but not available!");
+      throw std::runtime_error("validation layers requested, but not available!");
     }
   }
 }
 
-bool RenderDeviceVk::checkInstanceExtensionSupport(
-    std::vector<const char *> &requiredExtensions) {
+bool RenderDeviceVk::checkInstanceExtensionSupport(std::vector<const char *> &requiredExtensions) {
   auto extensions = vk::enumerateInstanceExtensionProperties();
 
   for (auto extension : extensions) {
-    requiredExtensions.erase(
-        std::remove_if(requiredExtensions.begin(), requiredExtensions.end(),
-                       [&extension](const char *requiredExtension) {
-                         return std::strcmp(requiredExtension,
-                                            extension.extensionName) == 0;
-                       }),
-        requiredExtensions.end());
+    requiredExtensions.erase(std::remove_if(requiredExtensions.begin(), requiredExtensions.end(),
+                                            [&extension](const char *requiredExtension) {
+                                              return std::strcmp(requiredExtension, extension.extensionName) == 0;
+                                            }),
+                             requiredExtensions.end());
   }
 
   return requiredExtensions.empty();
@@ -305,8 +287,7 @@ std::vector<const char *> RenderDeviceVk::getRequiredExtensions() {
   const char **glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-  std::vector<const char *> extensions(glfwExtensions,
-                                       glfwExtensions + glfwExtensionCount);
+  std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
 #ifndef NDEBUG
   extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -317,12 +298,10 @@ std::vector<const char *> RenderDeviceVk::getRequiredExtensions() {
   return extensions;
 };
 
-void RenderDeviceVk::populateDebugMessengerCreateInfo(
-    vk::DebugUtilsMessengerCreateInfoEXT &createInfo) {
-  createInfo.messageSeverity =
-      vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-      vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-      vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+void RenderDeviceVk::populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo) {
+  createInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+                               vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+                               vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
   createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
                            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
                            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance;
@@ -352,12 +331,10 @@ int RenderDeviceVk::rateDeviceSuitability(const vk::PhysicalDevice &device) {
   return score;
 }
 
-bool RenderDeviceVk::checkDeviceExtensionSupport(
-    const vk::PhysicalDevice &device) {
+bool RenderDeviceVk::checkDeviceExtensionSupport(const vk::PhysicalDevice &device) {
   auto availableExtensions = device.enumerateDeviceExtensionProperties();
 
-  std::set<std::string> requiredExtensions(deviceExtensions.begin(),
-                                           deviceExtensions.end());
+  std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
   for (const auto &extension : availableExtensions) {
     requiredExtensions.erase(extension.extensionName);
@@ -366,8 +343,7 @@ bool RenderDeviceVk::checkDeviceExtensionSupport(
   return requiredExtensions.empty();
 }
 
-QueueFamilyIndices
-RenderDeviceVk::findQueueFamilies(const vk::PhysicalDevice device) {
+QueueFamilyIndices RenderDeviceVk::findQueueFamilies(const vk::PhysicalDevice device) {
   QueueFamilyIndices indices;
 
   auto queueFamilies = device.getQueueFamilyProperties();
@@ -376,27 +352,21 @@ RenderDeviceVk::findQueueFamilies(const vk::PhysicalDevice device) {
 
   int i = 0;
   for (const auto &queueFamily : queueFamilies) {
-    if (queueFamily.queueCount > 0 &&
-        queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
+    if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
       indices.graphicsFamily = i;
-      indices.graphicsFamilySupportsTimeStamps =
-          queueFamily.timestampValidBits > 0;
+      indices.graphicsFamilySupportsTimeStamps = queueFamily.timestampValidBits > 0;
     }
 
-    if (queueFamily.queueCount > 0 &&
-        (queueFamily.queueFlags & transferQueueFlags) == transferQueueFlags) {
+    if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & transferQueueFlags) == transferQueueFlags) {
       indices.transferFamily = i;
-      indices.transferFamilySupportsTimeStamps =
-          queueFamily.timestampValidBits > 0;
+      indices.transferFamilySupportsTimeStamps = queueFamily.timestampValidBits > 0;
     }
 
-    VkBool32 presentSupport =
-        device.getSurfaceSupportKHR(static_cast<uint32_t>(i), m_surface);
+    VkBool32 presentSupport = device.getSurfaceSupportKHR(static_cast<uint32_t>(i), m_surface);
 
     if (queueFamily.queueCount > 0 && presentSupport) {
       indices.presentFamily = i;
-      indices.presentFamilySupportsTimeStamps =
-          queueFamily.timestampValidBits > 0;
+      indices.presentFamilySupportsTimeStamps = queueFamily.timestampValidBits > 0;
     }
 
     if (indices.IsComplete()) {
@@ -417,40 +387,31 @@ SwapChainSupportDetails RenderDeviceVk::getSwapChainSupport() {
   };
 }
 
-void RenderDeviceVk::createImageWithInfo(const vk::ImageCreateInfo &imageInfo,
-                                         VmaMemoryUsage memoryUsage,
-                                         vk::Image &image,
-                                         VmaAllocation &imageAllocation) {
+void RenderDeviceVk::createImageWithInfo(const vk::ImageCreateInfo &imageInfo, VmaMemoryUsage memoryUsage,
+                                         vk::Image &image, VmaAllocation &imageAllocation) {
   vk::ImageCreateInfo imageCreateInfo = imageInfo;
 
   VmaAllocationCreateInfo allocCreateInfo{};
   allocCreateInfo.usage = memoryUsage;
 
   VkImage rawImage;
-  if (vmaCreateImage(
-          m_allocator,
-          reinterpret_cast<const VkImageCreateInfo *>(&imageCreateInfo),
-          &allocCreateInfo, &rawImage, &imageAllocation,
-          nullptr) != VK_SUCCESS) {
+  if (vmaCreateImage(m_allocator, reinterpret_cast<const VkImageCreateInfo *>(&imageCreateInfo), &allocCreateInfo,
+                     &rawImage, &imageAllocation, nullptr) != VK_SUCCESS) {
     throw std::runtime_error("failed to create image!");
   }
 
   image = vk::Image(rawImage);
 }
 
-vk::Format
-RenderDeviceVk::findSupportedFormat(const std::vector<vk::Format> &candidates,
-                                    vk::ImageTiling tiling,
-                                    vk::FormatFeatureFlags features) {
+vk::Format RenderDeviceVk::findSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling,
+                                               vk::FormatFeatureFlags features) {
   for (vk::Format format : candidates) {
 
     vk::FormatProperties props = m_physicalDevice.getFormatProperties(format);
 
-    if (tiling == vk::ImageTiling::eLinear &&
-        (props.linearTilingFeatures & features) == features) {
+    if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
       return format;
-    } else if (tiling == vk::ImageTiling::eOptimal &&
-               (props.optimalTilingFeatures & features) == features) {
+    } else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
       return format;
     }
   }
@@ -459,15 +420,11 @@ RenderDeviceVk::findSupportedFormat(const std::vector<vk::Format> &candidates,
 
 vk::CommandBuffer RenderDeviceVk::beginSingleTimeCommands() {
   vk::CommandBufferAllocateInfo allocInfo = {
-      .commandPool = m_commandPool,
-      .level = vk::CommandBufferLevel::ePrimary,
-      .commandBufferCount = 1};
+      .commandPool = m_commandPool, .level = vk::CommandBufferLevel::ePrimary, .commandBufferCount = 1};
 
-  vk::CommandBuffer commandBuffer =
-      m_device.allocateCommandBuffers(allocInfo).front();
+  vk::CommandBuffer commandBuffer = m_device.allocateCommandBuffers(allocInfo).front();
 
-  vk::CommandBufferBeginInfo beginInfo = {
-      .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
+  vk::CommandBufferBeginInfo beginInfo = {.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
 
   commandBuffer.begin(beginInfo);
   return commandBuffer;
@@ -485,30 +442,23 @@ void RenderDeviceVk::endSingleTimeCommands(vk::CommandBuffer commandBuffer) {
   m_device.freeCommandBuffers(m_commandPool, commandBuffer);
 }
 
-void RenderDeviceVk::createBuffer(vk::DeviceSize size,
-                                  vk::BufferUsageFlags usage,
-                                  VmaMemoryUsage memoryUsage,
-                                  vk::Buffer &buffer, VmaAllocation &allocation,
-                                  VmaAllocationInfo &allocInfo) {
-  vk::BufferCreateInfo bufferInfo = {
-      .size = size, .usage = usage, .sharingMode = vk::SharingMode::eExclusive};
+void RenderDeviceVk::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage,
+                                  vk::Buffer &buffer, VmaAllocation &allocation, VmaAllocationInfo &allocInfo) {
+  vk::BufferCreateInfo bufferInfo = {.size = size, .usage = usage, .sharingMode = vk::SharingMode::eExclusive};
 
   VmaAllocationCreateInfo allocCreateInfo{};
   allocCreateInfo.usage = memoryUsage;
 
   VkBuffer bufferRaw;
-  if (vmaCreateBuffer(m_allocator,
-                      reinterpret_cast<const VkBufferCreateInfo *>(&bufferInfo),
-                      &allocCreateInfo, &bufferRaw, &allocation,
-                      &allocInfo) != VK_SUCCESS) {
+  if (vmaCreateBuffer(m_allocator, reinterpret_cast<const VkBufferCreateInfo *>(&bufferInfo), &allocCreateInfo,
+                      &bufferRaw, &allocation, &allocInfo) != VK_SUCCESS) {
     throw std::runtime_error("failed to create buffer with VMA!");
   }
 
   buffer = vk::Buffer(bufferRaw);
 }
 
-void RenderDeviceVk::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer,
-                                vk::DeviceSize size) {
+void RenderDeviceVk::copyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) {
   vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
   vk::BufferCopy copyRegion = {.srcOffset = 0, .dstOffset = 0, .size = size};

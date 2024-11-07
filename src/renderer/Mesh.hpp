@@ -26,6 +26,9 @@ public:
     commandBuffer.drawIndexed(m_indexCount, 1, 0, 0, 0);
   };
 
+  inline uint32_t getVertexCount() const noexcept { return m_vertexCount; }
+  inline uint32_t getIndexCount() const noexcept { return m_indexCount; }
+
 private:
   void createVertexBuffers(const std::vector<T> &vertices) {
     ZoneScoped;
@@ -48,7 +51,7 @@ private:
   void createIndexBuffer(const std::vector<uint32_t> &indices) {
     ZoneScoped;
     m_indexCount = static_cast<uint32_t>(indices.size());
-    vk::DeviceSize bufferSize = sizeof(uint32_t) * indices.size();
+    vk::DeviceSize bufferSize = sizeof(uint32_t) * m_indexCount;
     uint32_t indexSize = sizeof(uint32_t);
 
     BufferVk stagingBuffer = {m_device, indexSize, m_indexCount, vk::BufferUsageFlagBits::eTransferSrc,

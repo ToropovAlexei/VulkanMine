@@ -13,31 +13,25 @@
  *
  * @return VkResult of the buffer mapping call
  */
-vk::DeviceSize BufferVk::getAlignment(vk::DeviceSize instanceSize,
-                                      vk::DeviceSize minOffsetAlignment) {
+vk::DeviceSize BufferVk::getAlignment(vk::DeviceSize instanceSize, vk::DeviceSize minOffsetAlignment) {
   if (minOffsetAlignment > 0) {
     return (instanceSize + minOffsetAlignment - 1) & ~(minOffsetAlignment - 1);
   }
   return instanceSize;
 }
 
-BufferVk::BufferVk(RenderDeviceVk *device, vk::DeviceSize instanceSize,
-                   uint32_t instanceCount, vk::BufferUsageFlags usageFlags,
-                   VmaMemoryUsage memoryUsage,
-                   vk::DeviceSize minOffsetAlignment)
-    : m_device{device}, m_instanceCount{instanceCount},
-      m_instanceSize{instanceSize}, m_usageFlags{usageFlags},
+BufferVk::BufferVk(RenderDeviceVk *device, vk::DeviceSize instanceSize, uint32_t instanceCount,
+                   vk::BufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, vk::DeviceSize minOffsetAlignment)
+    : m_device{device}, m_instanceCount{instanceCount}, m_instanceSize{instanceSize}, m_usageFlags{usageFlags},
       m_memoryUsage{memoryUsage} {
   m_alignmentSize = getAlignment(instanceSize, minOffsetAlignment);
   m_bufferSize = m_alignmentSize * instanceCount;
-  device->createBuffer(m_bufferSize, usageFlags, memoryUsage, m_buffer,
-                       m_allocation, m_allocationInfo);
+  device->createBuffer(m_bufferSize, usageFlags, memoryUsage, m_buffer, m_allocation, m_allocationInfo);
 }
 
 BufferVk::~BufferVk() {
   unmap();
-  vmaDestroyBuffer(m_device->getAllocator(), static_cast<VkBuffer>(m_buffer),
-                   m_allocation);
+  vmaDestroyBuffer(m_device->getAllocator(), static_cast<VkBuffer>(m_buffer), m_allocation);
 }
 
 /**
@@ -50,9 +44,7 @@ BufferVk::~BufferVk() {
  *
  * @return VkResult of the buffer mapping call
  */
-void BufferVk::map() {
-  vmaMapMemory(m_device->getAllocator(), m_allocation, &m_mapped);
-}
+void BufferVk::map() { vmaMapMemory(m_device->getAllocator(), m_allocation, &m_mapped); }
 
 /**
  * Unmap a mapped memory range
@@ -76,8 +68,7 @@ void BufferVk::unmap() {
  * @param offset (Optional) Byte offset from beginning of mapped region
  *
  */
-void BufferVk::writeToBuffer(void *data, vk::DeviceSize size,
-                             vk::DeviceSize offset) {
+void BufferVk::writeToBuffer(void *data, vk::DeviceSize size, vk::DeviceSize offset) {
   assert(m_mapped && "Cannot copy to unmapped buffer");
 
   if (size == VK_WHOLE_SIZE) {
@@ -136,8 +127,7 @@ void BufferVk::invalidate(vk::DeviceSize size, vk::DeviceSize offset) {
  *
  * @return VkDescriptorBufferInfo of specified offset and range
  */
-vk::DescriptorBufferInfo BufferVk::descriptorInfo(vk::DeviceSize size,
-                                                  vk::DeviceSize offset) {
+vk::DescriptorBufferInfo BufferVk::descriptorInfo(vk::DeviceSize size, vk::DeviceSize offset) {
   return vk::DescriptorBufferInfo{
       m_buffer,
       offset,
@@ -164,9 +154,7 @@ void BufferVk::writeToIndex(void *data, vk::DeviceSize index) {
  * @param index Used in offset calculation
  *
  */
-vk::Result BufferVk::flushIndex(vk::DeviceSize index) {
-  return flush(m_alignmentSize, index * m_alignmentSize);
-}
+vk::Result BufferVk::flushIndex(vk::DeviceSize index) { return flush(m_alignmentSize, index * m_alignmentSize); }
 
 /**
  * Create a buffer info descriptor
@@ -175,8 +163,7 @@ vk::Result BufferVk::flushIndex(vk::DeviceSize index) {
  *
  * @return VkDescriptorBufferInfo for instance at index
  */
-vk::DescriptorBufferInfo
-BufferVk::descriptorInfoForIndex(vk::DeviceSize index) {
+vk::DescriptorBufferInfo BufferVk::descriptorInfoForIndex(vk::DeviceSize index) {
   return descriptorInfo(m_alignmentSize, index * m_alignmentSize);
 }
 
@@ -189,6 +176,4 @@ BufferVk::descriptorInfoForIndex(vk::DeviceSize index) {
  *
  * @return VkResult of the invalidate call
  */
-void BufferVk::invalidateIndex(vk::DeviceSize index) {
-  return invalidate(m_alignmentSize, index * m_alignmentSize);
-}
+void BufferVk::invalidateIndex(vk::DeviceSize index) { return invalidate(m_alignmentSize, index * m_alignmentSize); }

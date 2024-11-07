@@ -163,8 +163,8 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared
   if (!m_isLocked.compare_exchange_strong(expected, true)) {
     return;
   }
-  m_vertices.reserve(5000);
-  m_indices.reserve(6000);
+  m_vertices.reserve(6000);
+  m_indices.reserve(9000);
 
   size_t voxelIdx = 0;
   for (int y = 0; y < m_maxY; y++) {
