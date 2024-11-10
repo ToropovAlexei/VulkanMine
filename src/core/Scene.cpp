@@ -114,7 +114,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
   m_ubo.projectionView = m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
   m_ubo.view = m_camera->getViewMatrix();
   m_ubo.projection = m_camera->getProjectionMatrix();
-  m_ubo.dayTime = m_dayTime;
+  m_ubo.dayTime = static_cast<float>(m_dayTime);
 
   auto frameIndex = m_renderer->getFrameIndex();
   m_chunksManager.updateFrustum(m_camera->getFrustum());

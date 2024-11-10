@@ -17,7 +17,7 @@ struct GlobalUBO {
   glm::mat4 view;
   glm::mat4 projection;
   glm::mat4 projectionView;
-  int dayTime;
+  float dayTime;
 };
 
 class Scene {
@@ -46,5 +46,5 @@ private:
   BlocksManager m_blocksManager;
   ChunksManager m_chunksManager;
   FrameData m_prevFrameData;
-  int m_dayTime = 3000;
+  int m_dayTime = 9995;
 };
