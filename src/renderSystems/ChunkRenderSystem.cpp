@@ -4,9 +4,8 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_enums.hpp>
 
-ChunkRenderSystem::ChunkRenderSystem(
-    RenderDeviceVk *device, vk::RenderPass renderPass,
-    vk::DescriptorSetLayout descriptorSetLayout)
+ChunkRenderSystem::ChunkRenderSystem(RenderDeviceVk *device, vk::RenderPass renderPass,
+                                     vk::DescriptorSetLayout descriptorSetLayout)
     : m_device{device} {
   ZoneScoped;
   createPipelineLayout(descriptorSetLayout);
@@ -22,19 +21,17 @@ void ChunkRenderSystem::render(FrameData &frameData) {
   ZoneScoped;
   m_pipeline->bind(frameData.commandBuffer);
 
-  frameData.commandBuffer.bindDescriptorSets(
-      vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
-      &frameData.globalDescriptorSet, 0, nullptr);
+  frameData.commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
+                                             &frameData.globalDescriptorSet, 0, nullptr);
 
   for (auto &chunk : frameData.chunks) {
     PushConstantData push = {
         .chunkPos = {(chunk->x() - frameData.playerX) * Chunk::CHUNK_SIZE,
                      (chunk->z() - frameData.playerZ) * Chunk::CHUNK_SIZE},
     };
-    frameData.commandBuffer.pushConstants(
-        m_pipelineLayout,
-        vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
-        0, sizeof(PushConstantData), &push);
+    frameData.commandBuffer.pushConstants(m_pipelineLayout,
+                                          vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, 0,
+                                          sizeof(PushConstantData), &push);
     if (chunk->getMesh() != nullptr) {
       chunk->getMesh()->bind(frameData.commandBuffer);
       chunk->getMesh()->draw(frameData.commandBuffer);
@@ -43,18 +40,15 @@ void ChunkRenderSystem::render(FrameData &frameData) {
   m_prevChunksToRender[frameData.frameIndex] = frameData.chunks;
 }
 
-void ChunkRenderSystem::createPipelineLayout(
-    vk::DescriptorSetLayout descriptorSetLayout) {
+void ChunkRenderSystem::createPipelineLayout(vk::DescriptorSetLayout descriptorSetLayout) {
   ZoneScoped;
   vk::PushConstantRange pushConstantRange = {
-      .stageFlags =
-          vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+      .stageFlags = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
       .offset = 0,
       .size = sizeof(PushConstantData),
   };
 
-  std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{
-      descriptorSetLayout};
+  std::vector<vk::DescriptorSetLayout> descriptorSetLayouts{descriptorSetLayout};
 
   vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {
       .setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size()),
@@ -63,8 +57,7 @@ void ChunkRenderSystem::createPipelineLayout(
       .pPushConstantRanges = &pushConstantRange,
   };
 
-  m_pipelineLayout =
-      m_device->getDevice().createPipelineLayout(pipelineLayoutInfo);
+  m_pipelineLayout = m_device->getDevice().createPipelineLayout(pipelineLayoutInfo);
 }
 
 void ChunkRenderSystem::createPipeline(vk::RenderPass renderPass) {
@@ -74,11 +67,8 @@ void ChunkRenderSystem::createPipeline(vk::RenderPass renderPass) {
 
   pipelineConfig.renderPass = renderPass;
   pipelineConfig.pipelineLayout = m_pipelineLayout;
-  pipelineConfig.vertexInputAttributeDescriptions =
-      ChunkVertex::getAttributeDescriptions();
-  pipelineConfig.vertexInputBindingDescriptions =
-      ChunkVertex::getBindingDescriptions();
-  m_pipeline = std::make_unique<PipelineVk>(
-      m_device, "shaders/test_shader.vert.spv", "shaders/test_shader.frag.spv",
-      pipelineConfig);
+  pipelineConfig.vertexInputAttributeDescriptions = ChunkVertex::getAttributeDescriptions();
+  pipelineConfig.vertexInputBindingDescriptions = ChunkVertex::getBindingDescriptions();
+  m_pipeline = std::make_unique<PipelineVk>(m_device, "shaders/chunk_shader.vert.spv", "shaders/chunk_shader.frag.spv",
+                                            pipelineConfig);
 }
