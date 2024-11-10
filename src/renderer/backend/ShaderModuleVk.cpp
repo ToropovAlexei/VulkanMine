@@ -1,8 +1,9 @@
 #include "ShaderModuleVk.hpp"
 #include <fstream>
 #include <stdexcept>
+#include <string_view>
 
-ShaderModuleVk::ShaderModuleVk(RenderDeviceVk *device, const std::string &filePath, vk::ShaderStageFlagBits stage)
+ShaderModuleVk::ShaderModuleVk(RenderDeviceVk *device, std::string_view filePath, vk::ShaderStageFlagBits stage)
     : m_device(device), m_stage(stage) {
   auto code = readFile(filePath);
 
@@ -23,8 +24,8 @@ vk::PipelineShaderStageCreateInfo ShaderModuleVk::getShaderStageInfo() const {
   };
 }
 
-std::vector<char> ShaderModuleVk::readFile(const std::string &filename) {
-  std::ifstream file(filename, std::ios::ate | std::ios::binary);
+std::vector<char> ShaderModuleVk::readFile(std::string_view filename) {
+  std::ifstream file(filename.data(), std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
     throw std::runtime_error("Failed to open shader file!");

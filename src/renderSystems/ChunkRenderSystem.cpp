@@ -69,6 +69,5 @@ void ChunkRenderSystem::createPipeline(vk::RenderPass renderPass) {
   pipelineConfig.pipelineLayout = m_pipelineLayout;
   pipelineConfig.vertexInputAttributeDescriptions = ChunkVertex::getAttributeDescriptions();
   pipelineConfig.vertexInputBindingDescriptions = ChunkVertex::getBindingDescriptions();
-  m_pipeline = std::make_unique<PipelineVk>(m_device, "shaders/chunk_shader.vert.spv", "shaders/chunk_shader.frag.spv",
-                                            pipelineConfig);
+  m_pipeline = std::make_unique<PipelineVk>(m_device, "chunk_shader", "chunk_shader", pipelineConfig);
 }

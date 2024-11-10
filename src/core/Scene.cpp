@@ -1,11 +1,11 @@
 #include "Scene.hpp"
+#include "../assets/Utils.hpp"
 #include "../renderer/backend/SwapChainVk.hpp"
 #include "glm/fwd.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <cstddef>
 #include <memory>
-#include <string>
 #include <tracy/Tracy.hpp>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -13,8 +13,8 @@
 
 Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse)
     : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse}, m_renderer{renderer},
-      m_textureAtlas{device, "res/textures"}, m_blocksManager{"res/blocks", m_textureAtlas},
-      m_playerController{{0, 128, 0}}, m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
+      m_textureAtlas{device, getTexturesPath().string()}, m_blocksManager{getBlocksPath().string(), m_textureAtlas},
+      m_playerController{{0, 5, 0}}, m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
   ZoneScoped;
   globalPool = DescriptorPoolVk::Builder(m_device)
                    .setMaxSets(SwapChainVk::MAX_FRAMES_IN_FLIGHT)
@@ -53,6 +53,8 @@ Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mou
 
   m_chunkRenderSystem = std::make_unique<ChunkRenderSystem>(m_device, m_renderer->getSwapChainRenderPass(),
                                                             globalSetLayout->getDescriptorSetLayout());
+  m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(m_device, m_renderer->getSwapChainRenderPass(),
+                                                              globalSetLayout->getDescriptorSetLayout());
 }
 
 Scene::~Scene() {
@@ -109,6 +111,8 @@ void Scene::update(float dt) {
 void Scene::render(vk::CommandBuffer commandBuffer) {
   ZoneScoped;
   m_ubo.projectionView = m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
+  m_ubo.view = m_camera->getViewMatrix();
+  m_ubo.projection = m_camera->getProjectionMatrix();
 
   auto frameIndex = m_renderer->getFrameIndex();
   m_chunksManager.updateFrustum(m_camera->getFrustum());
@@ -126,6 +130,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
   //     glm::rotate(frameData.gameObjects[0].model, 0.00005f,
   //                 glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)));
 
+  m_skyboxRenderSystem->render(frameData);
   m_chunkRenderSystem->render(frameData);
 }
 

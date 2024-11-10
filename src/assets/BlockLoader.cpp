@@ -4,16 +4,15 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 
-BlockLoader::BlockLoader(std::string blocksPath) { loadBlocks(blocksPath); }
+BlockLoader::BlockLoader(std::string_view blocksPath) { loadBlocks(blocksPath); }
 
-std::vector<Block> BlockLoader::loadBlocks(std::string blocksPath) {
+std::vector<Block> BlockLoader::loadBlocks(std::string_view blocksPath) {
   std::vector<Block> blocks;
-  for (const auto &blockPath :
-       std::filesystem::directory_iterator(blocksPath)) {
+  for (const auto &blockPath : std::filesystem::directory_iterator(blocksPath)) {
     blocks.push_back(loadBlock(blockPath.path()));
   }
   if (blocks.empty()) {
-    throw std::runtime_error("Blocks not found in " + blocksPath + " path");
+    throw std::runtime_error("Blocks not found");
   }
 
   return blocks;
@@ -32,8 +31,7 @@ Block BlockLoader::loadBlock(std::filesystem::path filePath) {
   if (blockData.contains("emission")) {
     std::vector<int> emissionVec = blockData["emission"];
     if (emissionVec.size() != 3) {
-      throw std::runtime_error("Emission is incorrect in " +
-                               filePath.filename().string());
+      throw std::runtime_error("Emission is incorrect in " + filePath.filename().string());
     }
     for (size_t i = 0; i < emission.size(); i++) {
       emission[i] = static_cast<uint8_t>(emissionVec[i]);

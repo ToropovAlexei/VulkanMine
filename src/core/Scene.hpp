@@ -3,6 +3,7 @@
 #include "../input/Keyboard.hpp"
 #include "../input/Mouse.hpp"
 #include "../renderSystems/ChunkRenderSystem.hpp"
+#include "../renderSystems/SkyboxRenderSystem.hpp"
 #include "../renderer/backend/DescriptorsVk.hpp"
 #include "../renderer/backend/Renderer.hpp"
 #include "../world/BlocksManager.hpp"
@@ -13,6 +14,8 @@
 #include <memory>
 
 struct GlobalUBO {
+  glm::mat4 view;
+  glm::mat4 projection;
   glm::mat4 projectionView;
 };
 
@@ -32,6 +35,7 @@ private:
   Mouse *m_mouse;
   std::unique_ptr<DescriptorPoolVk> globalPool{};
   std::unique_ptr<ChunkRenderSystem> m_chunkRenderSystem;
+  std::unique_ptr<SkyboxRenderSystem> m_skyboxRenderSystem;
   std::unique_ptr<Camera> m_camera;
   PlayerController m_playerController;
   Renderer *m_renderer;

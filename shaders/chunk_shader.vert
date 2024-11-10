@@ -6,6 +6,8 @@ layout(location = 1) in float texIdx;
 layout(location = 0) out vec3 fragTexCoord;
 
 layout(set = 0, binding = 0) uniform GlobalUbo {
+    mat4 view;
+    mat4 projection;
     mat4 projectionView;
 } ubo;
 

@@ -7,7 +7,7 @@
 
 template <typename T> class Mesh {
 public:
-  Mesh(RenderDeviceVk *device, const std::vector<T> &vertices, const std::vector<uint32_t> &indices)
+  Mesh(RenderDeviceVk *device, const std::span<T> &vertices, const std::span<uint32_t> &indices)
       : m_device{device} {
     ZoneScoped;
     createVertexBuffers(vertices);
@@ -30,7 +30,7 @@ public:
   inline uint32_t getIndexCount() const noexcept { return m_indexCount; }
 
 private:
-  void createVertexBuffers(const std::vector<T> &vertices) {
+  void createVertexBuffers(const std::span<T> &vertices) {
     ZoneScoped;
     m_vertexCount = static_cast<uint32_t>(vertices.size());
     vk::DeviceSize bufferSize = sizeof(T) * m_vertexCount;
@@ -51,7 +51,7 @@ private:
 
     m_device->copyBuffer(stagingBuffer.getBuffer(), m_vertexBuffer->getBuffer(), bufferSize);
   };
-  void createIndexBuffer(const std::vector<uint32_t> &indices) {
+  void createIndexBuffer(const std::span<uint32_t> &indices) {
     ZoneScoped;
     m_indexCount = static_cast<uint32_t>(indices.size());
     vk::DeviceSize bufferSize = sizeof(uint32_t) * m_indexCount;

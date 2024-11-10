@@ -3,7 +3,6 @@
 #include "RenderDeviceVk.hpp"
 #include "ShaderModuleVk.hpp"
 #include <memory>
-#include <string>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -18,8 +17,7 @@ struct PipelineVkConfigInfo {
   std::vector<vk::DynamicState> dynamicStateEnables;
   vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
   std::vector<vk::VertexInputBindingDescription> vertexInputBindingDescriptions;
-  std::vector<vk::VertexInputAttributeDescription>
-      vertexInputAttributeDescriptions;
+  std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
   vk::PipelineLayout pipelineLayout = nullptr;
   vk::RenderPass renderPass = nullptr;
   uint32_t subpass = 0;
@@ -27,8 +25,7 @@ struct PipelineVkConfigInfo {
 
 class PipelineVk : NonCopyable {
 public:
-  PipelineVk(RenderDeviceVk *device, const std::string &vertFilePath,
-             const std::string &fragFilePath,
+  PipelineVk(RenderDeviceVk *device, std::string_view vertName, std::string_view fragName,
              const PipelineVkConfigInfo &configInfo);
 
   ~PipelineVk();
