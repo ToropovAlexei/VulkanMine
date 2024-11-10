@@ -17,12 +17,12 @@ struct GlobalUBO {
   glm::mat4 view;
   glm::mat4 projection;
   glm::mat4 projectionView;
+  int dayTime;
 };
 
 class Scene {
 public:
-  Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard,
-        Mouse *mouse);
+  Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse);
   ~Scene();
 
   void update(float dt);
@@ -46,4 +46,5 @@ private:
   BlocksManager m_blocksManager;
   ChunksManager m_chunksManager;
   FrameData m_prevFrameData;
+  int m_dayTime = 3000;
 };

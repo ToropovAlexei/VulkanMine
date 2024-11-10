@@ -64,6 +64,7 @@ Scene::~Scene() {
 
 void Scene::update(float dt) {
   ZoneScoped;
+  m_dayTime = (m_dayTime + 1) % 24000;
   if (m_camera->getAspectRatio() != m_renderer->getAspectRatio()) {
     m_camera->setProjection(75.0f, m_renderer->getAspectRatio(), 0.1f, 2000.0f);
   }
@@ -113,6 +114,7 @@ void Scene::render(vk::CommandBuffer commandBuffer) {
   m_ubo.projectionView = m_camera->getProjectionMatrix() * m_camera->getViewMatrix();
   m_ubo.view = m_camera->getViewMatrix();
   m_ubo.projection = m_camera->getProjectionMatrix();
+  m_ubo.dayTime = m_dayTime;
 
   auto frameIndex = m_renderer->getFrameIndex();
   m_chunksManager.updateFrustum(m_camera->getFrustum());
