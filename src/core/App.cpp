@@ -14,8 +14,8 @@ App::App() {
   m_renderer = std::make_unique<Renderer>(m_window.get(), m_renderDevice.get());
   m_keyboard = std::make_unique<Keyboard>(m_window->getGLFWwindow());
   m_mouse = std::make_unique<Mouse>(m_window->getGLFWwindow());
-  m_scene = std::make_unique<Scene>(m_renderDevice.get(), m_renderer.get(),
-                                    m_keyboard.get(), m_mouse.get());
+  m_scene =
+      std::make_unique<Scene>(m_renderDevice.get(), m_renderer.get(), m_keyboard.get(), m_mouse.get(), m_window.get());
   initImGUI();
 }
 
@@ -65,29 +65,25 @@ void App::run() {
 
 void App::initImGUI() {
   ZoneScoped;
-  vk::DescriptorPoolSize pool_sizes[] = {
-      {vk::DescriptorType::eSampler, 1000},
-      {vk::DescriptorType::eCombinedImageSampler, 1000},
-      {vk::DescriptorType::eSampledImage, 1000},
-      {vk::DescriptorType::eStorageImage, 1000},
-      {vk::DescriptorType::eUniformTexelBuffer, 1000},
-      {vk::DescriptorType::eStorageTexelBuffer, 1000},
-      {vk::DescriptorType::eUniformBuffer, 1000},
-      {vk::DescriptorType::eStorageBuffer, 1000},
-      {vk::DescriptorType::eUniformBufferDynamic, 1000},
-      {vk::DescriptorType::eStorageBufferDynamic, 1000},
-      {vk::DescriptorType::eInputAttachment, 1000}};
+  vk::DescriptorPoolSize pool_sizes[] = {{vk::DescriptorType::eSampler, 1000},
+                                         {vk::DescriptorType::eCombinedImageSampler, 1000},
+                                         {vk::DescriptorType::eSampledImage, 1000},
+                                         {vk::DescriptorType::eStorageImage, 1000},
+                                         {vk::DescriptorType::eUniformTexelBuffer, 1000},
+                                         {vk::DescriptorType::eStorageTexelBuffer, 1000},
+                                         {vk::DescriptorType::eUniformBuffer, 1000},
+                                         {vk::DescriptorType::eStorageBuffer, 1000},
+                                         {vk::DescriptorType::eUniformBufferDynamic, 1000},
+                                         {vk::DescriptorType::eStorageBufferDynamic, 1000},
+                                         {vk::DescriptorType::eInputAttachment, 1000}};
 
   vk::DescriptorPoolCreateInfo pool_info = {};
   pool_info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-  pool_info.maxSets =
-      1000 * static_cast<uint32_t>(sizeof(pool_sizes) / sizeof(pool_sizes[0]));
-  pool_info.poolSizeCount =
-      static_cast<uint32_t>(sizeof(pool_sizes) / sizeof(pool_sizes[0]));
+  pool_info.maxSets = 1000 * static_cast<uint32_t>(sizeof(pool_sizes) / sizeof(pool_sizes[0]));
+  pool_info.poolSizeCount = static_cast<uint32_t>(sizeof(pool_sizes) / sizeof(pool_sizes[0]));
   pool_info.pPoolSizes = pool_sizes;
 
-  m_imGuiDescriptorPool =
-      m_renderDevice->getDevice().createDescriptorPool(pool_info);
+  m_imGuiDescriptorPool = m_renderDevice->getDevice().createDescriptorPool(pool_info);
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -100,8 +96,7 @@ void App::initImGUI() {
   init_info.Instance = m_renderDevice->getInstance();
   init_info.PhysicalDevice = m_renderDevice->getPhysicalDevice();
   init_info.Device = m_renderDevice->getDevice();
-  init_info.QueueFamily =
-      m_renderDevice->findQueueFamilies().graphicsFamily.value();
+  init_info.QueueFamily = m_renderDevice->findQueueFamilies().graphicsFamily.value();
   init_info.Queue = m_renderDevice->getGraphicsQueue();
   init_info.PipelineCache = nullptr;
   init_info.DescriptorPool = m_imGuiDescriptorPool;

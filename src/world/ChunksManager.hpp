@@ -38,13 +38,12 @@ private:
   };
   inline size_t getChunkIdx(int x, int z) const noexcept {
     ZoneScoped;
-    return (x - m_playerController.getChunkX() + m_loadRadius) +
-           (z - m_playerController.getChunkZ() + m_loadRadius) * m_chunksVectorSideSize;
+    return (x - m_chunkLastMovedX + m_loadRadius) + (z - m_chunkLastMovedZ + m_loadRadius) * m_chunksVectorSideSize;
   }
   inline std::shared_ptr<Chunk> getChunkAt(int x, int z) noexcept {
     ZoneScoped;
-    if (x > m_playerController.getChunkX() + m_loadRadius || x < m_playerController.getChunkX() - m_loadRadius ||
-        z > m_playerController.getChunkZ() + m_loadRadius || z < m_playerController.getChunkZ() - m_loadRadius) {
+    if (x > m_chunkLastMovedX + m_loadRadius || x < m_chunkLastMovedX - m_loadRadius ||
+        z > m_chunkLastMovedZ + m_loadRadius || z < m_chunkLastMovedZ - m_loadRadius) {
       return nullptr;
     }
     return getChunkAt(getChunkIdx(x, z));

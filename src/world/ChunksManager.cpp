@@ -17,6 +17,8 @@ ChunksManager::ChunksManager(BlocksManager &blocksManager, TextureAtlas &texture
     : m_blocksManager{blocksManager}, m_textureAtlas{textureAtlas}, m_worldGenerator{blocksManager},
       m_playerController{playerController} {
   ZoneScoped;
+  m_chunkLastMovedX = m_playerController.getChunkX();
+  m_chunkLastMovedZ = m_playerController.getChunkZ();
   m_chunks.resize(static_cast<size_t>(m_chunksVectorSideSize * m_chunksVectorSideSize));
   m_thread = std::thread([this]() { asyncProcessChunks(); });
 }
@@ -44,19 +46,16 @@ void ChunksManager::loadChunks() {
 
   std::vector<std::tuple<int, int>> chunksToGenerate;
 
-  const int playerX = m_playerController.getChunkX();
-  const int playerZ = m_playerController.getChunkZ();
-
   if (m_chunks[m_centerIdx] == nullptr) {
-    chunksToGenerate.push_back({playerX, playerZ});
+    chunksToGenerate.push_back({m_chunkLastMovedX, m_chunkLastMovedZ});
   }
 
   int radius = 1;
   while (radius <= m_loadRadius && chunksToGenerate.size() < m_maxAsyncChunksLoading) {
-    int xStart = playerX - radius;
-    int xEnd = playerX + radius;
-    int zStart = playerZ - radius;
-    int zEnd = playerZ + radius;
+    int xStart = m_chunkLastMovedX - radius;
+    int xEnd = m_chunkLastMovedX + radius;
+    int zStart = m_chunkLastMovedZ - radius;
+    int zEnd = m_chunkLastMovedZ + radius;
 
     for (int x = xStart; x <= xEnd; x++) {
       if (chunksToGenerate.size() >= m_maxAsyncChunksLoading) {
@@ -189,10 +188,8 @@ void ChunksManager::insertChunk(std::shared_ptr<Chunk> chunk) {
   ZoneScoped;
   auto x = chunk->x();
   auto z = chunk->z();
-  const int playerX = m_playerController.getChunkX();
-  const int playerZ = m_playerController.getChunkZ();
-  if (x < playerX - m_loadRadius || x > playerX + m_loadRadius || z < playerZ - m_loadRadius ||
-      z > playerZ + m_loadRadius) {
+  if (x < m_chunkLastMovedX - m_loadRadius || x > m_chunkLastMovedX + m_loadRadius ||
+      z < m_chunkLastMovedZ - m_loadRadius || z > m_chunkLastMovedZ + m_loadRadius) {
     return;
   }
   auto idx = getChunkIdx(chunk->x(), chunk->z());

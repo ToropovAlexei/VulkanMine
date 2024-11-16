@@ -11,6 +11,7 @@
 #include "../world/PlayerController.hpp"
 #include "../world/TextureAtlas.hpp"
 #include "Camera.hpp"
+#include "Window.hpp"
 #include <memory>
 
 struct GlobalUBO {
@@ -22,7 +23,7 @@ struct GlobalUBO {
 
 class Scene {
 public:
-  Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse);
+  Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse, Window *window);
   ~Scene();
 
   void update(float dt);
@@ -33,6 +34,7 @@ private:
   RenderDeviceVk *m_device;
   Keyboard *m_keyboard;
   Mouse *m_mouse;
+  Window *m_window;
   std::unique_ptr<DescriptorPoolVk> globalPool{};
   std::unique_ptr<ChunkRenderSystem> m_chunkRenderSystem;
   std::unique_ptr<SkyboxRenderSystem> m_skyboxRenderSystem;

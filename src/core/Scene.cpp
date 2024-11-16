@@ -11,8 +11,8 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_structs.hpp>
 
-Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse)
-    : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse}, m_renderer{renderer},
+Scene::Scene(RenderDeviceVk *device, Renderer *renderer, Keyboard *keyboard, Mouse *mouse, Window *window)
+    : m_device{device}, m_keyboard{keyboard}, m_mouse{mouse}, m_renderer{renderer}, m_window{window},
       m_textureAtlas{device, getTexturesPath().string()}, m_blocksManager{getBlocksPath().string(), m_textureAtlas},
       m_playerController{{0, 5, 0}}, m_chunksManager{m_blocksManager, m_textureAtlas, m_playerController} {
   ZoneScoped;
@@ -87,6 +87,14 @@ void Scene::update(float dt) {
   }
   if (m_keyboard->isKeyPressed(GLFW_KEY_X)) {
     movementDirection += glm::vec3(0.0f, -1.0f, 0.0f);
+  }
+
+  if (m_keyboard->isKeyJustPressed(GLFW_KEY_C)) {
+    if (m_window->isCursorHidden()) {
+      m_window->showCursor();
+    } else {
+      m_window->hideCursor();
+    }
   }
 
   if (glm::dot(movementDirection, movementDirection) > std::numeric_limits<float>::epsilon()) {

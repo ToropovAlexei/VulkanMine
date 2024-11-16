@@ -160,6 +160,10 @@ void Chunk::generateVerticesAndIndices(std::shared_ptr<Chunk> front, std::shared
                                        std::shared_ptr<Chunk> left, std::shared_ptr<Chunk> right) {
   ZoneScoped;
   bool expected = false;
+  assert(!front || front->z() == z() - 1);
+  assert(!back || back->z() == z() + 1);
+  assert(!left || left->x() == x() - 1);
+  assert(!right || right->x() == x() + 1);
   if (!m_isLocked.compare_exchange_strong(expected, true)) {
     return;
   }
