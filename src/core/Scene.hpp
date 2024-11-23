@@ -18,6 +18,7 @@ struct GlobalUBO {
   glm::mat4 view;
   glm::mat4 projection;
   glm::mat4 projectionView;
+  glm::vec3 cameraPosition;
   float dayTime;
 };
 

@@ -7,6 +7,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
     mat4 view;
     mat4 projection;
     mat4 projectionView;
+    vec3 cameraPosition;
     float dayTime;
 } ubo;
 
@@ -107,6 +108,6 @@ vec3 getColor() {
 }
 
 void main() {
-	gl_Position = ubo.projection * vec4(pos, 1.0);
+	gl_Position = ubo.projectionView * vec4(pos + ubo.cameraPosition, 1.0);
 	outColor = vec4(getColor(), 1.0);
 }

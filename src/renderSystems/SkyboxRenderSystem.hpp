@@ -44,53 +44,54 @@ private:
   vk::PipelineLayout m_pipelineLayout;
   std::unique_ptr<Mesh<SkyboxVertex>> m_mesh;
 
+  static constexpr float SIZE = 1000.0f;
   std::array<SkyboxVertex, 24> m_vertices = {
       // Передняя грань
-      SkyboxVertex{{-1.0f, 1.0f, 1.0f}, 6},  // 0
-      SkyboxVertex{{1.0f, 1.0f, 1.0f}, 5},   // 1
-      SkyboxVertex{{1.0f, -1.0f, 1.0f}, 7},  // 2
-      SkyboxVertex{{-1.0f, -1.0f, 1.0f}, 4}, // 3
+      SkyboxVertex{{-SIZE, SIZE, SIZE}, 6},  // 0
+      SkyboxVertex{{SIZE, SIZE, SIZE}, 5},   // 1
+      SkyboxVertex{{SIZE, -SIZE, SIZE}, 7},  // 2
+      SkyboxVertex{{-SIZE, -SIZE, SIZE}, 4}, // 3
 
       // Задняя грань
-      SkyboxVertex{{-1.0f, 1.0f, -1.0f}, 1},  // 4
-      SkyboxVertex{{1.0f, 1.0f, -1.0f}, 2},   // 5
-      SkyboxVertex{{1.0f, -1.0f, -1.0f}, 3},  // 6
-      SkyboxVertex{{-1.0f, -1.0f, -1.0f}, 0}, // 7
+      SkyboxVertex{{-SIZE, SIZE, -SIZE}, 1},  // 4
+      SkyboxVertex{{SIZE, SIZE, -SIZE}, 2},   // 5
+      SkyboxVertex{{SIZE, -SIZE, -SIZE}, 3},  // 6
+      SkyboxVertex{{-SIZE, -SIZE, -SIZE}, 0}, // 7
 
       // Левая грань
-      SkyboxVertex{{-1.0f, 1.0f, 1.0f}, 6},   // 8
-      SkyboxVertex{{-1.0f, -1.0f, 1.0f}, 4},  // 9
-      SkyboxVertex{{-1.0f, 1.0f, -1.0f}, 1},  // 10
-      SkyboxVertex{{-1.0f, -1.0f, -1.0f}, 0}, // 11
+      SkyboxVertex{{-SIZE, SIZE, SIZE}, 6},   // 8
+      SkyboxVertex{{-SIZE, -SIZE, SIZE}, 4},  // 9
+      SkyboxVertex{{-SIZE, SIZE, -SIZE}, 1},  // 10
+      SkyboxVertex{{-SIZE, -SIZE, -SIZE}, 0}, // 11
 
       // Правая грань
-      SkyboxVertex{{1.0f, 1.0f, 1.0f}, 5},   // 12
-      SkyboxVertex{{1.0f, -1.0f, 1.0f}, 7},  // 13
-      SkyboxVertex{{1.0f, 1.0f, -1.0f}, 2},  // 14
-      SkyboxVertex{{1.0f, -1.0f, -1.0f}, 3}, // 15
+      SkyboxVertex{{SIZE, SIZE, SIZE}, 5},   // 12
+      SkyboxVertex{{SIZE, -SIZE, SIZE}, 7},  // 13
+      SkyboxVertex{{SIZE, SIZE, -SIZE}, 2},  // 14
+      SkyboxVertex{{SIZE, -SIZE, -SIZE}, 3}, // 15
 
       // Верхняя грань
-      SkyboxVertex{{-1.0f, 1.0f, 1.0f}, 6},  // 16
-      SkyboxVertex{{1.0f, 1.0f, 1.0f}, 5},   // 17
-      SkyboxVertex{{-1.0f, 1.0f, -1.0f}, 1}, // 18
-      SkyboxVertex{{1.0f, 1.0f, -1.0f}, 2},  // 19
+      SkyboxVertex{{-SIZE, SIZE, SIZE}, 6},  // 16
+      SkyboxVertex{{SIZE, SIZE, SIZE}, 5},   // 17
+      SkyboxVertex{{-SIZE, SIZE, -SIZE}, 1}, // 18
+      SkyboxVertex{{SIZE, SIZE, -SIZE}, 2},  // 19
 
       // Нижняя грань
-      SkyboxVertex{{-1.0f, -1.0f, 1.0f}, 4},  // 20
-      SkyboxVertex{{1.0f, -1.0f, 1.0f}, 7},   // 21
-      SkyboxVertex{{-1.0f, -1.0f, -1.0f}, 0}, // 22
-      SkyboxVertex{{1.0f, -1.0f, -1.0f}, 3},  // 23
+      SkyboxVertex{{-SIZE, -SIZE, SIZE}, 4},  // 20
+      SkyboxVertex{{SIZE, -SIZE, SIZE}, 7},   // 21
+      SkyboxVertex{{-SIZE, -SIZE, -SIZE}, 0}, // 22
+      SkyboxVertex{{SIZE, -SIZE, -SIZE}, 3},  // 23
   };
 
   std::array<uint32_t, 36> m_indices = {
       // Передняя грань
-      0, 1, 2, 0, 2, 3,
+      1, 0, 2, 2, 0, 3,
 
       // Задняя грань
       4, 5, 6, 4, 6, 7,
 
       // Левая грань
-      8, 9, 10, 8, 10, 11,
+      9, 8, 10, 11, 9, 10,
 
       // Правая грань
       12, 13, 15, 12, 15, 14,
@@ -99,5 +100,5 @@ private:
       16, 17, 19, 16, 19, 18,
 
       // Нижняя грань
-      20, 21, 23, 20, 23, 22};
+      21, 20, 23, 23, 20, 22};
 };
