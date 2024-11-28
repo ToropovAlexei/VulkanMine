@@ -39,6 +39,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
+    tinygltf
+    GIT_REPOSITORY https://github.com/syoyo/tinygltf.git
+    GIT_TAG release
+    GIT_SHALLOW ON
+)
+
+FetchContent_Declare(
     FastNoise2
     GIT_REPOSITORY https://github.com/Auburn/FastNoise2.git
     GIT_TAG master
@@ -85,7 +92,7 @@ include_directories(${Vulkan_INCLUDE_DIRS})
 # TODO REMOVE LIBS/VulkanMemoryAllocator
 # add_subdirectory(libs/VulkanMemoryAllocator)
 
-FetchContent_MakeAvailable(glm glfw stb tracy nlohmann_json FastNoise2 VulkanMemoryAllocator)
+FetchContent_MakeAvailable(glm glfw stb tracy nlohmann_json FastNoise2 VulkanMemoryAllocator tinygltf)
 
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
@@ -96,7 +103,7 @@ add_definitions(-DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLFW_INCLUDE
 
 # find_package(VulkanMemoryAllocator CONFIG REQUIRED PATHS /usr/include/vk_mem_alloc.h)
 find_program(GLSL_VALIDATOR NAMES glslangValidator)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator nlohmann_json::nlohmann_json FastNoise2) # TracyClient
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm::glm ${Vulkan_LIBRARIES} GPUOpen::VulkanMemoryAllocator nlohmann_json::nlohmann_json FastNoise2 tinygltf) # TracyClient
 target_include_directories(${PROJECT_NAME} PRIVATE ${stb_SOURCE_DIR} ${IMGUI_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE STB_IMAGE_IMPLEMENTATION STB_IMAGE_RESIZE_IMPLEMENTATION VULKAN_HPP_NO_CONSTRUCTORS)
 target_link_libraries (${PROJECT_NAME} PUBLIC Tracy::TracyClient)
