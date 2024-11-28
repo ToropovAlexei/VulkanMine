@@ -15,7 +15,7 @@ App::App() {
   m_keyboard = std::make_unique<Keyboard>(m_window->getGLFWwindow());
   m_mouse = std::make_unique<Mouse>(m_window->getGLFWwindow());
   m_scene =
-      std::make_unique<Scene>(m_renderDevice.get(), m_renderer.get(), m_keyboard.get(), m_mouse.get(), m_window.get());
+      std::make_unique<TestScene>(m_renderDevice.get(), m_renderer.get(), m_keyboard.get(), m_mouse.get(), m_window.get());
   initImGUI();
 }
 
