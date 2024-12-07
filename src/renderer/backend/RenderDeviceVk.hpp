@@ -86,5 +86,5 @@ private:
   vk::CommandPool m_commandPool;
 
   vk::DebugUtilsMessengerEXT m_debugMessenger;
-  vk::DispatchLoaderDynamic dldi;
+  vk::detail::DispatchLoaderDynamic dldi;
 };

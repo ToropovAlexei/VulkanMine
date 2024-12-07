@@ -104,7 +104,7 @@ void RenderDeviceVk::setupDebugMessenger() {
   vk::DebugUtilsMessengerCreateInfoEXT createInfo;
   populateDebugMessengerCreateInfo(createInfo);
 
-  dldi = vk::DispatchLoaderDynamic(m_instance, vkGetInstanceProcAddr);
+  dldi = vk::detail::DispatchLoaderDynamic(m_instance, vkGetInstanceProcAddr);
 
   m_debugMessenger = m_instance.createDebugUtilsMessengerEXT(createInfo, nullptr, dldi);
 #endif
@@ -442,8 +442,9 @@ void RenderDeviceVk::endSingleTimeCommands(vk::CommandBuffer commandBuffer) {
   m_device.freeCommandBuffers(m_commandPool, commandBuffer);
 }
 
-void RenderDeviceVk::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage,VmaAllocationCreateFlags flags,
-                                  vk::Buffer &buffer, VmaAllocation &allocation, VmaAllocationInfo &allocInfo) {
+void RenderDeviceVk::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, VmaMemoryUsage memoryUsage,
+                                  VmaAllocationCreateFlags flags, vk::Buffer &buffer, VmaAllocation &allocation,
+                                  VmaAllocationInfo &allocInfo) {
   vk::BufferCreateInfo bufferInfo = {.size = size, .usage = usage, .sharingMode = vk::SharingMode::eExclusive};
 
   VmaAllocationCreateInfo allocCreateInfo{};
